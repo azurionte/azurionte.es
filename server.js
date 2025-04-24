@@ -1,6 +1,7 @@
 // server.js
 
 const express    = require('express');
+const cors    	= require('cors');
 const session    = require('express-session');
 const bcrypt     = require('bcrypt');
 const fs         = require('fs');
@@ -27,6 +28,7 @@ app.get('/', (req, res, next) => {
 
 // — Finally serve public files, index.html, etc. —
 app.use(express.static(__dirname));
+app.use(cors({ origin: 'https://azurionte.es' }));
 
 // — Middleware to parse bodies & sessions —
 app.use(express.json());
