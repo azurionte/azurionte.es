@@ -12,21 +12,17 @@ const DB   = path.join(__dirname, 'orders.json');
 
 // — Admin credentials —
 const ADMIN_USER      = 'daromax';
-// Hashed version of 'Azurion.01.-'
 const ADMIN_PASS_HASH = bcrypt.hashSync('Azurion.01.-', 10);
 
-// — Middleware —
+// — Middleware to parse bodies & sessions —
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: 'replace-this-with-a-secure-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }  // set to true if HTTPS-only
+  cookie: { secure: false }  // set to true if you serve over HTTPS
 }));
-
-// Serve all static files (HTML, CSS, JS, assets)
-app.use(express.static(__dirname));
 
 // — Auth guard for admin pages & protected API —
 function requireAuth(req, res, next) {
@@ -34,7 +30,7 @@ function requireAuth(req, res, next) {
   res.redirect('/login.html');
 }
 
-// — Login / Logout —
+// — Login / Logout routes —
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (
@@ -65,21 +61,21 @@ function writeOrders(data) {
   fs.writeFileSync(DB, JSON.stringify(data, null, 2));
 }
 
-// — Public API route to create orders —
+// — Public route to create an order —
 app.post('/api/orders', (req, res) => {
   const orders   = readOrders();
   const newOrder = {
     id:        Date.now(),
     createdAt: new Date().toISOString(),
     fulfilled: false,
-    ...req.body        // expects { items: [...], customer: {...}, etc. }
+    ...req.body      // expects { items: [...], customer: {...}, etc. }
   };
   orders.push(newOrder);
   writeOrders(orders);
   res.status(201).json(newOrder);
 });
 
-// — Protected API routes (admin only) —
+// — Protected API endpoints (admin only) —
 app.get('/api/orders', requireAuth, (req, res) => {
   res.json(readOrders());
 });
@@ -93,7 +89,7 @@ app.post('/api/orders/:id/fulfill', requireAuth, (req, res) => {
   res.json(orders[idx]);
 });
 
-// — Protect admin HTML pages —
+// — Protected admin pages —
 app.get('/admin.html', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
@@ -101,7 +97,10 @@ app.get('/order.html', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'order.html'));
 });
 
-// — Start the server —
+// — Now serve everything else (public site, login page, static assets) —
+app.use(express.static(__dirname));
+
+// — Start server —
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
