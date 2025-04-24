@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Order Details • Azurionte</title>
+  <meta name="description" content="Order details and fulfillment for Azurionte merch." />
+
+  <!-- Shared CSS -->
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+
+  <!-- Page-specific CSS -->
+  <style>
+    main.content { max-width: 800px; }
+    .order-meta p {
+      margin: .25rem 0;
+    }
+    .checkout-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    .checkout-table th,
+    .checkout-table td {
+      padding: .75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .checkout-table th { text-align: left; background: rgba(255,255,255,0.1); }
+    .actions {
+      display: flex; gap: 1rem; margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar & Cart placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- Logo -->
+  <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Vector.png"
+       alt="Azurionte Logo"
+       class="logo" />
+
+  <main id="main" class="content">
+    <h1>Order #<span id="order-id">—</span></h1>
+
+    <section class="order-meta">
+      <p><strong>Date:</strong> <span id="order-date">—</span></p>
+      <p><strong>Fulfilled:</strong> <span id="order-fulfilled">—</span></p>
+    </section>
+
+    <section>
+      <h2>Items</h2>
+      <table class="checkout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="items-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+      <p style="text-align:right; font-weight:bold;">
+        Subtotal: <span id="order-subtotal">$0.00</span>
+      </p>
+    </section>
+
+    <section id="customer-section" style="margin-top:2rem;">
+      <h2>Customer Info</h2>
+      <div id="customer-info">
+        <!-- Populated by JS if present -->
+      </div>
+    </section>
+
+    <div class="actions">
+      <button id="fulfill-btn" class="btn">Mark as Fulfilled</button>
+      <a href="/admin.html" class="btn">← Back to Orders</a>
+    </div>
+  </main>
+
+  <noscript>
+    <p style="color:#fff;background:#000;padding:1rem;">
+      Please enable JavaScript to view and manage this order.
+    </p>
+  </noscript>
+
+  <!-- Shared JS (navbar + cart) -->
+  <script src="/assets/js/navbar.js"></script>
+
+  <!-- Order-page logic -->
+  <script>
+    (async function(){
+      // Helpers
+      const formatPrice = cents => '$' + (cents/100).toFixed(2);
+      const params = new URLSearchParams(location.search);
+      const orderId = parseInt(params.get('id'), 10);
+      if (!orderId) {
+        alert('No order ID specified');
+        return;
+      }
+
+      // Elements
+      document.getElementById('order-id').textContent = orderId;
+      const dateEl        = document.getElementById('order-date');
+      const fulfilledEl   = document.getElementById('order-fulfilled');
+      const itemsBody     = document.getElementById('items-body');
+      const subtotalEl    = document.getElementById('order-subtotal');
+      const customerSec   = document.getElementById('customer-section');
+      const customerInfo  = document.getElementById('customer-info');
+      const fulfillBtn    = document.getElementById('fulfill-btn');
+
+      // 1) Fetch all orders and find ours
+      const resp = await fetch('/api/orders');
+      const orders = await resp.json();
+      const order  = orders.find(o => o.id === orderId);
+      if (!order) {
+        alert('Order not found');
+        return;
+      }
+
+      // 2) Render meta
+      dateEl.textContent      = new Date(order.createdAt).toLocaleString();
+      fulfilledEl.textContent = order.fulfilled ? '✅' : '❌';
+      if (order.fulfilled) fulfillBtn.disabled = true;
+
+      // 3) Render items
+      let sub = 0;
+      order.items.forEach(item => {
+        sub += item.price * item.qty;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.name}</td>
+          <td>${formatPrice(item.price)}</td>
+          <td>${item.qty}</td>
+          <td>${formatPrice(item.price * item.qty)}</td>
+        `;
+        itemsBody.appendChild(tr);
+      });
+      subtotalEl.textContent = formatPrice(sub);
+
+      // 4) Render customer info if available
+      if (order.customer) {
+        for (const [key, val] of Object.entries(order.customer)) {
+          const p = document.createElement('p');
+          p.innerHTML = `<strong>${key.charAt(0).toUpperCase()+key.slice(1)}:</strong> ${val}`;
+          customerInfo.appendChild(p);
+        }
+      } else {
+        customerSec.style.display = 'none';
+      }
+
+      // 5) Fulfill action
+      fulfillBtn.addEventListener('click', async () => {
+        if (!confirm('Mark this order as fulfilled?')) return;
+        const res = await fetch(`/api/orders/${orderId}/fulfill`, { method: 'POST' });
+        if (res.ok) {
+          fulfilledEl.textContent = '✅';
+          fulfillBtn.disabled     = true;
+        } else {
+          alert('Failed to mark fulfilled');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

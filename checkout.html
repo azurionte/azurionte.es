@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta & Performance -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://azurionte.es/checkout.html" />
+  <meta name="theme-color" content="#892cdc" />
+
+  <title>Checkout – Azurionte</title>
+  <meta name="description" content="Review your cart and place your order for Azurionte merch and CD." />
+
+  <!-- Favicons -->
+  <link rel="icon" href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-16x16.png" />
+
+  <!-- Shared CSS -->
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+
+  <!-- Page-specific CSS -->
+  <style>
+    .checkout-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+    .checkout-table th,
+    .checkout-table td {
+      padding: .75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .checkout-table th { text-align: left; }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .qty-controls button {
+      background: none;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: .25rem .5rem;
+      border-radius: .25rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .qty-controls button:hover { background: rgba(255,255,255,0.2); }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #ff6961;
+      cursor: pointer;
+      transition: text-decoration .2s;
+    }
+    .remove-btn:hover { text-decoration: underline; }
+    #place-order {
+      display: block;
+      padding: .75rem 1.5rem;
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar & Cart placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- Logo -->
+  <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Vector.png"
+       alt="Azurionte Logo" class="logo" />
+
+  <!-- Checkout content -->
+  <main id="main" class="content">
+    <h1>Checkout</h1>
+    <p>Please review your items, adjust quantities, or remove items before placing your order.</p>
+
+    <table class="checkout-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Price</th>
+          <th>Qty</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="checkout-items">
+        <!-- JS will populate rows here -->
+      </tbody>
+    </table>
+
+    <div class="subtotal" style="text-align: right; font-weight: bold; margin-bottom: 1rem;">
+      Subtotal: <span id="checkout-subtotal">$0.00</span>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+      <a href="/store.html"
+         class="buy-button"
+         style="background: transparent; color: #fff; border: 1px solid #fff; padding: .5rem 1rem; border-radius: 6px;">
+        ← Continue Shopping
+      </a>
+      <button id="place-order" class="buy-button">Place Order</button>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Azurionte. All rights reserved.</p>
+    <div class="record-label">
+      <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/BlueHound%20Records%20logo.png"
+           alt="Bluehound Records Logo" loading="lazy" />
+      <span>Released under <strong>Bluehound Records</strong></span>
+    </div>
+  </footer>
+
+  <noscript>
+    <p style="color:#fff;background:#000;padding:1rem;">
+      For the best experience, please enable JavaScript.
+    </p>
+  </noscript>
+
+  <!-- Shared JavaScript -->
+  <script src="/assets/js/navbar.js"></script>
+
+  <!-- Checkout page logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const formatPrice = cents => '$' + (cents/100).toFixed(2);
+      let cart = JSON.parse(localStorage.getItem('azCart') || '[]');
+
+      const tbody      = document.getElementById('checkout-items');
+      const subtotalEl = document.getElementById('checkout-subtotal');
+      const placeBtn   = document.getElementById('place-order');
+
+      function saveCart() {
+        localStorage.setItem('azCart', JSON.stringify(cart));
+      }
+
+      function updateBadge() {
+        const total = cart.reduce((sum, i) => sum + i.qty, 0);
+        document.querySelectorAll('.cart-count').forEach(el => el.textContent = total);
+      }
+
+      function updateUI() {
+        tbody.innerHTML = '';
+        let sub = 0;
+        if (cart.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" style="text-align:center;opacity:.6;">Your cart is empty.</td></tr>';
+        } else {
+          cart.forEach((item, i) => {
+            sub += item.price * item.qty;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.name}</td>
+              <td>${formatPrice(item.price)}</td>
+              <td>
+                <div class="qty-controls">
+                  <button class="decrease" data-index="${i}">−</button>
+                  <span>${item.qty}</span>
+                  <button class="increase" data-index="${i}">+</button>
+                </div>
+              </td>
+              <td>${formatPrice(item.price * item.qty)}</td>
+              <td><button class="remove-btn" data-index="${i}">Remove</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+        subtotalEl.textContent = formatPrice(sub);
+        updateBadge();
+      }
+
+      tbody.addEventListener('click', e => {
+        const idx = e.target.dataset.index;
+        if (e.target.classList.contains('increase')) {
+          cart[idx].qty++;
+        }
+        if (e.target.classList.contains('decrease')) {
+          if (cart[idx].qty > 1) cart[idx].qty--;
+        }
+        if (e.target.classList.contains('remove-btn')) {
+          cart.splice(idx, 1);
+        }
+        saveCart();
+        updateUI();
+      });
+
+      placeBtn.addEventListener('click', () => {
+        if (!cart.length) {
+          alert('Your cart is empty.');
+          return;
+        }
+        // TODO: integrate payment or order confirmation
+        window.location.href = '/thank-you.html';
+      });
+
+      updateUI();
+    });
+  </script>
+</body>
+</html>

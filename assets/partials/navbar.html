@@ -1,0 +1,50 @@
+<!-- assets/partials/navbar.html -->
+<a href="#main" class="skip-link">Skip to content</a>
+
+<!-- Mobile hamburger toggle -->
+<div class="hamburger" id="menuBtn" role="button" tabindex="0" aria-label="Open menu">
+  <span></span><span></span><span></span>
+</div>
+
+<!-- Mobile sidebar menu -->
+<aside class="sidebar" id="sidebar">
+  <a href="/">Home</a>
+  <a href="/behind-the-music.html">Behind the Music</a>
+  <a href="/store.html">Store</a>
+  <a href="/press.html">Press</a>
+  <a href="/contact.html">Contact</a>
+  <button id="cart-btn-mobile" class="cart-btn" aria-label="View cart">
+    🛒<span class="cart-count">0</span>
+  </button>
+</aside>
+
+<!-- Dimmed overlay (for both menu and cart) -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Slide-out Cart Panel -->
+<aside id="cart-panel">
+  <header>
+    <h2>Your Cart</h2>
+    <button id="cart-close" aria-label="Close cart">×</button>
+  </header>
+  <ul class="cart-items">
+    <li class="empty">Your cart is empty.</li>
+  </ul>
+  <footer>
+    <div class="subtotal">Subtotal: $0.00</div>
+    <button id="checkout-btn">Checkout</button>
+  </footer>
+</aside>
+<div id="cart-overlay"></div>
+
+<!-- Desktop top-nav -->
+<nav class="top-nav">
+  <a href="/">Home</a>
+  <a href="/behind-the-music.html">Behind the Music</a>
+  <a href="/store.html">Store</a>
+  <a href="/press.html">Press</a>
+  <a href="/contact.html">Contact</a>
+  <button id="cart-btn" class="cart-btn" aria-label="View cart">
+    🛒<span class="cart-count">0</span>
+  </button>
+</nav>

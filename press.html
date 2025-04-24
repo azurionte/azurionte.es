@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Meta & Performance -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://azurionte.es/press.html" />
+  <meta name="theme-color" content="#892cdc" />
+
+  <title>Press – Azurionte</title>
+  <meta name="description" content="Press kit para el nuevo álbum Lost &amp; Found de Azurionte: bio, assets y contacto." />
+
+  <!-- Favicons -->
+  <link rel="icon" href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-16x16.png" />
+
+  <!-- Shared CSS -->
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+  <!-- Navbar & Cart placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- Logo -->
+  <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Vector.png"
+       alt="Azurionte Logo" class="logo" />
+
+  <!-- Main content -->
+  <main id="main" class="content">
+    <h1>Press Kit</h1>
+    <p>
+      <strong>Azurionte</strong> combina retro-pop, funk y synth en un viaje sonoro emocional. 
+      “Lost &amp; Found” (5 de mayo de 2025) abarca 9 temas divididos en dos capítulos.
+    </p>
+
+    <div class="asset">
+      <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Lost%20and%20found%20album%20cover.jpg"
+           alt="Portada de Lost &amp; Found" />
+      <a href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Lost%20and%20found%20album%20cover.jpg"
+         download>
+        Descargar portada
+      </a>
+    </div>
+
+    <div class="asset">
+      <a href="/assets/Azurionte_LostAndFound_PressRelease.pdf" download>
+        Descargar Press Release (PDF)
+      </a>
+    </div>
+
+    <div class="quote">
+      «“Hit it Kiss Me” es una canción pegadiza de disco pop, inspirada en el coqueteo de la vida nocturna en Barcelona.»
+    </div>
+
+    <section class="polaroid-gallery" id="gallery">
+      <div class="polaroid">
+        <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/WhatsApp%20Image%202025-03-14%20at%2001.05.41_1c333a1a.png"
+             alt="Live shot 1" />
+      </div>
+      <div class="polaroid">
+        <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/photo_2025-03-07_19-23-23.jpg"
+             alt="Behind the scenes" />
+      </div>
+      <div class="polaroid">
+        <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Azurionte.jpg"
+             alt="Azurionte portrait" />
+      </div>
+    </section>
+
+    <div class="platform-links">
+      <a href="https://open.spotify.com/artist/1z6R667iyXXe0JUGeL3xUO" target="_blank">
+        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg" alt="Spotify" />
+      </a>
+      <a href="https://music.apple.com/us/artist/azurionte/1754196585" target="_blank">
+        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/applemusic.svg" alt="Apple Music" />
+      </a>
+      <a href="https://music.amazon.com/artists/B0D858YJJ8/azurionte" target="_blank">
+        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/amazon.svg" alt="Amazon Music" />
+      </a>
+      <a href="https://www.youtube.com/@azurionte" target="_blank">
+        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube" />
+      </a>
+      <a href="https://music.youtube.com/channel/UCTh2QxR9szPYVTEFesJzTQg" target="_blank">
+        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtubemusic.svg" alt="YouTube Music" />
+      </a>
+    </div>
+
+    <p style="margin-top:2rem; text-align:center;">
+      Para entrevistas o más assets, <a href="/contact.html">contáctanos</a>.
+    </p>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Azurionte. All rights reserved.</p>
+    <div class="record-label">
+      <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/BlueHound%20Records%20logo.png"
+           alt="Bluehound Records Logo" loading="lazy" />
+      <span>Released under <strong>Bluehound Records</strong></span>
+    </div>
+  </footer>
+
+  <noscript>
+    <p style="color:#fff;background:#000;padding:1rem;">
+      Para mejor experiencia, habilita JavaScript.
+    </p>
+  </noscript>
+
+  <!-- Shared JavaScript -->
+  <script src="/assets/js/navbar.js"></script>
+  <script>
+    // Scroll-trigger for polaroids
+    const gallery = document.getElementById('gallery');
+    if (gallery) {
+      const obs = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) {
+          gallery.classList.add('in-view');
+          obs.unobserve(gallery);
+        }
+      }, { threshold: 0.3 });
+      obs.observe(gallery);
+    }
+  </script>
+</body>
+</html>
