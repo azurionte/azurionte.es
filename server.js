@@ -14,6 +14,20 @@ const DB   = path.join(__dirname, 'orders.json');
 const ADMIN_USER      = 'daromax';
 const ADMIN_PASS_HASH = bcrypt.hashSync('Azurion.01.-', 10);
 
+app.get('/', (req, res, next) => {
+  if (req.hostname === 'admin.azurionte.es') {
+    if (req.session && req.session.authenticated) {
+      return res.redirect('/admin.html');
+    } else {
+      return res.redirect('/login.html');
+    }
+  }
+  next();
+});
+
+// — Finally serve public files, index.html, etc. —
+app.use(express.static(__dirname));
+
 // — Middleware to parse bodies & sessions —
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -96,6 +110,20 @@ app.get('/admin.html', requireAuth, (req, res) => {
 app.get('/order.html', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'order.html'));
 });
+
+// If they hit the root on the admin subdomain, send them into the auth flow
+app.get('/', (req, res, next) => {
+  // adjust this to exactly match your subdomain
+  if (req.hostname === 'admin.azurionte.es') {
+    if (req.session && req.session.authenticated) {
+      return res.redirect('/admin.html');
+    } else {
+      return res.redirect('/login.html');
+    }
+  }
+  next(); // not admin subdomain, fall back to static index.html
+});
+
 
 // — Now serve everything else (public site, login page, static assets) —
 app.use(express.static(__dirname));
