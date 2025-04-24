@@ -229,7 +229,7 @@
           country: form.country.value.trim()
         };
         try {
-          const resp = await fetch('/api/orders', {
+          const resp = await fetch('https://admin.azurionte.es/api/orders', {
             method: 'POST',
             headers: { 'Content-Type':'application/json' },
             body: JSON.stringify({ items: cart, customer })
