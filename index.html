@@ -13,8 +13,10 @@
 
   <!-- Favicons -->
   <link rel="icon" href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon.ico" />
-  <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-16x16.png" />
 
   <!-- Open Graph & Twitter -->
   <meta property="og:type"        content="website" />
@@ -49,10 +51,41 @@
   <link rel="stylesheet" href="/assets/css/styles.css" />
 </head>
 <body>
-  <!-- Navbar & Cart will be injected here -->
-  <div id="navbar-placeholder"></div>
+  <a href="#main" class="skip-link">Skip to content</a>
 
-  <!-- Logo -->
+  <!-- Hamburger (mobile) -->
+  <div class="hamburger" id="menuBtn" aria-label="Open menu" role="button" tabindex="0">
+    <span></span><span></span><span></span>
+  </div>
+
+  <!-- Sidebar menu -->
+  <aside class="sidebar" id="sidebar">
+    <a href="/">Home</a>
+    <a href="/behind-the-music.html">Behind the Music</a>
+    <a href="/store.html">Store</a>
+    <a href="/press.html">Press</a>
+    <a href="/contact.html">Contact</a>
+    <button id="cart-btn-mobile" class="cart-btn" aria-label="View cart">
+      🛒<span class="cart-count">0</span>
+    </button>
+  </aside>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Desktop nav & cart -->
+  <nav class="top-nav">
+    <a href="/">Home</a>
+    <a href="/behind-the-music.html">Behind the Music</a>
+    <a href="/store.html">Store</a>
+    <a href="/press.html">Press</a>
+    <a href="/contact.html">Contact</a>
+    <button id="cart-btn" class="cart-btn" aria-label="View cart">
+      🛒<span class="cart-count">0</span>
+    </button>
+  </nav>
+
+  <!-- Site logo -->
   <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Vector.png"
        alt="Azurionte Logo" class="logo" />
 
@@ -80,7 +113,10 @@
       </div>
     </div>
 
-    <a href="/store.html" class="buy-button">💿 Purchase the CD</a>
+    <!-- Center the button by wrapping it in a text-align:center container -->
+    <div style="text-align: center; margin-top: 1.5rem;">
+      <a href="/store.html" class="buy-button">💿 Purchase the CD</a>
+    </div>
 
     <div class="platform-links">
       <a href="https://open.spotify.com/artist/1z6R667iyXXe0JUGeL3xUO" target="_blank">
@@ -117,7 +153,23 @@
     </p>
   </noscript>
 
-  <!-- Shared JavaScript -->
+  <!-- Shared JS: nav + cart -->
   <script src="/assets/js/navbar.js"></script>
+
+  <!-- CD flip logic (if still inline) -->
+  <script>
+    const mockup = document.querySelector('.cd-mockup');
+    function flipCD() {
+      document.querySelector('.cd-case').classList.toggle('flipped');
+    }
+    if (mockup) {
+      if (window.innerWidth > 768) {
+        mockup.addEventListener('mouseenter', () => mockup.querySelector('.cd-case').classList.add('flipped'));
+        mockup.addEventListener('mouseleave', () => mockup.querySelector('.cd-case').classList.remove('flipped'));
+      } else {
+        mockup.addEventListener('click', flipCD);
+      }
+    }
+  </script>
 </body>
 </html>
