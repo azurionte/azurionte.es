@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta & Performance -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://azurionte.es/thank-you.html" />
+  <meta name="theme-color" content="#892cdc" />
+
+  <title>Thank You – Azurionte</title>
+  <meta name="description" content="Thanks for your order! We’ll be in touch soon." />
+
+  <!-- Favicons -->
+  <link rel="icon" href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="https://raw.githubusercontent.com/azurionte/azurionte.es/main/favicon-16x16.png" />
+
+  <!-- Shared CSS -->
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body>
+  <!-- Navbar injection point -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- Site logo -->
+  <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/Vector.png"
+       alt="Azurionte Logo" class="logo" />
+
+  <!-- Main confirmation content -->
+  <main class="content">
+    <h1>Thank You!</h1>
+    <p>Your order <strong id="order-number">#—</strong> has been received 🎉</p>
+    <p>We’ll send you an email confirmation shortly.</p>
+    <a href="/store.html" class="buy-button">Continue Shopping</a>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Azurionte. All rights reserved.</p>
+    <div class="record-label">
+      <img src="https://raw.githubusercontent.com/azurionte/azurionte.es/main/BlueHound%20Records%20logo.png"
+           alt="Bluehound Records Logo" loading="lazy" />
+      <span>Released under <strong>Bluehound Records</strong></span>
+    </div>
+  </footer>
+
+  <noscript>
+    <p style="color:#fff;background:#000;padding:1rem;">
+      Please enable JavaScript for the best experience.
+    </p>
+  </noscript>
+
+  <!-- Navbar & Cart script -->
+  <script src="/assets/js/navbar.js"></script>
+
+  <!-- Read & display order number from URL -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const params  = new URLSearchParams(window.location.search);
+      const orderId = params.get('order');
+      if (orderId) {
+        document.getElementById('order-number').textContent = '#' + orderId;
+      }
+    });
+  </script>
+</body>
+</html>
