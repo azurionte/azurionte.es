@@ -14,11 +14,7 @@
   --topbar-min:170px; --topbar-avatar:120px;
   --rail-width:300px;
   --shadow:0 8px 28px rgba(0,0,0,.18);
-
-  /* skills sizing (main canvas) */
-  --skillW: 160px;
-  --skillGap: 12px;
-  --star: 16px;
+  --skillW: 160px; --skillGap: 12px; --star: 16px;
 }
 
 /* themes */
@@ -28,14 +24,14 @@ body[data-theme="city"]{ --accent:#34d399; --accent2:#9ca3af }
 body[data-theme="magentaPurple"]{ --accent:#9333ea; --accent2:#ec4899 }
 body[data-theme="magentaPink"]{ --accent:#f97316; --accent2:#ec4899 }
 body[data-theme="blueGreen"]{ --accent:#2ecc71; --accent2:#22c1c3 }
-/* black & gray */
+/* black & gray theme */
 body[data-theme="mono"]{ --accent:#374151; --accent2:#9ca3af }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr}
 
-/* ───────── NAV ───────── */
+/* NAV */
 .nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
 .brand{font-weight:800}
 .menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
@@ -62,7 +58,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,s
 .pill.active{outline:2px solid #7c99ff}
 #heroImageInput{display:none}
 
-/* ───────── CANVAS ───────── */
+/* CANVAS */
 #canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
 .page{background:#fff;color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
 .page::before{content:"";position:absolute;inset:16px;pointer-events:none;background:
@@ -78,7 +74,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,s
 .node.sel{outline:2px solid #7c99ff; box-shadow:0 12px 30px rgba(124,153,255,.25)}
 .node[data-locked="1"]{background:transparent;box-shadow:none;padding:0}
 
-/* floatbar (canvas only) */
+/* floatbar */
 .floatbar{position:sticky;top:8px;z-index:5000;display:none;justify-content:center;gap:6px}
 .floatbar.show{display:flex}
 .fbtn{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:16px;padding:6px 9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35)}
@@ -89,7 +85,7 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,s
 .add-dot{width:68px;height:68px;border-radius:20px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:24px;font-weight:900}
 .add-dot:hover{border-color:#7c99ff;color:#7c99ff}
 
-/* bubbly UI controls */
+/* bubbly UI */
 .handle,.ctrl-mini .mini,.rm,.mbtn-bubble{
   background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;
   border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:5
@@ -98,26 +94,24 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,s
 .handle::before{content:"⋮⋮";font-weight:900;line-height:1}
 .drop-ph{border:2px dashed #94a3b8;border-radius:12px;min-height:42px;background:#f8fafc80}
 
-/* CHIP */
+/* chip */
 .chip{background:#fff;border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:inline-flex;gap:10px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
 .chip i{min-width:14px;text-align:center}
 .chip span[contenteditable]{white-space:pre-wrap}
 
-/* sections & titles */
+/* sections */
 .section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative}
 .section .title-item{margin:-4px -4px 8px -4px;background:#f3f6ff;border-radius:12px;padding:10px 10px 12px;position:relative}
 .title-item .trow{display:flex;justify-content:center;align-items:center;gap:8px;font-weight:800}
 .title-item h2{margin:0;font-size:20px}
 .title-item .u{height:4px;border-radius:999px;margin:8px auto 0;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px}
-
-/* title tools on top-right */
 .sec-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
 .sec-tools .rm{display:inline-block}
 
 /* help blurb */
 .help{font-size:12px;color:#5b6276;text-align:center;margin:6px 0 10px}
 
-/* grid-skills container */
+/* SKILLS grid */
 .grid-skills{display:grid;gap:12px;min-width:0}
 .grid-skills.cols-1{grid-template-columns:1fr;max-width:520px;margin:0 auto}
 .grid-skills.cols-2{grid-template-columns:1fr 1fr}
@@ -125,15 +119,14 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,s
 .sidebar-layout [data-zone="main"] .grid-skills.cols-3{grid-template-columns:1fr 1fr}
 .sidebar-layout .rail .grid-skills{grid-template-columns:1fr !important}
 
-/* individual skill row (controls fixed to the right) */
+/* skill row: handle | text | control | remove (control fixed to right) */
 .skill{
   display:grid;
-  grid-template-columns:auto minmax(0,1fr) var(--skillW) auto; /* handle | label | control | remove */
+  grid-template-columns:auto minmax(0,1fr) var(--skillW) auto;
   align-items:center;gap:var(--skillGap);margin:6px 0; min-width:0;
 }
 .skill > span[contenteditable]{
-  overflow:hidden;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
 }
 .skill .rm{display:inline-block}
 .skill .stars{display:inline-flex;gap:6px;justify-content:flex-end;width:var(--skillW);margin-left:auto}
@@ -143,50 +136,34 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,s
 input[type=range]{-webkit-appearance:none;appearance:none;width:var(--skillW);height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));justify-self:end;margin-left:auto}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
 
-/* sidebar layout specifics (tighter) */
+/* Sidebar tighter */
 .sidebar-layout .rail{
   background:linear-gradient(135deg,var(--accent2),var(--accent));
   border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;
   --skillW:120px; --skillGap:12px; --star:14px;
 }
-.sidebar-layout .rail .section .title-item{margin-bottom:8px}
 .sidebar-layout [data-zone="main"]{display:grid;grid-auto-rows:min-content;gap:16px;min-height:200px}
+.rail .section .title-item{margin-bottom:8px}
 
-/* experience */
-.badge{
-  display:inline-block;background:color-mix(in srgb, var(--accent) 18%, #fff);
-  color:color-mix(in srgb, var(--accent) 70%, #000);
-  border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);
-  padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis
-}
-.exp-card{
-  background:color-mix(in srgb, var(--accent) 12%, #fff);
-  border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);
-  border-radius:14px;padding:12px 14px;
-  box-shadow:inset 0 1px 0 rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.05);
-  display:grid;gap:6px;position:relative
-}
+/* Experience */
+.badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, #fff);color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.exp-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;box-shadow:inset 0 1px 0 rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.05);display:grid;gap:6px;position:relative}
 .exp-list{display:grid;gap:12px}
 .exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
 .exp-tools .rm{display:inline-block}
 
-/* inline formatting toolbar */
+/* Formatting toolbar */
 .fmtbar{position:absolute;display:none;gap:6px;background:#0f1420;border:1px solid #1f2540;padding:6px 8px;border-radius:12px;z-index:12000;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .fmtbar button{background:#12182a;border:1px solid #2b324b;color:#e6e8ef;border-radius:10px;padding:4px 6px;cursor:pointer}
 
-/* education */
+/* Education */
 .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.edu-card{
-  background:color-mix(in srgb, var(--accent) 12%, #fff);
-  border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);
-  border-radius:14px; padding:12px 14px;
-  box-shadow:0 1px 2px rgba(0,0,0,.05); position:relative; display:grid; gap:6px
-}
+.edu-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.05);position:relative;display:grid;gap:6px}
 .edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
 .edu-tools .rm{display:inline-block}
 .edu-line1{display:flex;align-items:center;gap:8px;font-weight:800}
-.edu-title-icon.course{color:var(--accent2)} /* brightest */
-.edu-title-icon.degree{color:var(--accent)}  /* darkest  */
+.edu-title-icon.course{color:var(--accent2)}
+.edu-title-icon.degree{color:var(--accent)}
 .edu-title{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .edu-academy{font-weight:600;line-height:1.2;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .edu-year{white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
@@ -222,7 +199,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .avatar canvas{width:100%;height:100%;display:block}
 .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
-/* anchored pop (Add menu) */
+/* Add menu (anchored above +) */
 .pop{position:fixed;left:0;top:0;transform:translate(-50%,-110%);background:#0f1420;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:9999}
 .pop.open{display:block}
 .pop .tray{display:flex;gap:8px;align-items:center;justify-content:center}
@@ -230,33 +207,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .pop .big i{font-size:18px}
 .pop .big:hover{outline:2px solid #7c99ff}
 
-/* ── Layout picker tiles (wizard + top menu) ───────────────────────────── */
+/* Layout mock tiles */
 .wrow{display:flex;gap:22px;justify-content:space-between;margin-top:10px}
-.mock{
-  flex:1; min-height:190px; background:#0c1324; border:1px solid #1f2540;
-  border-radius:18px; padding:14px; cursor:pointer; position:relative
-}
+.mock{flex:1;min-height:190px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative}
 .mock.sel{outline:2px solid #ffb86c}
 .mock .hero{height:78px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);margin-bottom:14px}
-.mock .rail{
-  position:absolute;left:14px;top:14px;bottom:14px;width:30%;
-  border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);
-  display:flex;flex-direction:column;align-items:center;padding-top:10px
-}
+.mock .rail{position:absolute;left:14px;top:14px;bottom:14px;width:30%;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);display:flex;flex-direction:column;align-items:center;padding-top:10px}
 .mock .rail .av{width:42px;height:42px;border-radius:999px;background:#cfd6ff;border:3px solid #fff;margin-bottom:10px}
 .mock .lines{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .mock .line{height:8px;border-radius:999px;background:#2b375f;margin-inline:auto;width:70%}
 .mock .line.short{width:45%}
-.mock .right-av{
-  position:absolute;right:24px;top:calc(50% - 24px);width:48px;height:48px;border-radius:999px;
-  background:#cfd6ff;border:3px solid #fff
-}
-.mock .center-av{
-  position:absolute;left:50%;transform:translateX(-50%);top:44px;width:48px;height:48px;
-  border-radius:999px;background:#cfd6ff;border:3px solid #fff
-}
+.mock .right-av{position:absolute;right:24px;top:calc(50% - 24px);width:48px;height:48px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.mock .center-av{position:absolute;left:50%;transform:translateX(-50%);top:44px;width:48px;height:48px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
 
-/* ───────── WIZARD (single modal, left progress) ───────── */
+/* WIZARD modal (single) */
 #welcome{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:20000;opacity:1;transition:opacity .35s ease}
 #welcome.hide{opacity:0;pointer-events:none}
 .wmodal{width:min(980px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
@@ -278,18 +242,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .fade.show{opacity:1;transform:none}
 .wtitle{font-size:22px;font-weight:800;margin:0 0 4px}
 .wsub{opacity:.85;margin:0 0 8px}
-
-/* Wizard welcome card tidy */
 #welcomeCard .center{display:flex;justify-content:center;gap:12px;align-items:center}
 #welcomeCard .center>div{display:flex;gap:12px;align-items:center}
 #welcomeCard .wbtn{min-width:110px}
 
-/* theme swatches in wizard */
+/* wizard theme swatches */
 .big-swatches{display:flex;flex-direction:column;gap:14px;margin-left:40px;margin-top:12px}
 .big-swatches .swatch{width:160px;height:40px;border-radius:12px;border:2px solid #2b324b}
 .big-swatches .swatch:hover{outline:2px solid #7c99ff}
 
-/* preview */
+/* preview hiding of UI controls */
 .preview .node .rm,
 .preview .fbtn,
 .preview .add-dot,
@@ -346,11 +308,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div><div class="swatch" data-k="city"></div>
           </div>
           <div class="theme-row">
-            <div class="swatch" data-k="magentaPurple"></div><div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
+            <div a class="swatch" data-k="magentaPurple"></div><div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
           </div>
-          <div class="theme-row">
-            <div class="swatch" data-k="mono"></div>
-          </div>
+          <div class="theme-row"><div class="swatch" data-k="mono"></div></div>
           <div style="border-top:1px solid #23283b;margin:8px 0"></div>
           <div class="hero-style">
             <span class="pill active" data-hero="gradient"><i class="fa-solid fa-swatchbook"></i> Gradient</span>
@@ -450,7 +410,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             <div class="center" style="margin-top:14px"><button class="wbtn primary" type="button" id="wizNextTheme">Next</button></div>
           </div>
 
-          <!-- simple contact steps -->
           <div class="wcard fade" id="wizName" style="display:none"><div class="wtitle">What’s your name?</div>
             <div class="center"><input id="inpName" placeholder="Your full name" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/><button class="wbtn primary" type="button" id="wizNextName">Next</button></div>
           </div>
@@ -530,7 +489,7 @@ if(!Element.prototype.closest){
   Element.prototype.closest = function(s){ var el=this; while(el && el.nodeType===1){ if(el.matches(s)) return el; el=el.parentElement||el.parentNode; } return null; };
 }
 
-/* tiny helpers */
+/* helpers */
 function $(sel,root){ return (root||document).querySelector(sel); }
 function $$(sel,root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
 
@@ -541,13 +500,16 @@ var dotAdd=$('#dotAdd'), addMenu=$('#addMenu'), heroImageInput=$('#heroImageInpu
 var ddFile=$('#ddFile'), ddLayout=$('#ddLayout'), ddTheme=$('#ddTheme');
 var saveBtn=$('#saveJSON'), loadBtn=$('#loadJSON'), startScratchBtn=$('#startScratch');
 
-/* wizard refs */
+/* wizard */
 var welcome=$('#welcome');
 var cards=['welcomeCard','wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizExp']
   .reduce(function(a,id){ a[id]=document.getElementById(id); return a; },{});
 var stepsOrder=['wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizExp'];
 var stepLabels=['Layout','Theme','Name','Phone','Email','Address','LinkedIn','Skills','Experience'];
 var currentStep=0;
+
+/* wizard persistent state (prevents duplication and forgetting) */
+var wizardData={ skills:[], place:null }; // place: 'sidebar' | 'canvas' | null
 
 /* sidebar helpers */
 function isSidebarActive(){ return !!stack.querySelector('.sidebar-layout'); }
@@ -614,11 +576,9 @@ function buildChip(it){
   d.innerHTML=it.icon+'<span contenteditable>'+it.placeholder+'</span> <button class="rm" type="button" title="Remove">×</button>';
   var span=d.querySelector('span[contenteditable]');
   d.querySelector('.rm').onclick=function(ev){ ev.stopPropagation(); d.remove(); };
-  // line rules: only address may have up to 2 lines, others force single line
   span.addEventListener('input',function(){
-    if(it.k!=='address'){
-      span.textContent=span.textContent.replace(/\n/g,' ');
-    }else{
+    if(it.k!=='address'){ span.textContent=span.textContent.replace(/\n/g,' '); }
+    else{
       var parts=span.textContent.split(/\n/);
       if(parts.length>2){ span.textContent=parts.slice(0,2).join('\n'); }
     }
@@ -647,7 +607,7 @@ function addOrUpdateChip(type,text){
   if(text){ existing.querySelector('span[contenteditable]').textContent=text; }
 }
 
-/* quick add menu used by header UI (+ Chip buttons) */
+/* quick chip menu (for header buttons) */
 function openChipMenu(onPick, anchorEl){
   var pop=document.createElement('div'); pop.className='pop open';
   var rect=(anchorEl||dotAdd).getBoundingClientRect(); pop.style.left=(rect.left+rect.width/2)+'px'; pop.style.top=(rect.top)+'px';
@@ -712,15 +672,12 @@ function migrateLayout(kind,live){
       var railSec=holder.querySelector('.section .sec-tools .handle'); if(railSec) railSec.style.display='none';
     }
   }
-  moveAddAnchor();
-  updatePH();
-  attachSectionDnd();
-  updateAddMenuVisibility();
+  moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility();
   if(!live) ddLayout.classList.remove('open');
 }
 function ensureHeader(kind){ if(stack.querySelector('.topbar,.fancy,.sidebar-layout')) return; migrateLayout(kind||'header-fancy',true); }
 
-/* skills */
+/* skills rows */
 function labelGuard(el){ el.addEventListener('blur',function(){ if((el.textContent||'').trim()==='') el.textContent='Skill'; }); }
 function makeStarRow(label, opts){
   opts=opts||{}; var d=document.createElement('div'); d.className='skill'; if(opts.draggable!==false) d.setAttribute('draggable','true'); d.setAttribute('data-type','star');
@@ -768,13 +725,10 @@ function mkTitle(icon, text, onDelete, withHandle=true){
 }
 function skillsExists(){ return !!stack.querySelector('.grid-skills'); }
 
-/* return grid (existing or newly created), respecting inRail pref if sidebar layout */
+/* create skills (returns grid). Only one section allowed globally. */
 function createSectionSkills(inRail){
   var gridExisting = stack.querySelector('.grid-skills');
-  if(gridExisting){
-    // If it already exists, just return it (only one skills section globally)
-    return gridExisting;
-  }
+  if(gridExisting){ return gridExisting; }
   var wrap=mkNode();
   var sec=document.createElement('div'); sec.className='section';
   var title=mkTitle('fa-layer-group','Skills',function(){ wrap.remove(); updateAddMenuVisibility(); moveAddAnchor(); updatePH(); }, !inRail);
@@ -817,8 +771,7 @@ function ensureExpSection(){
   host.appendChild(sec);
   insertContentNode(host);
   sec.querySelector('[data-add-exp]').onclick=function(){ sec.querySelector('.exp-list').appendChild(makeExpCard()); attachDnd(sec.querySelector('.exp-list'),'.exp-card'); };
-  attachSectionDnd();
-  updateAddMenuVisibility();
+  attachSectionDnd(); updateAddMenuVisibility();
   return host;
 }
 function createSectionExp(){ var host=ensureExpSection(); host.querySelector('[data-add-exp]').click(); return host; }
@@ -850,8 +803,7 @@ function createSectionEdu(){
   var grid=sec.querySelector('.edu-grid');
   sec.querySelector('[data-add-course]').onclick=function(){ grid.appendChild(makeEduCard('course')); attachDnd(grid,'.edu-card'); };
   sec.querySelector('[data-add-degree]').onclick=function(){ grid.appendChild(makeEduCard('degree')); attachDnd(grid,'.edu-card'); };
-  attachSectionDnd();
-  updateAddMenuVisibility();
+  attachSectionDnd(); updateAddMenuVisibility();
   return wrap;
 }
 function makeEduCard(kind){
@@ -866,14 +818,14 @@ function makeEduCard(kind){
   return c;
 }
 
-/* DND — only via handle */
+/* DND — handle only */
 function attachDnd(container, itemSel){
   if(!container || container._dndAttached) return;
   container._dndAttached=true;
   var dragEl=null, ph=null;
   container.addEventListener('dragstart',function(e){
     var it=e.target.closest(itemSel); if(!it) return;
-    if(!e.target.closest('.handle')){ e.preventDefault(); return; } /* only by handle */
+    if(!e.target.closest('.handle')){ e.preventDefault(); return; }
     dragEl=it; e.dataTransfer.effectAllowed='move';
     try{ e.dataTransfer.setData('text/plain',''); }catch(_){}
     ph=document.createElement('div'); ph.className='drop-ph'; ph.style.height=it.offsetHeight+'px';
@@ -904,10 +856,9 @@ function attachDnd(container, itemSel){
     },{offset:-Infinity}).element;
   }
 }
-/* section-level dnd (not for locked nodes) */
 function attachSectionDnd(){ attachDnd(isSidebarActive()? sideMain():stack, '.node:not([data-locked])'); }
 
-/* Add menu anchored above the + button and options filtered */
+/* Add menu visibility / anchoring */
 function updateAddMenuVisibility(){
   var showSkills = !skillsExists();
   var showEdu = !stack.querySelector('.edu-grid');
@@ -956,7 +907,7 @@ function restoreProject(data){ document.body.setAttribute('data-theme',data.them
 pdfBtn.onclick=function(){ var was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(function(){ window.print(); if(!was) setTimeout(function(){document.body.classList.remove('preview');},180); },60); };
 navPrev.onclick=function(){ var on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); navPrev.textContent=on?'Exit preview':'Preview'; };
 
-/* Wizard (single modal) */
+/* ───── WIZARD: progress & show helpers ───── */
 function renderProgress(){
   var p = $('#wprogress'); p.innerHTML='';
   stepsOrder.forEach(function(_,i){
@@ -969,112 +920,86 @@ function renderProgress(){
 function showOnly(el){
   Object.keys(cards).forEach(function(k){ if(cards[k]){ cards[k].style.display='none'; cards[k].classList.remove('show'); } });
   if(el){ el.style.display='block'; requestAnimationFrame(function(){ el.classList.add('show'); }); }
-  // toggle progress/back on welcome
   if(el===cards.welcomeCard){ $('#wprogress').style.display='none'; $('#backBtn').style.display='none'; }
-  else { $('#wprogress').style.display='block'; if(currentStep>0) $('#backBtn').style.display='inline-block'; }
+  else { $('#wprogress').style.display='block'; $('#backBtn').style.display=currentStep>0?'inline-block':'none'; }
 }
 function finishWelcome(){ canvas.classList.remove('blurred'); welcome.classList.add('hide'); setTimeout(function(){ if(welcome && welcome.parentNode) welcome.parentNode.removeChild(welcome); },420); }
+function onStepShown(){
+  var id=stepsOrder[currentStep];
+  if(id==='wizSkills'){ renderWizardSkills(); }
+}
 
 /* initial screen */
 showOnly(cards.welcomeCard);
 
-/* back button */
+/* back */
 $('#backBtn').addEventListener('click',function(){
   if(currentStep<=0) return;
-  currentStep--;
-  showOnly(cards[stepsOrder[currentStep]]);
-  renderProgress();
+  currentStep--; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); onStepShown();
 });
 
-/* main wizard event delegation */
+/* wizard button handling (delegated) */
 welcome.addEventListener('click', function(e){
   var btn = e.target.closest('button');
   if(!btn) return;
-
   switch(btn.id){
     case 'startWizard':
-      currentStep=0; showOnly(cards[stepsOrder[currentStep]]);
-      ensureHeader('header-fancy');
-      renderProgress();
-      break;
-
-    case 'startBlank':
-      finishWelcome(); break;
-
-    case 'wizNextLayouts':
-      currentStep=1; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); break;
-
-    case 'wizNextTheme':
-      currentStep=2; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ document.getElementById('inpName')?.focus(); },50); break;
+      currentStep=0; showOnly(cards[stepsOrder[currentStep]]); ensureHeader('header-fancy'); renderProgress(); onStepShown(); break;
+    case 'startBlank': finishWelcome(); break;
+    case 'wizNextLayouts': currentStep=1; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); onStepShown(); break;
+    case 'wizNextTheme': currentStep=2; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ $('#inpName')?.focus(); },50); break;
 
     case 'wizNextName': {
       ensureHeader();
-      var v=(document.getElementById('inpName').value||'').trim();
+      var v=($('#inpName').value||'').trim();
       if(v) stack.querySelector('.name').textContent=v;
-      currentStep=3; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ document.getElementById('inpPhone')?.focus(); },50);
+      currentStep=3; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ $('#inpPhone')?.focus(); },50);
       break;
     }
-
     case 'wizNextPhone': {
-      var v=(document.getElementById('inpPhone').value||'').trim();
-      if(v) addOrUpdateChip('phone', v);
-      currentStep=4; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ document.getElementById('inpEmail')?.focus(); },50);
-      break;
+      var v=($('#inpPhone').value||'').trim(); if(v) addOrUpdateChip('phone', v);
+      currentStep=4; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ $('#inpEmail')?.focus(); },50); break;
     }
-
     case 'wizNextEmail': {
-      var v=(document.getElementById('inpEmail').value||'').trim();
-      if(v) addOrUpdateChip('email', v);
-      currentStep=5; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ document.getElementById('inpAddr')?.focus(); },50);
-      break;
+      var v=($('#inpEmail').value||'').trim(); if(v) addOrUpdateChip('email', v);
+      currentStep=5; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ $('#inpAddr')?.focus(); },50); break;
     }
-
     case 'wizNextAddr': {
-      var v=(document.getElementById('inpAddr').value||'').trim();
-      if(v) addOrUpdateChip('address', v);
-      currentStep=6; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ document.getElementById('inpLinked')?.focus(); },50);
-      break;
+      var v=($('#inpAddr').value||'').trim(); if(v) addOrUpdateChip('address', v);
+      currentStep=6; showOnly(cards[stepsOrder[currentStep]]); renderProgress(); setTimeout(function(){ $('#inpLinked')?.focus(); },50); break;
     }
-
     case 'wizNextLinked': {
-      var v=(document.getElementById('inpLinked').value||'').trim();
-      if(v) addOrUpdateChip('linkedin', v);
+      var v=($('#inpLinked').value||'').trim(); if(v) addOrUpdateChip('linkedin', v);
       currentStep=7; showOnly(cards[stepsOrder[currentStep]]); renderProgress();
-      document.getElementById('cbRow').style.display = isSidebarActive() ? 'block' : 'none';
+      $('#cbRow').style.display = isSidebarActive() ? 'block' : 'none';
+      onStepShown();
       break;
     }
 
-    case 'wizAddStar':
-      document.getElementById('wizSkillWrap').appendChild(makeStarRow('Skill',{draggable:false})); break;
-
-    case 'wizAddSlider':
-      document.getElementById('wizSkillWrap').appendChild(makeSliderRow('Skill',{draggable:false})); break;
+    case 'wizAddStar': $('#wizSkillWrap').appendChild(makeStarRow('Skill',{draggable:false})); break;
+    case 'wizAddSlider': $('#wizSkillWrap').appendChild(makeSliderRow('Skill',{draggable:false})); break;
 
     case 'wizNextSkills': {
-      var wrap = document.getElementById('wizSkillWrap');
-      if(!wrap.querySelector('.skill')) wrap.appendChild(makeStarRow('Skill',{draggable:false}));
-      var toSidebar = isSidebarActive() && document.getElementById('cbSidebarSkills').checked;
-      var grid = toSidebar ? ensureRailSkillsSection() : createSectionSkills(false);
-      $$('.skill',wrap).forEach(function(r){
-        r.removeAttribute('draggable'); r.setAttribute('draggable','true'); grid.appendChild(r);
-      });
-      ensureSkillsGrouped(grid); layoutSkillGrid(grid); moveAddAnchor(); updateAddMenuVisibility();
+      // serialize from wizard; don't auto-add anything
+      var data = serializeWizardSkills();
+      // persist to state (so back/next doesn't forget)
+      wizardData.skills = data.items;
+      wizardData.place  = data.place; // 'sidebar' | 'canvas' | null
+
+      // Apply to resume only if user added something
+      if(wizardData.skills.length>0){
+        applySkillsToResume(wizardData);
+      }
       currentStep=8; showOnly(cards[stepsOrder[currentStep]]); renderProgress();
       break;
     }
 
-    case 'wizExpAdd':
-      addWizardExp(); break;
-
-    case 'wizDone':
-      addWizardExp(); finishWelcome(); break;
+    case 'wizExpAdd': addWizardExp(); break;
+    case 'wizDone': addWizardExp(); finishWelcome(); break;
   }
 });
 
-/* live theme change inside wizard */
-$$('.swatch',cards.wizTheme).forEach(function(s){ s.addEventListener('click',function(){ document.body.setAttribute('data-theme', s.getAttribute('data-k')); }); });
-
-/* Enter to continue */
+/* enter-to-continue */
 ['inpName','inpPhone','inpEmail','inpAddr','inpLinked'].forEach(function(id){
   var el=document.getElementById(id);
   if(!el) return;
@@ -1087,7 +1012,112 @@ $$('.swatch',cards.wizTheme).forEach(function(s){ s.addEventListener('click',fun
   });
 });
 
-/* wizard helpers */
+/* wizard skills: render/serialize/apply */
+function serializeWizardSkills(){
+  var wrap=$('#wizSkillWrap');
+  var arr=[];
+  $$('.skill',wrap).forEach(function(row){
+    var label=(row.querySelector('span[contenteditable]').textContent||'').trim() || 'Skill';
+    if(row.getAttribute('data-type')==='star'){
+      var n=row.querySelectorAll('.star.active').length;
+      arr.push({type:'star',label:label,value:n});
+    }else{
+      var v=parseInt(row.querySelector('input[type="range"]').value,10)||0;
+      arr.push({type:'slider',label:label,value:v});
+    }
+  });
+  var place=null;
+  if(isSidebarActive() && $('#cbSidebarSkills').checked) place='sidebar';
+  else if(arr.length>0) place='canvas';
+  return {items:arr, place:place};
+}
+
+function renderWizardSkills(){
+  var wrap=$('#wizSkillWrap'); wrap.innerHTML='';
+  // If we have existing state, render it. Otherwise, import from resume (once).
+  if(wizardData.skills.length===0){
+    var imp=importSkillsFromResume();
+    if(imp.items.length>0){ wizardData=imp; }
+  }
+  wizardData.skills.forEach(function(it){
+    var row = it.type==='star' ? makeStarRow(it.label,{draggable:false}) : makeSliderRow(it.label,{draggable:false});
+    if(it.type==='star'){
+      var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active', i < it.value); });
+    }else{
+      row.querySelector('input[type="range"]').value = it.value;
+    }
+    wrap.appendChild(row);
+  });
+  if(isSidebarActive()){
+    $('#cbRow').style.display='block';
+    $('#cbSidebarSkills').checked = wizardData.place==='sidebar';
+  }else{
+    $('#cbRow').style.display='none';
+  }
+}
+
+function importSkillsFromResume(){
+  var grid = stack.querySelector('.grid-skills');
+  if(!grid) return {items:[], place:null};
+  var place = grid.closest('.rail') ? 'sidebar' : 'canvas';
+  var items=[];
+  $$('.skill',grid).forEach(function(row){
+    var label=(row.querySelector('span[contenteditable]').textContent||'').trim() || 'Skill';
+    if(row.getAttribute('data-type')==='star'){
+      var n=row.querySelectorAll('.star.active').length;
+      items.push({type:'star',label:label,value:n});
+    }else{
+      var v=parseInt(row.querySelector('input[type="range"]').value,10)||0;
+      items.push({type:'slider',label:label,value:v});
+    }
+  });
+  return {items:items, place:place};
+}
+
+function ensureSkillsGridAt(place){
+  var grid=stack.querySelector('.grid-skills');
+  var inRail = grid && !!grid.closest('.rail');
+
+  if(place==='sidebar' && (!grid || !inRail)){
+    if(grid){
+      var rem = inRail ? grid.closest('.section') : grid.closest('.node');
+      if(rem) rem.remove();
+      grid=null;
+    }
+    grid = ensureRailSkillsSection();
+  }else if(place!=='sidebar'){ // canvas
+    if(grid && inRail){
+      var rem2 = grid.closest('.section'); if(rem2) rem2.remove();
+      grid=null;
+    }
+    if(!grid) grid = createSectionSkills(false);
+  }
+  return grid;
+}
+
+function applySkillsToResume(state){
+  var place = state.place || 'canvas';
+  if(state.skills.length===0) return;
+
+  var grid = ensureSkillsGridAt(place);
+  if(!grid) return;
+
+  // clear and rebuild
+  grid.innerHTML='';
+  state.skills.forEach(function(it){
+    var row = it.type==='star' ? makeStarRow(it.label) : makeSliderRow(it.label);
+    if(it.type==='star'){
+      var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active', i < it.value); });
+    }else{
+      row.querySelector('input[type="range"]').value = it.value;
+    }
+    grid.appendChild(row);
+  });
+
+  ensureSkillsGrouped(grid); layoutSkillGrid(grid); moveAddAnchor(); updateAddMenuVisibility();
+}
+
+/* wizard exp helper */
 function addWizardExp(){
   var d=($('#expDates').value||'').trim()||'Jan 2022';
   var r=($('#expRole').value||'').trim()||'Job title';
@@ -1125,8 +1155,7 @@ fmtbar.addEventListener('click',function(e){
   var cmd=b.getAttribute('data-cmd'); var bullet=b.getAttribute('data-bullet');
   if(cmd){ document.execCommand(cmd,false,null); t.focus(); }
   if(bullet){
-    t.focus();
-    t.dataset.bullet=bullet;
+    t.focus(); t.dataset.bullet=bullet;
     document.execCommand('insertText',false,bullet);
   }
 });
@@ -1140,10 +1169,7 @@ function bulletKeydown(e){
 }
 
 /* init */
-moveAddAnchor();
-updatePH();
-attachSectionDnd();
-updateAddMenuVisibility();
+moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility();
 
 })();
 </script>
