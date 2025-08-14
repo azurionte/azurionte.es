@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Easy Resume Builder — Wizard • Sections • Mockups</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --accent:#8b5cf6; --accent2:#d946ef; --ink:#e6e8ef;
+  --bg:#0e1117; --panel:#0f1420; --line:#23283b; --card:#f8f9fb;
+  --fancy-min:180px; --fancy-avatar:140px; --fancy-gap:calc(var(--fancy-avatar)+28px);
+  --topbar-min:170px; --topbar-avatar:120px;
+  --rail-width:300px;
+  --shadow:0 8px 28px rgba(0,0,0,.18);
+
+  /* skills sizing */
+  --skillW: 160px;     /* stars & slider width (main) */
+  --skillGap: 10px;    /* gaps inside skill rows */
+  --star: 16px;        /* star size (main) */
+}
+
+/* themes */
+body[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
+body[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
+body[data-theme="city"]{ --accent:#34d399; --accent2:#9ca3af }
+body[data-theme="magentaPurple"]{ --accent:#c026d3; --accent2:#9333ea }
+body[data-theme="magentaPink"]{ --accent:#ec4899; --accent2:#f97316 }
+body[data-theme="blueGreen"]{ --accent:#22c1c3; --accent2:#2ecc71 }
+/* new: black & gray */
+body[data-theme="mono"]{ --accent:#a1a1aa; --accent2:#4b5563 }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr}
+
+/* ───────── NAV ───────── */
+.nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
+.brand{font-weight:800}
+.menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.mbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:7px 10px;border-radius:10px;cursor:pointer}
+.mbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
+.dropdown{position:relative}
+.dropdown-menu{position:absolute;top:120%;left:0;background:#0f1420;border:1px solid var(--line);border-radius:12px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;padding:10px;z-index:9999}
+.dropdown.open .dropdown-menu{display:block}
+.dropdown-menu button{display:block;width:100%;text-align:left;background:transparent;color:#e6e8ef;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+.dropdown-menu button:hover{background:#172038}
+
+/* theme swatches */
+.theme-row{display:flex;gap:10px;justify-content:center;padding:6px}
+.swatch{width:44px;height:22px;border-radius:999px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(90deg,var(--a2),var(--a1))}
+.swatch[data-k="coral"]{--a1:#ff7b54;--a2:#ffd166}
+.swatch[data-k="sea"]{--a1:#4facfe;--a2:#38d2ff}
+.swatch[data-k="city"]{--a1:#34d399;--a2:#9ca3af}
+.swatch[data-k="magentaPurple"]{--a1:#c026d3;--a2:#9333ea}
+.swatch[data-k="magentaPink"]{--a1:#ec4899;--a2:#f97316}
+.swatch[data-k="blueGreen"]{--a1:#22c1c3;--a2:#2ecc71}
+.swatch[data-k="mono"]{--a1:#9ca3af;--a2:#111827}
+.hero-style{display:flex;gap:8px;justify-content:center;padding:8px}
+.pill{padding:6px 10px;border:1px solid #2b324b;border-radius:999px;background:#12182a;color:#e6e8ef;cursor:pointer}
+.pill.active{outline:2px solid #7c99ff}
+#heroImageInput{display:none}
+
+/* ───────── CANVAS ───────── */
+#canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
+#canvas.blurred{filter:blur(4px);transform:scale(.99)}
+.page{background:#fff;color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
+.page::before{content:"";position:absolute;inset:16px;pointer-events:none;background:
+  linear-gradient(90deg,transparent 15px,#eef2f7 16px),
+  linear-gradient(transparent 15px,#eef2f7 16px);background-size:16px 16px;opacity:.45;border-radius:14px}
+#sheet{padding:24px;min-height:1120px}
+.stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
+.placeholder{grid-column:1/-1;display:grid;place-items:center;color:#8c95b1}
+.placeholder svg{width:48px;height:48px;margin:0 auto 8px}
+
+/* nodes */
+.node{position:relative;background:var(--card);border-radius:14px;padding:10px 10px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);grid-column:span 12;transition:transform .18s ease, box-shadow .18s ease}
+.node.sel{outline:2px solid #7c99ff; box-shadow:0 12px 30px rgba(124,153,255,.25)}
+.node[data-locked="1"]{background:transparent;box-shadow:none;padding:0}
+
+/* toolbar */
+.floatbar{position:sticky;top:8px;z-index:5000;display:none;justify-content:center;gap:6px}
+.floatbar.show{display:flex}
+.fbtn{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:16px;padding:6px 9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.fbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
+
+/* big Add */
+.add-squircle{grid-column:1/-1;display:grid;place-items:center;padding:28px 0}
+.add-dot{width:68px;height:68px;border-radius:20px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:24px;font-weight:900}
+.add-dot:hover{border-color:#7c99ff;color:#7c99ff}
+
+/* chips + skills */
+.chip{background:#fff;border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:inline-flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.chip .rm{background:#ef4444;border:0;color:#fff;border-radius:8px;padding:2px 6px;cursor:pointer}
+
+/* bubbly UI controls */
+.handle,.ctrl-mini .mini,.rm,.mbtn-bubble{
+  background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;
+  border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:5
+}
+.handle{display:inline-grid;place-items:center;width:26px;height:26px;cursor:grab;user-select:none}
+.handle::before{content:"⋮⋮";font-weight:900;line-height:1}
+.drop-ph{border:2px dashed #94a3b8;border-radius:12px;min-height:42px;background:#f8fafc80}
+
+/* skills — shared */
+.skill{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) var(--skillW) auto; /* handle | label | control | remove */
+  align-items:center;gap:var(--skillGap);margin:6px 0; min-width:0;
+}
+.skill > span[contenteditable]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:40px}
+.skill .rm{display:none}
+.skill.sel .rm{display:inline-block}
+.skill .stars{display:inline-flex;gap:4px;justify-content:flex-end;width:var(--skillW);margin-left:auto}
+.skill .stars .star{cursor:pointer;width:var(--star);height:var(--star);fill:#d1d5db;transition:transform .08s ease}
+.skill .stars .star.active{fill:#f59e0b}
+.skill .stars .star:active{transform:scale(.9)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:var(--skillW);height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));justify-self:end;margin-left:auto}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+
+/* sections & titles */
+.section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px}
+.section .title-item{margin:-4px -4px 8px -4px;background:#f3f6ff;border-radius:12px;padding:10px 10px 12px;position:relative}
+.title-item .trow{display:flex;justify-content:center;align-items:center;gap:8px;font-weight:800}
+.title-item h2{margin:0;font-size:20px}
+.title-item .u{height:4px;border-radius:999px;margin:8px auto 0;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px}
+.title-item .rm{position:absolute;right:8px;top:8px}
+.title-item .thandle{position:absolute;left:8px;top:8px}
+
+.help{font-size:12px;color:#5b6276;text-align:center;margin:6px 0 10px}
+
+/* skills grid */
+.grid-skills{display:grid;gap:12px;min-width:0}
+.grid-skills.cols-1{grid-template-columns:1fr;max-width:520px;margin:0 auto}
+.grid-skills.cols-2{grid-template-columns:1fr 1fr}
+.grid-skills.cols-3{grid-template-columns:1fr 1fr 1fr}
+.sidebar-layout [data-zone="main"] .grid-skills.cols-3{grid-template-columns:1fr 1fr}
+.sidebar-layout .rail .grid-skills{grid-template-columns:1fr !important}
+
+/* experience */
+.badge{
+  display:inline-block;
+  background:color-mix(in srgb, var(--accent) 18%, #fff);
+  color:color-mix(in srgb, var(--accent) 70%, #000);
+  border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);
+  padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis
+}
+.exp-card{
+  background:color-mix(in srgb, var(--accent) 12%, #fff);
+  border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);
+  border-radius:14px;padding:12px 14px;
+  box-shadow:inset 0 1px 0 rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.05);
+  display:grid;gap:6px;position:relative
+}
+.exp-list{display:grid;gap:12px}
+.exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.exp-tools .rm{display:none}
+.exp-card.sel .exp-tools .rm{display:inline-block}
+
+/* inline formatting toolbar */
+.fmtbar{position:absolute;display:none;gap:6px;background:#0f1420;border:1px solid #1f2540;padding:6px 8px;border-radius:12px;z-index:12000;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.fmtbar button{background:#12182a;border:1px solid #2b324b;color:#e6e8ef;border-radius:10px;padding:4px 6px;cursor:pointer}
+
+/* education */
+.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.edu-card{
+  background:color-mix(in srgb, var(--accent) 12%, #fff);
+  border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);
+  border-radius:14px; padding:12px 14px;
+  box-shadow:0 1px 2px rgba(0,0,0,.05); position:relative; display:grid; gap:6px
+}
+.edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.edu-tools .rm{display:none}
+.edu-card.sel .edu-tools .rm{display:inline-block}
+.edu-line1{display:flex;align-items:center;gap:8px;font-weight:800}
+.edu-title-icon{color:color-mix(in srgb, var(--accent) 70%, #000)}
+.edu-title-icon.course{color:color-mix(in srgb, var(--accent2) 70%, #000)} /* course tint */
+.edu-title-icon.degree{color:color-mix(in srgb, var(--accent) 70%, #000)}   /* degree tint */
+.edu-year{display:inline-block}
+.edu-academy{font-weight:600;line-height:1.2;word-break:break-word}
+
+/* headers */
+.topbar{position:relative;border-radius:14px;overflow:visible;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:var(--topbar-min)}
+.topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
+.topbar .name{font-weight:900;font-size:34px;margin:0;text-align:center}
+.topbar .left .chips{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:10px}
+.topbar .right{display:flex;justify-content:center}
+.topbar .avatar{width:var(--topbar-avatar);height:var(--topbar-avatar)}
+.header-actions{position:absolute;right:14px;top:14px;display:flex;gap:8px}
+
+.fancy{position:relative;border-radius:14px;overflow:visible}
+.fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:var(--fancy-min);background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
+.fancy .chip-grid{display:grid;grid-template-columns:1fr var(--fancy-gap) 1fr;gap:10px 18px;margin:10px auto 0;max-width:740px}
+.chip-col{display:flex;flex-direction:column;gap:10px}
+.chip-col.left{align-items:flex-end}.chip-col.right{align-items:flex-start}
+.fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:var(--fancy-avatar);height:var(--fancy-avatar);top:0;z-index:30}
+.fancy .below{height:calc(var(--fancy-avatar)/2 + 12px)}
+
+.sidebar-layout{display:grid;grid-template-columns:var(--rail-width) minmax(0,1fr);gap:16px;min-height:320px}
+.rail{
+  background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;
+  display:flex;flex-direction:column;gap:12px;align-items:center;
+  --skillW:96px; --skillGap:4px; --star:14px; /* tighter for sidebar */
+}
+.rail .avatar{width:140px;height:140px;border-width:6px}
+.rail .name{font-weight:900;font-size:26px;text-align:center}
+.rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
+.rail .rail-actions{display:flex;gap:8px}
+.rail .sec-holder{width:100%;padding-top:6px}
+.rail .section{width:100%}
+.rail .section .title-item{margin-bottom:8px}
+.sidebar-layout [data-zone="main"]{display:grid;grid-auto-rows:min-content;gap:16px;min-height:200px}
+
+/* avatar */
+.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:100%;height:100%}
+.avatar input{display:none}
+.avatar canvas{width:100%;height:100%;display:block}
+.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
+
+/* anchored pop (Add menu) */
+.pop{position:fixed;left:0;top:0;transform:translate(-50%,-110%);background:#0f1420;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:9999}
+.pop.open{display:block}
+.pop .tray{display:flex;gap:8px;align-items:center;justify-content:center}
+.pop .big{display:inline-grid;place-items:center;min-width:48px;width:48px;height:48px;border:1px solid #2b324b;border-radius:12px;background:#12182a;color:#e6e8ef;cursor:pointer;font-size:0}
+.pop .big i{font-size:18px}
+.pop .big:hover{outline:2px solid #7c99ff}
+
+/* wizard */
+#welcome{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:20000;opacity:1;transition:opacity .35s ease}
+#welcome.hide{opacity:0;pointer-events:none}
+.wcard{width:min(880px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:22px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
+.wtitle{font-size:22px;font-weight:800;margin:0 0 8px}
+.wsub{opacity:.75;margin-bottom:10px}
+.wrow{display:flex;gap:14px;justify-content:space-between}
+.mock{flex:1;min-height:240px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative}
+.mock.sel{outline:2px solid #ffb86c}
+.mock .hero{height:86px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
+.mock .rail{position:absolute;left:14px;top:14px;bottom:14px;width:30%;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);display:flex;flex-direction:column;align-items:center;padding-top:10px}
+.mock .rail .av{width:48px;height:48px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.mock .lines{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.mock .line{height:10px;border-radius:999px;background:#2b375f;margin-inline:auto;width:60%}
+.mock .line.short{width:40%}
+.mock .right-av{position:absolute;right:24px;top:38px;width:56px;height:56px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.mock .center-av{position:absolute;left:50%;transform:translateX(-50%);top:58px;width:56px;height:56px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+.wbtn[disabled]{opacity:.6;cursor:not-allowed}
+.wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
+.center{display:flex;justify-content:center;gap:12px;align-items:center}
+.big-swatches{display:flex;gap:16px;justify-content:center;padding:16px}
+.big-swatches .swatch{width:72px;height:34px}
+
+/* wizard steps tracker */
+#stepbar{display:none;margin-bottom:10px}
+.steps{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.step{font-size:12px;opacity:.7;padding:4px 8px;border-radius:999px;border:1px solid #1f2540}
+.step.current{opacity:1;text-decoration:underline}
+#backBtn{display:none;margin-right:auto}
+
+/* preview */
+.preview .node .rm,
+.preview .fbtn,
+.preview .add-dot,
+.preview .pop,
+.preview .header-actions .mbtn,
+.preview .rail-actions button,
+.preview .chip .rm,
+.preview .ctrl-mini,
+.preview .handle,
+.preview .help{display:none!important}
+.preview .page::before{opacity:.15}
+
+@media print{ .nav,#welcome{display:none!important} #canvas{filter:none} .page{box-shadow:none} .page::before{opacity:0} }
+</style>
+</head>
+<body data-theme="magentaPurple">
+  <div class="nav">
+    <span class="brand">Easy Resume</span>
+    <div class="menu">
+      <div class="dropdown" id="ddFile">
+        <button class="mbtn" type="button">File ▾</button>
+        <div class="dropdown-menu">
+          <button id="saveJSON" type="button"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
+          <button id="loadJSON" type="button"><i class="fa-solid fa-folder-open"></i> Load project</button>
+          <button id="startScratch" type="button"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
+        </div>
+      </div>
+
+      <div class="dropdown" id="ddLayout">
+        <button class="mbtn" type="button">Layout options ▾</button>
+        <div class="dropdown-menu" style="width:680px">
+          <div class="wrow" id="layoutPickerMenu">
+            <div class="mock" data-layout="header-side" title="Sidebar">
+              <div class="rail"><div class="av"></div></div>
+              <div class="hero" style="margin-left:34%"></div>
+              <div class="lines" style="margin-left:34%"><div class="line"></div><div class="line short"></div><div class="line"></div><div class="line short"></div></div>
+            </div>
+            <div class="mock sel" data-layout="header-fancy" title="Top Fancy">
+              <div class="hero"></div><div class="center-av"></div>
+              <div class="lines"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+            </div>
+            <div class="mock" data-layout="header-top" title="Top Bar">
+              <div class="hero"></div><div class="right-av"></div>
+              <div class="lines" style="margin-top:14px"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dropdown" id="ddTheme">
+        <button class="mbtn" type="button">Theme ▾</button>
+        <div class="dropdown-menu">
+          <div class="theme-row">
+            <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div><div class="swatch" data-k="city"></div>
+          </div>
+          <div class="theme-row">
+            <div class="swatch" data-k="magentaPurple"></div><div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
+          </div>
+          <div class="theme-row">
+            <div class="swatch" data-k="mono"></div>
+          </div>
+          <div style="border-top:1px solid #23283b;margin:8px 0"></div>
+          <div class="hero-style">
+            <span class="pill active" data-hero="gradient"><i class="fa-solid fa-swatchbook"></i> Gradient</span>
+            <span class="pill" data-hero="pattern"><i class="fa-solid fa-grip"></i> Pattern</span>
+            <span class="pill" data-hero="image"><i class="fa-solid fa-image"></i> Image</span>
+            <input type="file" id="heroImageInput" accept="image/*">
+          </div>
+        </div>
+      </div>
+
+      <button id="pdfBtn" class="mbtn" type="button"><i class="fa-solid fa-download"></i> Download</button>
+      <button id="togglePreview" class="mbtn" type="button">Preview</button>
+    </div>
+  </div>
+
+  <div id="canvas">
+    <div class="page" id="page">
+      <div id="sheet">
+        <div class="floatbar" id="floatbar"></div>
+        <div class="stack" id="stack">
+          <div class="placeholder" id="ph">
+            <div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              Drag an item to begin building your resume
+            </div>
+          </div>
+          <div class="add-squircle" id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pop" id="addMenu">
+    <div class="tray">
+      <button class="big" type="button" title="Skills" data-add="section-skills"><i class="fa-solid fa-layer-group"></i></button>
+      <button class="big" type="button" title="Education" data-add="section-edu"><i class="fa-solid fa-user-graduate"></i></button>
+      <button class="big" type="button" title="Experience" data-add="section-exp"><i class="fa-solid fa-briefcase"></i></button>
+    </div>
+  </div>
+
+  <!-- Wizard -->
+  <div id="welcome" aria-modal="true" role="dialog">
+    <!-- step tracker -->
+    <div class="wcard" id="stepbar">
+      <button class="wbtn" id="backBtn" type="button">← Back</button>
+      <div class="steps" id="stepTrack"></div>
+    </div>
+
+    <div class="wcard" id="welcomeCard">
+      <div class="wtitle">Welcome to the Easy Resume Builder</div>
+      <div class="wsub">Choose how to begin.</div>
+      <div class="center" style="flex-direction:column;gap:10px">
+        <div class="center" style="gap:12px;flex-wrap:wrap">
+          <button class="wbtn primary" type="button" id="startWizard">Wizard</button>
+          <button class="wbtn" type="button" id="startBlank">Manual mode</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;opacity:.8">
+          <div style="text-align:center">Guided step-by-step set-up.</div>
+          <div style="text-align:center">Start from scratch, arrange freely.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wcard" id="wizLayouts" style="display:none">
+      <div class="wtitle">Choose your layout</div>
+      <div class="wsub">Pick a starting header style.</div>
+      <div class="wrow" id="layoutPickerWizard">
+        <div class="mock" data-layout="header-side">
+          <div class="rail"><div class="av"></div></div>
+          <div class="hero" style="margin-left:34%"></div>
+          <div class="lines" style="margin-left:34%"><div class="line"></div><div class="line short"></div><div class="line"></div><div class="line short"></div></div>
+        </div>
+        <div class="mock sel" data-layout="header-fancy">
+          <div class="hero"></div><div class="center-av"></div>
+          <div class="lines"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+        </div>
+        <div class="mock" data-layout="header-top">
+          <div class="hero"></div><div class="right-av"></div>
+          <div class="lines" style="margin-top:14px"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+        </div>
+      </div>
+      <div class="center" style="margin-top:12px"><button class="wbtn primary" type="button" id="wizNextLayouts">Next</button></div>
+    </div>
+
+    <div class="wcard" id="wizTheme" style="display:none">
+      <div class="wtitle">Choose a color theme</div>
+      <div class="big-swatches">
+        <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div><div class="swatch" data-k="city"></div>
+        <div class="swatch" data-k="magentaPurple"></div><div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
+        <div class="swatch" data-k="mono"></div>
+      </div>
+      <div class="center"><button class="wbtn primary" type="button" id="wizNextTheme">Next</button></div>
+    </div>
+
+    <!-- contact steps -->
+    <div class="wcard" id="wizName" style="display:none"><div class="wtitle">What’s your name?</div>
+      <div class="center"><input id="inpName" placeholder="Your full name" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/><button class="wbtn primary" type="button" id="wizNextName">Next</button></div>
+    </div>
+    <div class="wcard" id="wizPhone" style="display:none"><div class="wtitle">What’s your phone number?</div>
+      <div class="center"><input id="inpPhone" placeholder="+34 600 123 456" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/><button class="wbtn primary" type="button" id="wizNextPhone">Next</button></div>
+    </div>
+    <div class="wcard" id="wizEmail" style="display:none"><div class="wtitle">Your email address?</div>
+      <div class="center"><input id="inpEmail" placeholder="you@example.com" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/><button class="wbtn primary" type="button" id="wizNextEmail">Next</button></div>
+    </div>
+    <div class="wcard" id="wizAddress" style="display:none"><div class="wtitle">What’s your address?</div>
+      <div class="center"><input id="inpAddr" placeholder="City, Country" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/><button class="wbtn primary" type="button" id="wizNextAddr">Next</button></div>
+    </div>
+    <div class="wcard" id="wizLinked" style="display:none"><div class="wtitle">Do you have LinkedIn?</div>
+      <div class="center"><input id="inpLinked" placeholder="linkedin.com/in/you (optional)" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/><button class="wbtn primary" type="button" id="wizNextLinked">Next</button></div>
+    </div>
+
+    <!-- unified Skills step -->
+    <div class="wcard" id="wizSkills" style="display:none; --skillW:160px; --skillGap:4px;">
+      <div class="wtitle">Add your skills</div>
+      <div class="wsub">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything</b>. The stars/slider reflect your confidence in that skill.</div>
+      <div class="center" style="flex-direction:column;gap:8px">
+        <div id="wizSkillWrap"></div>
+        <div class="ctrl-mini">
+          <button class="mini" type="button" id="wizAddStar"><i class="fa-solid fa-plus"></i> ★</button>
+          <button class="mini" type="button" id="wizAddSlider"><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i></button>
+        </div>
+        <label id="cbRow" style="display:none;margin-top:8px;font-size:13px;opacity:.9">
+          <input type="checkbox" id="cbSidebarSkills" style="margin-right:6px"> Display skills in the sidebar
+        </label>
+        <div class="center" style="margin-top:6px">
+          <button class="wbtn primary" type="button" id="wizNextSkills">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wcard" id="wizExp" style="display:none">
+      <div class="wtitle">Let’s add your experience</div>
+      <div style="background:#0c1324;border:1px solid #1f2540;border-radius:12px;padding:12px;margin:10px 0">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <input id="expDates" placeholder="Jan 2022 – Present" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
+          <input id="expRole" placeholder="Job title" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
+          <input id="expOrg" placeholder="@Company" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
+          <input id="expDesc" placeholder="Brief description" style="grid-column:1/-1;padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
+        </div>
+      </div>
+      <div class="center">
+        <button class="wbtn" type="button" id="wizExpAdd">+ Add another</button>
+        <button class="wbtn primary" type="button" id="wizDone">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formatting toolbar -->
+  <div class="fmtbar" id="fmtbar">
+    <button type="button" data-cmd="bold"><b>B</b></button>
+    <button type="button" data-cmd="italic"><i>I</i></button>
+    <button type="button" data-cmd="underline"><u>U</u></button>
+    <button type="button" data-bullet="• ">•</button>
+    <button type="button" data-bullet="✓ " title="Check"><i class="fa-solid fa-check"></i></button>
+    <button type="button" data-bullet="🏆 " title="Trophy">🏆</button>
+  </div>
+
+<script>
+(function(){
+'use strict';
+
+/* polyfills */
+if(!Element.prototype.matches){
+  Element.prototype.matches = Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector ||
+    function(s){ var m=(this.document||this.ownerDocument).querySelectorAll(s), i=0; while(m[i] && m[i]!==this) i++; return !!m[i]; };
+}
+if(!Element.prototype.closest){
+  Element.prototype.closest = function(s){ var el=this; while(el && el.nodeType===1){ if(el.matches(s)) return el; el=el.parentElement||el.parentNode; } return null; };
+}
+
+/* tiny helpers */
+function $(sel,root){ return (root||document).querySelector(sel); }
+function $$(sel,root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+
+/* refs */
+var stack=$('#stack'), ph=$('#ph'), canvas=$('#canvas');
+var floatbar=$('#floatbar'), navPrev=$('#togglePreview'), pdfBtn=$('#pdfBtn');
+var dotAdd=$('#dotAdd'), addMenu=$('#addMenu'), heroImageInput=$('#heroImageInput');
+var ddFile=$('#ddFile'), ddLayout=$('#ddLayout'), ddTheme=$('#ddTheme');
+var saveBtn=$('#saveJSON'), loadBtn=$('#loadJSON'), startScratchBtn=$('#startScratch');
+
+/* wizard refs */
+var welcome=$('#welcome');
+var cards=['welcomeCard','wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizExp']
+  .reduce(function(a,id){ a[id]=document.getElementById(id); return a; },{});
+var stepsOrder=['wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizExp'];
+var stepLabels=['Layout','Theme','Name','Phone','Email','Address','LinkedIn','Skills','Experience'];
+var currentStep=0;
+
+/* sidebar helpers */
+function isSidebarActive(){ return !!stack.querySelector('.sidebar-layout'); }
+function sideMain(){ return stack.querySelector('.sidebar-layout [data-zone="main"]'); }
+function rail(){ return stack.querySelector('.sidebar-layout .rail'); }
+function moveAddAnchor(){
+  var add=document.getElementById('canvasAdd'); if(!add) return;
+  var parent=isSidebarActive()? (sideMain()||stack) : stack;
+  if(add.parentElement!==parent) parent.appendChild(add);
+  parent.appendChild(add); /* always last */
+  updateAddMenuVisibility();
+}
+
+/* placeholder + selection */
+function updatePH(){ ph.style.display = (isSidebarActive()? (sideMain() && sideMain().querySelector('.node')) : stack.querySelector('.node'))? 'none' : 'grid'; }
+var selected=null;
+function select(node){
+  if(selected) selected.classList.remove('sel');
+  selected=node; if(selected) selected.classList.add('sel');
+  if(!node || isSidebarActive()){ floatbar.classList.remove('show'); return; }
+  floatbar.innerHTML='';
+  var del=document.createElement('button'); del.className='fbtn'; del.type='button'; del.textContent='🗑 Delete';
+  del.onclick=function(){ node.remove(); updatePH(); select(null); moveAddAnchor(); };
+  floatbar.appendChild(del);
+  floatbar.classList.add('show');
+}
+function mkNode(locked){
+  var n=document.createElement('div'); n.className='node';
+  if(locked){ n.setAttribute('data-locked','1'); }
+  else{ n.setAttribute('draggable','true'); }
+  n.addEventListener('click',function(e){
+    if(e.target.closest('.rm,.mbtn,.big,.mini,.handle')) return;
+    select(n);
+  });
+  return n;
+}
+function insertContentNode(node){
+  var wrap=node.classList.contains('node')? node : (function(){var w=mkNode(); w.appendChild(node); return w;})();
+  if(isSidebarActive() && sideMain()){ sideMain().insertBefore(wrap, document.getElementById('canvasAdd')); moveAddAnchor(); }
+  else { stack.insertBefore(wrap, document.getElementById('canvasAdd')); }
+  updatePH(); select(wrap); return wrap;
+}
+
+/* avatar cropper */
+function initAvatar(wrapper){
+  var input=wrapper.querySelector('input'), canvas=wrapper.querySelector('canvas');
+  if(!canvas) return;
+  var ctx=canvas.getContext('2d',{willReadFrequently:true}); var S={img:null,scale:1,minScale:1,x:0,y:0,drag:false,sx:0,sy:0};
+  function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); if(S.img){ ctx.imageSmoothingQuality='high'; ctx.drawImage(S.img,S.x,S.y,S.img.width*S.scale,S.img.height*S.scale); wrapper.setAttribute('data-empty','0'); } ctx.restore(); }
+  var snap=wrapper.getAttribute('data-snapshot'); if(snap){ var img=new Image(); img.onload=function(){ S.img=img; var sx=canvas.width/img.width, sy=canvas.height/img.height; S.minScale=Math.max(sx,sy); S.scale=S.minScale; S.x=(canvas.width-img.width*S.scale)/2; S.y=(canvas.height-img.height*S.scale)/2; draw(); }; img.src=snap; }
+  wrapper.addEventListener('click',function(){ if(input) input.click(); });
+  if(input) input.addEventListener('change',function(){ var f=input.files&&input.files[0]; if(!f) return; var img=new Image(); img.onload=function(){ S.img=img; var sx=canvas.width/img.width, sy=canvas.height/img.height; S.minScale=Math.max(sx,sy); S.scale=S.minScale; S.x=(canvas.width-img.width*S.scale)/2; S.y=(canvas.height-img.height*S.scale)/2; draw(); }; var url=URL.createObjectURL(f); img.src=url; setTimeout(function(){ URL.revokeObjectURL(url); },7000); });
+  canvas.addEventListener('mousedown',function(e){ S.drag=true; S.sx=e.clientX; S.sy=e.clientY; });
+  window.addEventListener('mouseup',function(){ S.drag=false; });
+  window.addEventListener('mousemove',function(e){ if(!S.drag) return; S.x+=e.clientX-S.sx; S.y+=e.clientY-S.sy; S.sx=e.clientX; S.sy=e.clientY; draw(); });
+  canvas.addEventListener('wheel',function(e){ e.preventDefault(); if(!S.img) return; var d=e.deltaY<0?1.05:0.95; var ns=S.scale*d; if(ns<S.minScale) ns=S.minScale; if(ns>5) ns=5; var r=canvas.getBoundingClientRect(); var mx=e.clientX-r.left, my=e.clientY-r.top; var dx=(mx-S.x)/S.scale, dy=(my-S.y)/S.scale; S.x=mx-dx*ns; S.y=my-dy*ns; S.scale=ns; draw(); },{passive:false});
+}
+
+/* chips */
+var ICONS={ phone:'<i class="fa-solid fa-phone"></i>', email:'<i class="fa-solid fa-envelope"></i>', address:'<i class="fa-solid fa-location-dot"></i>', linkedin:'<i class="fa-brands fa-linkedin"></i>', dot:'<i class="fa-solid fa-circle"></i>' };
+var MENU_ITEMS=[ {k:'phone',label:'Phone',placeholder:'+34 600 123 456',icon:ICONS.phone},{k:'email',label:'Email',placeholder:'you@example.com',icon:ICONS.email},{k:'address',label:'Address',placeholder:'City, Country',icon:ICONS.address},{k:'linkedin',label:'LinkedIn',placeholder:'linkedin.com/in/you',icon:ICONS.linkedin},{k:'custom',label:'Info',placeholder:'Free text',icon:ICONS.dot} ];
+function buildChip(it){ var d=document.createElement('div'); d.className='chip'; d.innerHTML=it.icon+'<span contenteditable>'+it.placeholder+'</span> <button class="rm" type="button" title="Remove">×</button>'; d.querySelector('.rm').onclick=function(ev){ ev.stopPropagation(); d.remove(); }; return d; }
+function openChipMenu(onPick, anchorEl){
+  var pop=document.createElement('div'); pop.className='pop open';
+  var rect=(anchorEl||dotAdd).getBoundingClientRect(); pop.style.left=(rect.left+rect.width/2)+'px'; pop.style.top=(rect.top)+'px';
+  pop.innerHTML='<div class="tray">'+MENU_ITEMS.map(function(i){return '<button class="big" type="button" data-k="'+i.k+'" title="'+i.label+'"><span style="width:18px;text-align:center">'+i.icon+'</span></button>';}).join('')+'</div>';
+  document.body.appendChild(pop);
+  function close(){ pop.remove(); document.removeEventListener('click',outside); }
+  pop.addEventListener('click',function(e){ var k=(e.target.closest('button')||{}).dataset&&e.target.closest('button').dataset.k; if(!k) return; onPick(MENU_ITEMS.find(function(x){return x.k===k;})); close(); });
+  function outside(e){ if(!pop.contains(e.target)) close(); }
+  setTimeout(function(){ document.addEventListener('click',outside); },0);
+}
+function addChip(type,text){
+  var hdr=stack.querySelector('.topbar,.fancy,.sidebar-layout'); if(!hdr) return;
+  var it=MENU_ITEMS.find(function(x){return x.k===type;}) || MENU_ITEMS[0];
+  var chip=buildChip(it);
+  if(text){ chip.querySelector('span[contenteditable]').textContent=text; }
+  if(hdr.classList.contains('topbar')) hdr.querySelector('[data-info]').appendChild(chip);
+  else if(hdr.classList.contains('fancy')){
+    var L=hdr.querySelector('[data-info-left]'), R=hdr.querySelector('[data-info-right]');
+    (L.scrollHeight<=R.scrollHeight?L:R).appendChild(chip);
+  } else hdr.querySelector('.rail [data-info]').appendChild(chip);
+}
+
+/* headers */
+function createTopBar(){ var node=mkNode(true); node.innerHTML='<div class="topbar" data-hero="gradient"><div class="header-actions"><button class="mbtn" type="button" data-add-chip><i class="fa-solid fa-plus"></i> Add chip</button></div><div class="topbar-grid"><div class="left"><h1 class="name" contenteditable>YOUR NAME</h1><div class="chips" data-info></div></div><div class="right"><div class="avatar" data-avatar data-empty="1"><canvas width="120" height="120"></canvas><input type="file" accept="image/*"></div></div></div></div>'; initAvatar(node.querySelector('.topbar [data-avatar]')); node.querySelector('[data-add-chip]').onclick=function(){ openChipMenu(function(it){ node.querySelector('[data-info]').appendChild(buildChip(it)); }, this); }; return node; }
+function createFancy(){ var node=mkNode(true); node.innerHTML='<div class="fancy"><div class="hero" data-hero="gradient"><div class="header-actions"><button class="mbtn" type="button" data-add-chip><i class="fa-solid fa-plus"></i> Add chip</button></div><h1 class="name" contenteditable>YOUR NAME</h1><div class="chip-grid"><div class="chip-col left" data-info-left></div><div></div><div class="chip-col right" data-info-right></div></div></div><div class="avatar-float"><div class="avatar" data-avatar data-empty="1" style="width:var(--fancy-avatar);height:var(--fancy-avatar)"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div></div><div class="below"></div></div>'; initAvatar(node.querySelector('.fancy [data-avatar]')); node.querySelector('[data-add-chip]').onclick=function(){ openChipMenu(function(it){ var L=node.querySelector('[data-info-left]'), R=node.querySelector('[data-info-right]'); (L.scrollHeight<=R.scrollHeight?L:R).appendChild(buildChip(it)); }, this); }; return node; }
+function createSidebar(){
+  var node=mkNode(true);
+  node.innerHTML='<div class="sidebar-layout"><div class="rail"><div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div><div class="name" contenteditable>YOUR NAME</div><div class="rail-actions"><button class="mbtn" type="button" data-add-chip title="Add contact/info"><i class="fa-solid fa-plus"></i> Chip</button><button class="mbtn" type="button" data-add-rail-skills title="Add Skills section"><i class="fa-solid fa-layer-group"></i> Skills</button></div><div class="chips" data-info></div><div class="sec-holder"></div></div><div data-zone="main"></div></div>';
+  initAvatar(node.querySelector('.rail [data-avatar]'));
+  node.querySelector('[data-add-chip]').onclick=function(){ openChipMenu(function(it){ node.querySelector('.rail [data-info]').appendChild(buildChip(it)); }, this); };
+  node.querySelector('[data-add-rail-skills]').onclick=function(){ ensureRailSkillsSection(); updateAddMenuVisibility(); };
+  return node;
+}
+
+/* layout picker */
+function setupLP(id){ var box=document.getElementById(id); if(!box) return; $$('.mock',box).forEach(function(m){ m.addEventListener('click',function(){ $$('.mock',box).forEach(function(x){ x.classList.remove('sel'); }); m.classList.add('sel'); migrateLayout(m.getAttribute('data-layout'),true); }); }); }
+setupLP('layoutPickerWizard'); setupLP('layoutPickerMenu');
+
+/* layout migration */
+function migrateLayout(kind,live){
+  var header=$$('.node',stack).find(function(n){ return n.querySelector('.topbar')||n.querySelector('.fancy')||n.querySelector('.sidebar-layout'); });
+  var name='', chipsHTML='', leftHTML='', rightHTML='', snap=''; var idx=0, mainNodes=[], railSkills=null;
+  if(header){
+    idx=$$('.node',stack).indexOf(header);
+    var nm=header.querySelector('.name'); name=nm?nm.textContent:'';
+    if(header.querySelector('.fancy')){ leftHTML=(header.querySelector('[data-info-left]')||{}).innerHTML||''; rightHTML=(header.querySelector('[data-info-right]')||{}).innerHTML||''; }
+    if(header.querySelector('.topbar')) { chipsHTML=(header.querySelector('[data-info]')||{}).innerHTML||''; }
+    if(header.querySelector('.sidebar-layout')){
+      chipsHTML=(header.querySelector('.rail [data-info]')||{}).innerHTML||'';
+      mainNodes=$$('[data-zone="main"]>.node',header);
+      railSkills=header.querySelector('.rail .section')?.outerHTML || null;
+    }
+    var cv=header.querySelector('[data-avatar] canvas'); try{ snap=cv?cv.toDataURL('image/png'):(header.querySelector('[data-avatar]')||{}).getAttribute&&header.querySelector('[data-avatar]').getAttribute('data-snapshot')||''; }catch(_){}
+    header.remove();
+  }
+  var host=null; if(kind==='header-top') host=createTopBar(); if(kind==='header-fancy') host=createFancy(); if(kind==='header-side') host=createSidebar();
+  if(name) host.querySelector('.name').textContent=name;
+  if(snap){ var h=host.querySelector('[data-avatar]'); h.setAttribute('data-snapshot',snap); initAvatar(h); }
+  if(host.querySelector('.fancy')){ var L=host.querySelector('[data-info-left]'), R=host.querySelector('[data-info-right]'); var t=document.createElement('div'); t.innerHTML=(leftHTML||'')+(rightHTML||'')+(chipsHTML||''); $$('.chip',t).forEach(function(el,i){ (i%2?R:L).appendChild(el); }); }
+  if(host.querySelector('.topbar') && chipsHTML) host.querySelector('[data-info]').innerHTML=chipsHTML;
+  if(host.querySelector('.sidebar-layout') && chipsHTML) host.querySelector('.rail [data-info]').innerHTML=chipsHTML;
+
+  var anchor=stack.children[idx]||document.getElementById('canvasAdd'); stack.insertBefore(host,anchor);
+
+  if(kind==='header-side'){
+    var main=sideMain();
+    if(mainNodes.length){ mainNodes.forEach(function(n){ main.appendChild(n); }); }
+    if(railSkills){
+      var holder=host.querySelector('.rail .sec-holder'); holder.innerHTML = railSkills;
+      var g=holder.querySelector('.grid-skills'); if(g){ attachDnd(g,'.skill'); layoutSkillGrid(g); }
+      holder.querySelectorAll('[data-add-star]').forEach(function(b){ b.onclick=function(){ var gg=holder.querySelector('.grid-skills'); gg.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(gg); layoutSkillGrid(gg); };});
+      holder.querySelectorAll('[data-add-slider]').forEach(function(b){ b.onclick=function(){ var gg=holder.querySelector('.grid-skills'); gg.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(gg); layoutSkillGrid(gg); };});
+    }
+  }
+  moveAddAnchor();
+  updatePH();
+  attachSectionDnd();
+  updateAddMenuVisibility();
+  if(!live) ddLayout.classList.remove('open');
+}
+function ensureHeader(kind){ if(stack.querySelector('.topbar,.fancy,.sidebar-layout')) return; migrateLayout(kind||'header-fancy',true); }
+
+/* skills */
+function labelGuard(el){ el.addEventListener('blur',function(){ if((el.textContent||'').trim()==='') el.textContent='Skill'; }); }
+function makeStarRow(label){
+  var d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.setAttribute('data-type','star');
+  d.innerHTML='<span class="handle" title="Drag"></span><span contenteditable>'+(label||'Skill')+'</span><span class="stars">'+[1,2,3,4,5].map(function(i){return '<svg class="star" data-i="'+i+'" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';}).join('')+'</span><button class="rm" type="button" title="Remove">×</button>';
+  $$('.star',d).forEach(function(s){ s.addEventListener('click',function(e){ var n=parseInt(e.target.closest('.star').getAttribute('data-i'),10); $$('.star',d).forEach(function(s2,i){ s2.classList.toggle('active',i<n); }); }); });
+  d.addEventListener('click',function(){ $$('.skill').forEach(function(x){x.classList.remove('sel');}); d.classList.add('sel'); });
+  d.querySelector('.rm').onclick=function(e){ e.stopPropagation(); d.remove(); };
+  labelGuard(d.querySelector('span[contenteditable]'));
+  return d;
+}
+function makeSliderRow(label){
+  var d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.setAttribute('data-type','slider');
+  d.innerHTML='<span class="handle" title="Drag"></span><span contenteditable>'+(label||'Skill')+'</span><input type="range" min="0" max="100" value="60"><button class="rm" type="button" title="Remove">×</button>';
+  d.addEventListener('click',function(){ $$('.skill').forEach(function(x){x.classList.remove('sel');}); d.classList.add('sel'); });
+  d.querySelector('.rm').onclick=function(e){ e.stopPropagation(); d.remove(); };
+  labelGuard(d.querySelector('span[contenteditable]'));
+  return d;
+}
+function ensureSkillsGrouped(grid){
+  var rows=$$('.skill',grid);
+  var stars=rows.filter(function(r){ return r.getAttribute('data-type')==='star'; });
+  var sliders=rows.filter(function(r){ return r.getAttribute('data-type')!=='star'; });
+  rows.forEach(function(r){ r.remove(); });
+  stars.concat(sliders).forEach(function(r){ grid.appendChild(r); });
+}
+function layoutSkillGrid(grid){
+  var n=grid.querySelectorAll('.skill').length;
+  var inRail=!!grid.closest('.rail');
+  var inMain=!!grid.closest('.sidebar-layout [data-zone="main"]');
+  grid.classList.remove('cols-1','cols-2','cols-3');
+  if(inRail){ grid.classList.add('cols-1'); }
+  else if(inMain){ grid.classList.add(n>=2?'cols-2':'cols-1'); }
+  else { grid.classList.add(n>=3?'cols-3':n===2?'cols-2':'cols-1'); }
+  attachDnd(grid,'.skill');
+}
+function mkTitle(icon, text, onDelete){
+  var t=document.createElement('div');
+  t.className='title-item';
+  t.innerHTML='<button class="handle thandle" title="Drag section"></button><div class="trow">'+(icon?'<i class="fa-solid '+icon+'"></i>':'')+'<h2>'+text+'</h2></div><div class="u"></div>';
+  var del=document.createElement('button'); del.className='rm'; del.type='button'; del.title='Delete section'; del.textContent='×';
+  del.onclick=function(){ if(confirm('You\'re deleting the section "'+text+'" that contains data, this cannot be undone.\n\nConfirm?')){ onDelete && onDelete(); } };
+  t.appendChild(del);
+  return t;
+}
+function skillsExists(){ return !!stack.querySelector('.grid-skills'); }
+function createSectionSkills(inRail){
+  if(skillsExists()) return (isSidebarActive()? ensureRailSkillsSection() : stack.querySelector('.grid-skills'));
+  var wrap=mkNode();
+  var sec=document.createElement('div'); sec.className='section';
+  var title=mkTitle('fa-layer-group','Skills',function(){ wrap.remove(); updateAddMenuVisibility(); moveAddAnchor(); updatePH(); });
+  sec.appendChild(title);
+  sec.innerHTML += '<div class="help">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>'
+    +'<div class="grid-skills cols-1" data-dnd="skills"></div>'
+    +'<div class="ctrl-mini"><button class="mini" type="button" data-add-star><i class="fa-solid fa-plus"></i> ★</button><button class="mini" type="button" data-add-slider><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i></button></div>';
+  wrap.appendChild(sec);
+
+  if(inRail){ rail()?.querySelector('.sec-holder')?.appendChild(sec); }
+  else{ insertContentNode(wrap); }
+
+  var grid=sec.querySelector('.grid-skills');
+  sec.querySelector('[data-add-star]').onclick=function(){ grid.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
+  sec.querySelector('[data-add-slider]').onclick=function(){ grid.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
+
+  layoutSkillGrid(grid);
+  attachSectionDnd();
+  updateAddMenuVisibility();
+  moveAddAnchor();
+  return grid;
+}
+function ensureRailSkillsSection(){
+  if(!isSidebarActive()) return null;
+  var exist=rail().querySelector('.grid-skills');
+  if(exist) return exist;
+  return createSectionSkills(true);
+}
+
+/* experience */
+function ensureExpSection(){
+  var container=isSidebarActive()? sideMain() : stack;
+  var host=$$('.node',container).find(function(n){ var h=n.querySelector? n.querySelector('.trow h2'):null; return h && h.textContent==='Work experience'; });
+  if(host) return host;
+  host=mkNode();
+  var sec=document.createElement('div'); sec.className='section';
+  sec.appendChild(mkTitle('fa-briefcase','Work experience',function(){ host.remove(); updateAddMenuVisibility(); }));
+  sec.innerHTML+='<div class="exp-list" data-dnd="cards"></div><div class="ctrl-mini"><button class="mini" type="button" data-add-exp><i class="fa-solid fa-plus"></i> Add role</button></div>';
+  host.appendChild(sec);
+  insertContentNode(host);
+  sec.querySelector('[data-add-exp]').onclick=function(){ sec.querySelector('.exp-list').appendChild(makeExpCard()); attachDnd(sec.querySelector('.exp-list'),'.exp-card'); };
+  attachSectionDnd();
+  updateAddMenuVisibility();
+  return host;
+}
+function createSectionExp(){ var host=ensureExpSection(); host.querySelector('[data-add-exp]').click(); return host; }
+function makeExpCard(dates,role,org,desc){
+  var c=document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
+  c.innerHTML='<div class="exp-tools"><span class="handle" title="Drag"></span><button class="rm" type="button" title="Delete">×</button></div>'
+    +'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+      +'<span class="badge" contenteditable>'+((dates&&dates.slice(0,32))||'Jan 2022')+'</span>'
+      +'<div style="font-weight:800" contenteditable>'+(role||'Job title')+'</div>'
+    +'</div>'
+    +'<div style="font-weight:700;color:#374151" contenteditable>'+(org||'@Company')+'</div>'
+    +'<div class="editable desc" contenteditable>'+(desc||'Describe impact, scale and results.')+'</div>';
+  c.querySelector('.rm').onclick=function(e){ e.stopPropagation(); c.remove(); };
+  c.addEventListener('click',function(){ $$('.exp-card').forEach(function(x){x.classList.remove('sel');}); c.classList.add('sel'); });
+  var descEl=c.querySelector('.desc');
+  descEl.addEventListener('focus',function(){ showFmtbar(descEl); });
+  descEl.addEventListener('keydown',bulletKeydown);
+  return c;
+}
+
+/* education */
+function createSectionEdu(){
+  var wrap=mkNode();
+  var sec=document.createElement('div'); sec.className='section';
+  sec.appendChild(mkTitle('fa-user-graduate','Education',function(){ wrap.remove(); updateAddMenuVisibility(); }));
+  sec.innerHTML+='<div class="edu-grid" data-dnd="cards"></div><div class="ctrl-mini"><button class="mini" type="button" data-add-course><i class="fa-solid fa-plus"></i> Add course</button><button class="mini" type="button" data-add-degree><i class="fa-solid fa-plus"></i> Add degree</button></div>';
+  wrap.appendChild(sec);
+  insertContentNode(wrap);
+  var grid=sec.querySelector('.edu-grid');
+  sec.querySelector('[data-add-course]').onclick=function(){ grid.appendChild(makeEduCard('course')); attachDnd(grid,'.edu-card'); };
+  sec.querySelector('[data-add-degree]').onclick=function(){ grid.appendChild(makeEduCard('degree')); attachDnd(grid,'.edu-card'); };
+  attachSectionDnd();
+  updateAddMenuVisibility();
+  return wrap;
+}
+function makeEduCard(kind){
+  var icon = kind==='degree' ? 'fa-graduation-cap degree' : 'fa-scroll course';
+  var c=document.createElement('div'); c.className='edu-card'; c.setAttribute('draggable','true');
+  c.innerHTML='<div class="edu-tools"><span class="handle" title="Drag"></span><button class="rm" type="button" title="Delete">×</button></div>'
+    +'<div class="edu-line1"><i class="fa-solid '+icon+' edu-title-icon"></i><span class="editable" contenteditable>Title</span></div>'
+    +'<span class="badge edu-year" contenteditable>2018–2022</span>'
+    +'<span class="editable edu-academy" contenteditable>Academy name (wraps to two lines if needed)</span>';
+  c.querySelector('.rm').onclick=function(e){ e.stopPropagation(); c.remove(); };
+  c.addEventListener('click',function(){ $$('.edu-card').forEach(function(x){x.classList.remove('sel');}); c.classList.add('sel'); });
+  return c;
+}
+
+/* DND — only via handle */
+function attachDnd(container, itemSel){
+  if(!container || container._dndAttached) return;
+  container._dndAttached=true;
+  var dragEl=null, ph=null;
+  container.addEventListener('dragstart',function(e){
+    var it=e.target.closest(itemSel); if(!it) return;
+    if(!e.target.closest('.handle')){ e.preventDefault(); return; } /* only by handle */
+    dragEl=it; e.dataTransfer.effectAllowed='move';
+    try{ e.dataTransfer.setData('text/plain',''); }catch(_){}
+    ph=document.createElement('div'); ph.className='drop-ph'; ph.style.height=it.offsetHeight+'px';
+    try{ var img=document.createElement('canvas'); img.width=1; img.height=1; e.dataTransfer.setDragImage(img,0,0);}catch(err){}
+    setTimeout(function(){ it.style.opacity='0.35'; },0);
+  });
+  container.addEventListener('dragend',function(){ if(dragEl){ dragEl.style.opacity=''; if(ph) ph.remove(); dragEl=null; ph=null; } });
+  container.addEventListener('dragover',function(e){
+    if(!dragEl) return; e.preventDefault();
+    var after=getDragAfterElement(container, e.clientY);
+    if(after==null) container.appendChild(ph);
+    else container.insertBefore(ph, after);
+  });
+  container.addEventListener('drop',function(e){
+    e.preventDefault();
+    if(!dragEl||!ph) return;
+    container.insertBefore(dragEl, ph);
+    ph.remove(); dragEl.style.opacity=''; dragEl=null; ph=null;
+    if(container.matches('.grid-skills')){ ensureSkillsGrouped(container); layoutSkillGrid(container); }
+    moveAddAnchor();
+  });
+  function getDragAfterElement(cont, y){
+    var els=$$(itemSel+':not(.drop-ph)',cont).filter(function(el){return el!==dragEl;});
+    return els.reduce(function(closest,child){
+      var box=child.getBoundingClientRect();
+      var offset=y-box.top-box.height/2;
+      if(offset<0 && offset>closest.offset){ return {offset:offset,element:child}; } else { return closest; }
+    },{offset:-Infinity}).element;
+  }
+}
+/* section-level dnd */
+function attachSectionDnd(){ attachDnd(isSidebarActive()? sideMain():stack, '.node:not([data-locked])'); }
+
+/* Add menu anchored above the + button and options filtered */
+function updateAddMenuVisibility(){
+  var showSkills = !skillsExists();
+  var showEdu = !stack.querySelector('.edu-grid');
+  var showExp = !stack.querySelector('.exp-list');
+  var allDone = !showSkills && !showEdu && !showExp;
+  $('#canvasAdd').style.display = allDone ? 'none' : '';
+  addMenu.querySelector('[data-add="section-skills"]').style.display = showSkills ? '' : 'none';
+  addMenu.querySelector('[data-add="section-edu"]').style.display = showEdu ? '' : 'none';
+  addMenu.querySelector('[data-add="section-exp"]').style.display = showExp ? '' : 'none';
+}
+function openAddMenu(){
+  var hasHeader=!!stack.querySelector('.topbar,.fancy,.sidebar-layout');
+  if(!hasHeader){ ddLayout.classList.add('open'); return; }
+  updateAddMenuVisibility();
+  var r=dotAdd.getBoundingClientRect();
+  addMenu.style.left=(r.left + r.width/2)+'px';
+  addMenu.style.top=(r.top)+'px';
+  addMenu.classList.add('open');
+  function close(e){ if(!addMenu.contains(e.target) && e.target!==dotAdd){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } }
+  setTimeout(function(){ document.addEventListener('click',close); },0);
+}
+dotAdd.addEventListener('click',openAddMenu);
+addMenu.addEventListener('click',function(e){
+  var b=e.target.closest('.big'); if(!b) return;
+  addMenu.classList.remove('open');
+  var K=b.getAttribute('data-add');
+  if(K==='section-skills') createSectionSkills(false);
+  if(K==='section-edu') createSectionEdu();
+  if(K==='section-exp') createSectionExp();
+  moveAddAnchor();
+});
+
+/* Theme + hero */
+$$('.swatch',ddTheme).forEach(function(s){ s.addEventListener('click',function(){ document.body.setAttribute('data-theme', s.getAttribute('data-k')); ddTheme.classList.remove('open'); }); });
+$$('.pill',ddTheme).forEach(function(p){ p.addEventListener('click',function(){ $$('.pill',ddTheme).forEach(function(x){x.classList.remove('active');}); p.classList.add('active'); var k=p.getAttribute('data-hero'), headers=$$('.topbar,.fancy',stack); headers.forEach(function(h){ var host=h.classList.contains('topbar')?h:h.querySelector('.hero'); if(k==='gradient'){ host.style.background='linear-gradient(135deg,var(--accent2),var(--accent))'; host.style.backgroundImage=''; } if(k==='pattern'){ host.style.background='linear-gradient(135deg,var(--accent2),var(--accent)), radial-gradient(circle at 20% 20%, #ffffff22 2px, transparent 2px)'; host.style.backgroundSize='auto,16px 16px'; } if(k==='image'){ heroImageInput.click(); } }); }); });
+heroImageInput.addEventListener('change',function(){ var f=heroImageInput.files&&heroImageInput.files[0]; if(!f) return; var url=URL.createObjectURL(f); $$('.topbar,.fancy',stack).forEach(function(h){ var host=h.classList.contains('topbar')?h:h.querySelector('.hero'); host.style.background='url('+url+') center/cover'; }); setTimeout(function(){ URL.revokeObjectURL(url); },7000); });
+
+/* Save / Load / Reset */
+function getProjectJSON(){ $$('[data-avatar] canvas').forEach(function(cv){ try{ cv.parentElement.setAttribute('data-snapshot',cv.toDataURL('image/png')); }catch(e){} }); var header=stack.querySelector('.node[data-locked="1"]')? stack.querySelector('.node[data-locked="1"]').innerHTML:null; var nodes=isSidebarActive()? $$('.node',sideMain()).map(function(n){return {html:n.innerHTML};}) : $$('.node',stack).filter(function(n){return !n.getAttribute('data-locked');}).map(function(n){return {html:n.innerHTML};}); return { theme:document.body.getAttribute('data-theme')||'magentaPurple', header:header, nodes:nodes }; }
+saveBtn.onclick=function(){ var blob=new Blob([JSON.stringify(getProjectJSON(),null,2)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resume_project.json'; a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); },3000); };
+loadBtn.onclick=function(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(){ try{ var data=JSON.parse(String(r.result)); restoreProject(data); }catch(e){ alert('Invalid JSON'); } }; r.readAsText(f); }; inp.click(); };
+startScratchBtn.onclick=function(){ (isSidebarActive()? sideMain() : stack).querySelectorAll('.node').forEach(function(n){n.remove();}); updatePH(); updateAddMenuVisibility(); moveAddAnchor(); };
+function restoreProject(data){ document.body.setAttribute('data-theme',data.theme||'magentaPurple'); $$('.node',stack).forEach(function(n){n.remove();}); if(data.header){ var h=mkNode(true); h.innerHTML=data.header; h.querySelectorAll('[data-avatar]').forEach(initAvatar); stack.insertBefore(h,document.getElementById('canvasAdd')); } (data.nodes||[]).forEach(function(o){ var n=mkNode(); n.innerHTML=o.html; n.querySelectorAll('[data-avatar]').forEach(initAvatar); insertContentNode(n); }); $$('[data-dnd="skills"]').forEach(function(g){ attachDnd(g,'.skill'); }); $$('[data-dnd="cards"]').forEach(function(g){ attachDnd(g, g.classList.contains('edu-grid')?'.edu-card':'.exp-card'); }); moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility(); }
+
+/* Print / Preview */
+pdfBtn.onclick=function(){ var was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(function(){ window.print(); if(!was) setTimeout(function(){document.body.classList.remove('preview');},180); },60); };
+navPrev.onclick=function(){ var on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); navPrev.textContent=on?'Exit preview':'Preview'; };
+
+/* Wizard — delegated handlers + step tracker */
+function renderStepbar(){
+  var bar=$('#stepbar'), track=$('#stepTrack'); track.innerHTML='';
+  stepsOrder.forEach(function(_,i){ var d=document.createElement('span'); d.className='step'+(i===currentStep?' current':''); d.textContent=stepLabels[i]; track.appendChild(d); });
+}
+function showOnly(el){
+  Object.keys(cards).forEach(function(k){ if(cards[k]) cards[k].style.display='none'; });
+  if(el) el.style.display='block';
+}
+function startWizardUI(){
+  $('#stepbar').style.display='block';
+  $('#backBtn').style.display='inline-block';
+  renderStepbar();
+}
+function finishWelcome(){ canvas.classList.remove('blurred'); welcome.classList.add('hide'); setTimeout(function(){ if(welcome && welcome.parentNode) welcome.parentNode.removeChild(welcome); },420); }
+
+/* initial screen */
+showOnly(cards.welcomeCard);
+
+/* back button */
+$('#backBtn').addEventListener('click',function(){
+  if(currentStep<=0) return;
+  currentStep--;
+  showOnly(cards[stepsOrder[currentStep]]);
+  renderStepbar();
+  if(currentStep===0) $('#backBtn').style.display='none';
+});
+
+/* main wizard event delegation */
+welcome.addEventListener('click', function(e){
+  var btn = e.target.closest('button');
+  if(!btn) return;
+
+  switch(btn.id){
+    case 'startWizard':
+      startWizardUI();
+      currentStep=0; showOnly(cards[stepsOrder[currentStep]]);
+      ensureHeader('header-fancy');
+      $('#backBtn').style.display='none';
+      renderStepbar();
+      break;
+
+    case 'startBlank':
+      finishWelcome(); break;
+
+    case 'wizNextLayouts':
+      currentStep=1; showOnly(cards[stepsOrder[currentStep]]); renderStepbar(); break;
+
+    case 'wizNextTheme':
+      currentStep=2; showOnly(cards[stepsOrder[currentStep]]); renderStepbar(); setTimeout(function(){ document.getElementById('inpName')?.focus(); },50); break;
+
+    case 'wizNextName': {
+      ensureHeader();
+      var v=(document.getElementById('inpName').value||'').trim();
+      if(v) stack.querySelector('.name').textContent=v;
+      currentStep=3; showOnly(cards[stepsOrder[currentStep]]); renderStepbar(); setTimeout(function(){ document.getElementById('inpPhone')?.focus(); },50);
+      break;
+    }
+
+    case 'wizNextPhone': {
+      var v=(document.getElementById('inpPhone').value||'').trim();
+      if(v) addChip('phone', v);
+      currentStep=4; showOnly(cards[stepsOrder[currentStep]]); renderStepbar(); setTimeout(function(){ document.getElementById('inpEmail')?.focus(); },50);
+      break;
+    }
+
+    case 'wizNextEmail': {
+      var v=(document.getElementById('inpEmail').value||'').trim();
+      if(v) addChip('email', v);
+      currentStep=5; showOnly(cards[stepsOrder[currentStep]]); renderStepbar(); setTimeout(function(){ document.getElementById('inpAddr')?.focus(); },50);
+      break;
+    }
+
+    case 'wizNextAddr': {
+      var v=(document.getElementById('inpAddr').value||'').trim();
+      if(v) addChip('address', v);
+      currentStep=6; showOnly(cards[stepsOrder[currentStep]]); renderStepbar(); setTimeout(function(){ document.getElementById('inpLinked')?.focus(); },50);
+      break;
+    }
+
+    case 'wizNextLinked': {
+      var v=(document.getElementById('inpLinked').value||'').trim();
+      if(v) addChip('linkedin', v);
+      currentStep=7; showOnly(cards[stepsOrder[currentStep]]); renderStepbar();
+      document.getElementById('cbRow').style.display = isSidebarActive() ? 'block' : 'none';
+      break;
+    }
+
+    case 'wizAddStar':
+      document.getElementById('wizSkillWrap').appendChild(makeStarRow('Skill')); break;
+
+    case 'wizAddSlider':
+      document.getElementById('wizSkillWrap').appendChild(makeSliderRow('Skill')); break;
+
+    case 'wizNextSkills': {
+      var wrap = document.getElementById('wizSkillWrap');
+      var toSidebar = isSidebarActive() && document.getElementById('cbSidebarSkills').checked;
+      var grid = toSidebar ? ensureRailSkillsSection() : createSectionSkills(false);
+      if(!wrap.querySelector('.skill')) wrap.appendChild(makeStarRow('Skill'));
+      $$('.skill',wrap).forEach(function(r){ grid.appendChild(r); });
+      ensureSkillsGrouped(grid); layoutSkillGrid(grid); moveAddAnchor(); updateAddMenuVisibility();
+      currentStep=8; showOnly(cards[stepsOrder[currentStep]]); renderStepbar();
+      break;
+    }
+
+    case 'wizExpAdd':
+      addWizardExp(); break;
+
+    case 'wizDone':
+      addWizardExp(); finishWelcome(); break;
+  }
+});
+
+/* live theme change inside wizard */
+$$('.swatch',cards.wizTheme).forEach(function(s){ s.addEventListener('click',function(){ document.body.setAttribute('data-theme', s.getAttribute('data-k')); }); });
+
+/* Enter to continue */
+['inpName','inpPhone','inpEmail','inpAddr','inpLinked'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){
+      e.preventDefault();
+      var b=el.closest('.wcard')?.querySelector('.wbtn.primary');
+      if(b) b.click();
+    }
+  });
+});
+
+/* wizard helpers */
+function addWizardExp(){
+  var d=($('#expDates').value||'').trim()||'Jan 2022';
+  var r=($('#expRole').value||'').trim()||'Job title';
+  var o=($('#expOrg').value||'').trim()||'@Company';
+  var ds=($('#expDesc').value||'').trim()||'Describe impact, scale and results.';
+  var host=ensureExpSection(); host.querySelector('.exp-list').appendChild(makeExpCard(d,r,o,ds));
+  attachDnd(host.querySelector('.exp-list'),'.exp-card'); moveAddAnchor();
+}
+
+/* menus */
+function toggleDD(dd){ dd.classList.toggle('open'); }
+ddFile.querySelector('button').onclick=function(e){ e.stopPropagation(); toggleDD(ddFile); };
+ddLayout.querySelector('button').onclick=function(e){ e.stopPropagation(); toggleDD(ddLayout); };
+ddTheme.querySelector('button').onclick=function(e){ e.stopPropagation(); toggleDD(ddTheme); };
+document.addEventListener('click',function(e){ [ddFile,ddLayout,ddTheme].forEach(function(dd){ if(!dd.contains(e.target)) dd.classList.remove('open'); }); });
+
+/* Formatting toolbar */
+var fmtbar=document.getElementById('fmtbar');
+function showFmtbar(target){
+  var rect=target.getBoundingClientRect();
+  fmtbar.style.left=(window.scrollX+rect.left)+'px';
+  fmtbar.style.top=(window.scrollY+rect.top-40)+'px';
+  fmtbar.style.display='flex';
+  fmtbar._target=target;
+}
+function hideFmtbar(){ fmtbar.style.display='none'; fmtbar._target=null; }
+document.addEventListener('click',function(e){
+  if(fmtbar._target && !fmtbar.contains(e.target) && !fmtbar._target.contains(e.target)){
+    hideFmtbar();
+  }
+});
+fmtbar.addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  var t=fmtbar._target; if(!t) return;
+  var cmd=b.getAttribute('data-cmd'); var bullet=b.getAttribute('data-bullet');
+  if(cmd){ document.execCommand(cmd,false,null); t.focus(); }
+  if(bullet){
+    t.focus();
+    t.dataset.bullet=bullet;
+    document.execCommand('insertText',false,bullet);
+  }
+});
+function bulletKeydown(e){
+  var b=e.currentTarget.dataset.bullet;
+  if(e.key==='Enter' && b){ e.preventDefault(); document.execCommand('insertHTML',false,'<br>'+b); }
+  if(e.key==='Backspace'){
+    var txt=e.currentTarget.textContent;
+    if(txt.indexOf('•')===-1 && txt.indexOf('✓')===-1 && txt.indexOf('🏆')===-1){ delete e.currentTarget.dataset.bullet; }
+  }
+}
+
+/* init */
+moveAddAnchor();
+updatePH();
+attachSectionDnd();
+updateAddMenuVisibility();
+
+})();
+</script>
+</body>
+</html>
