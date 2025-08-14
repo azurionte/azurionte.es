@@ -432,7 +432,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             </div>
           </div>
 
-          <!-- Education (new) -->
+          <!-- Education -->
           <div class="wcard fade" id="wizEdu" style="display:none">
             <div class="wtitle">Add your education</div>
             <div class="wsub">Use one line titles; academies can wrap to two lines; year chip up to 9 chars.</div>
@@ -470,7 +470,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             </div>
           </div>
 
-          <!-- Footer (global Back / Start over / Next) -->
+          <!-- Footer -->
           <div class="wfooter">
             <button class="wbtn ghost" id="startOverBtn" style="margin-right:auto;display:none">Start over</button>
             <button class="wbtn" id="backBtn">Back</button>
@@ -494,72 +494,42 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 (function(){
 'use strict';
 
-/* polyfills */
+/* helpers */
 if(!Element.prototype.matches){Element.prototype.matches=Element.prototype.msMatchesSelector||Element.prototype.webkitMatchesSelector||function(s){var m=(this.document||this.ownerDocument).querySelectorAll(s),i=0;while(m[i]&&m[i]!==this)i++;return !!m[i];};}
 if(!Element.prototype.closest){Element.prototype.closest=function(s){var el=this;while(el&&el.nodeType===1){if(el.matches(s))return el;el=el.parentElement||el.parentNode;}return null;};}
-
-/* short hands */
 function $(s,r){return (r||document).querySelector(s)}
 function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
 
-/* refs */
-var stack=$('#stack'), ph=$('#ph');
-var floatbar=$('#floatbar'), navPrev=$('#togglePreview'), pdfBtn=$('#pdfBtn');
+/* core refs */
+var stack=$('#stack'), ph=$('#ph'); var floatbar=$('#floatbar');
 var dotAdd=$('#dotAdd'), addMenu=$('#addMenu'), heroImageInput=$('#heroImageInput');
 var ddFile=$('#ddFile'), ddLayout=$('#ddLayout'), ddTheme=$('#ddTheme');
 var saveBtn=$('#saveJSON'), loadBtn=$('#loadJSON'), startScratchBtn=$('#startScratch');
 
-/* welcome / wizard */
+/* WIZARD state */
 var welcome=$('#welcome'), wlayout=$('#wlayout');
 var cards=['welcomeCard','wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizEdu','wizExp']
   .reduce(function(a,id){a[id]=document.getElementById(id);return a;},{});
 var stepsOrder=['wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizEdu','wizExp'];
 var stepLabels=['Layout','Theme','Name','Phone','Email','Address','LinkedIn','Skills','Education','Experience'];
 var currentStep=0, backCount=0;
+var wizardData={ layout:'header-side', theme:document.body.getAttribute('data-theme')||'magentaPurple', name:'', phone:'', email:'', addr:'', linked:'', skills:[], place:null, edu:[] };
 
-/* persistent wizard state */
-var wizardData={
-  layout:'header-side',
-  theme:document.body.getAttribute('data-theme')||'magentaPurple',
-  name:'', phone:'', email:'', addr:'', linked:'',
-  skills:[], place:null,
-  edu:[]
-};
+/* layout helpers */
+function isSidebarActive(){ return !!stack.querySelector('.sidebar-layout'); }
+function sideMain(){ return stack.querySelector('.sidebar-layout [data-zone="main"]'); }
+function rail(){ return stack.querySelector('.sidebar-layout .rail'); }
+function updatePH(){ ph.style.display=(isSidebarActive()?(sideMain() && sideMain().querySelector('.node')):stack.querySelector('.node'))?'none':'grid'; }
+function moveAddAnchor(){ var add=$('#canvasAdd'); if(!add) return; var parent=isSidebarActive()? (sideMain()||stack) : stack; if(add.parentElement!==parent) parent.appendChild(add); parent.appendChild(add); updatePH(); updateAddMenuVisibility(); }
 
-/* helpers for sidebar layout */
-function isSidebarActive(){return !!stack.querySelector('.sidebar-layout')}
-function sideMain(){return stack.querySelector('.sidebar-layout [data-zone="main"]')}
-function rail(){return stack.querySelector('.sidebar-layout .rail')}
-function moveAddAnchor(){
-  var add=$('#canvasAdd'); if(!add) return;
-  var parent=isSidebarActive()? (sideMain()||stack) : stack;
-  if(add.parentElement!==parent) parent.appendChild(add);
-  parent.appendChild(add);
-  updatePH(); updateAddMenuVisibility();
-}
-function updatePH(){ph.style.display=(isSidebarActive()?(sideMain() && sideMain().querySelector('.node')):stack.querySelector('.node'))?'none':'grid'}
+/* selection */
+var selected=null; function select(node){ if(selected) selected.classList.remove('sel'); selected=node; if(selected) selected.classList.add('sel'); floatbar.classList.remove('show'); }
 
-/* selection bar (only for free nodes) */
-var selected=null;
-function select(node){
-  if(selected) selected.classList.remove('sel');
-  selected=node; if(selected) selected.classList.add('sel');
-  if(!node || isSidebarActive()){ floatbar.classList.remove('show'); return; }
-  floatbar.innerHTML='';
-  var del=document.createElement('button'); del.className='fbtn'; del.type='button'; del.textContent='🗑 Delete';
-  del.onclick=function(){ node.remove(); updatePH(); select(null); moveAddAnchor(); };
-  floatbar.appendChild(del);
-  floatbar.classList.add('show');
-}
+/* create node wrapper */
 function mkNode(locked){ var n=document.createElement('div'); n.className='node'; if(locked) n.setAttribute('data-locked','1'); else n.setAttribute('draggable','true'); n.addEventListener('click',function(e){ if(e.target.closest('.rm,.mbtn,.big,.mini,.handle')) return; select(n); }); return n; }
-function insertContentNode(node){
-  var wrap=node.classList.contains('node')? node : (function(){var w=mkNode(); w.appendChild(node); return w;})();
-  if(isSidebarActive() && sideMain()){ sideMain().insertBefore(wrap, $('#canvasAdd')); }
-  else { stack.insertBefore(wrap, $('#canvasAdd')); }
-  updatePH(); select(wrap); return wrap;
-}
+function insertContentNode(node){ var wrap=node.classList.contains('node')? node : (function(){var w=mkNode(); w.appendChild(node); return w;})(); if(isSidebarActive() && sideMain()){ sideMain().insertBefore(wrap, $('#canvasAdd')); } else { stack.insertBefore(wrap, $('#canvasAdd')); } updatePH(); select(wrap); return wrap; }
 
-/* avatar cropper */
+/* avatar cropper (unchanged core) */
 function initAvatar(wrapper){
   var input=wrapper.querySelector('input'), canvas=wrapper.querySelector('canvas'); if(!canvas) return;
   var ctx=canvas.getContext('2d',{willReadFrequently:true}); var S={img:null,scale:1,minScale:1,x:0,y:0,drag:false,sx:0,sy:0};
@@ -573,14 +543,13 @@ function initAvatar(wrapper){
   canvas.addEventListener('wheel',function(e){ e.preventDefault(); if(!S.img) return; var d=e.deltaY<0?1.05:0.95; var ns=S.scale*d; if(ns<S.minScale) ns=S.minScale; if(ns>5) ns=5; var r=canvas.getBoundingClientRect(); var mx=e.clientX-r.left, my=e.clientY-r.top; var dx=(mx-S.x)/S.scale, dy=(my-S.y)/S.scale; S.x=mx-dx*ns; S.y=my-dy*ns; S.scale=ns; draw(); },{passive:false});
 }
 
-/* chips helpers (limits) */
+/* chip helpers + menu */
 var ICONS={ phone:'<i class="fa-solid fa-phone"></i>', email:'<i class="fa-solid fa-envelope"></i>', address:'<i class="fa-solid fa-location-dot"></i>', linkedin:'<i class="fa-brands fa-linkedin"></i>', dot:'<i class="fa-solid fa-circle"></i>' };
 var MENU_ITEMS=[ {k:'phone',label:'Phone',placeholder:'+34 600 123 456',icon:ICONS.phone},{k:'email',label:'Email',placeholder:'you@example.com',icon:ICONS.email},{k:'address',label:'Address',placeholder:'City, Country',icon:ICONS.address},{k:'linkedin',label:'LinkedIn',placeholder:'linkedin.com/in/you',icon:ICONS.linkedin},{k:'custom',label:'Info',placeholder:'Free text',icon:ICONS.dot} ];
 function buildChip(it){
   var d=document.createElement('div'); d.className='chip'; d.dataset.k=it.k;
   d.innerHTML=it.icon+'<span contenteditable>'+it.placeholder+'</span> <button class="rm" type="button" title="Remove">×</button>';
-  var span=d.querySelector('span[contenteditable]');
-  d.querySelector('.rm').onclick=function(ev){ ev.stopPropagation(); d.remove(); };
+  var span=d.querySelector('span[contenteditable]'); d.querySelector('.rm').onclick=function(ev){ ev.stopPropagation(); d.remove(); };
   span.addEventListener('input',function(){
     if(it.k!=='address'){ span.textContent=span.textContent.replace(/\n/g,' '); }
     else{
@@ -604,15 +573,11 @@ function addOrUpdateChip(type,text){
     var it=MENU_ITEMS.find(function(x){return x.k===type;}) || MENU_ITEMS[0];
     existing=buildChip(it);
     if(hdr.classList.contains('topbar')) hdr.querySelector('[data-info]').appendChild(existing);
-    else if(hdr.classList.contains('fancy')){
-      var L=hdr.querySelector('[data-info-left]'), R=hdr.querySelector('[data-info-right]');
-      (L.scrollHeight<=R.scrollHeight?L:R).appendChild(existing);
-    } else hdr.querySelector('.rail [data-info]').appendChild(existing);
+    else if(hdr.querySelector('.fancy')){ var L=hdr.querySelector('[data-info-left]'), R=hdr.querySelector('[data-info-right]'); (L.scrollHeight<=R.scrollHeight?L:R).appendChild(existing); }
+    else hdr.querySelector('.rail [data-info]').appendChild(existing);
   }
   if(text){ existing.querySelector('span[contenteditable]').textContent=text; }
 }
-
-/* Quick chip pop (header buttons) */
 function openChipMenu(onPick,anchorEl){
   var pop=document.createElement('div'); pop.className='pop open';
   var rect=(anchorEl||dotAdd).getBoundingClientRect(); pop.style.left=(rect.left+rect.width/2)+'px'; pop.style.top=(rect.top)+'px';
@@ -696,16 +661,30 @@ function mkTitle(icon, text, onDelete, withHandle=true){
   tools.appendChild(del); t.appendChild(tools); return t;
 }
 function skillsExists(){ return !!stack.querySelector('.grid-skills'); }
-function createSectionSkills(inRail){ var existing=stack.querySelector('.grid-skills'); if(existing) return existing;
-  var wrap=mkNode(); var sec=document.createElement('div'); sec.className='section';
-  var title=mkTitle('fa-layer-group','Skills',function(){ wrap.remove(); }, !inRail); sec.appendChild(title);
-  sec.innerHTML+='<div class="help">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div><div class="grid-skills cols-1" data-dnd="skills"></div><div class="ctrl-mini" style="display:flex;justify-content:center;gap:10px"><button class="mini" type="button" data-add-star><i class="fa-solid fa-plus"></i> ★</button><button class="mini" type="button" data-add-slider><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i></button></div>';
-  wrap.appendChild(sec);
-  if(inRail && isSidebarActive()){ rail()?.querySelector('.sec-holder')?.appendChild(sec); } else { insertContentNode(wrap); }
-  var grid=sec.querySelector('.grid-skills');
-  sec.querySelector('[data-add-star]').onclick=function(){ grid.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
-  sec.querySelector('[data-add-slider]').onclick=function(){ grid.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
-  layoutSkillGrid(grid); attachSectionDnd(); updateAddMenuVisibility(); if(inRail){ var th=sec.querySelector('.sec-tools .handle'); if(th) th.style.display='none'; } return grid;
+function createSectionSkills(inRail){
+  if(skillsExists()) return stack.querySelector('.grid-skills');
+  var containerSec = document.createElement('div'); containerSec.className='section';
+  var wrap=mkNode(); wrap.appendChild(containerSec);
+  var title=mkTitle('fa-layer-group','Skills',function(){ wrap.remove(); }, !inRail);
+  containerSec.appendChild(title);
+  var help=document.createElement('div'); help.className='help'; help.textContent='Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.'; containerSec.appendChild(help);
+  var grid=document.createElement('div'); grid.className='grid-skills cols-1'; grid.setAttribute('data-dnd','skills'); containerSec.appendChild(grid);
+  var controls=document.createElement('div'); controls.className='ctrl-mini'; controls.style.display='flex'; controls.style.justifyContent='center'; controls.style.gap='10px';
+  var bStar=document.createElement('button'); bStar.className='mini'; bStar.type='button'; bStar.setAttribute('data-add-star',''); bStar.innerHTML='<i class="fa-solid fa-plus"></i> ★';
+  var bSl=document.createElement('button'); bSl.className='mini'; bSl.type='button'; bSl.setAttribute('data-add-slider',''); bSl.innerHTML='<i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i>';
+  controls.appendChild(bStar); controls.appendChild(bSl); containerSec.appendChild(controls);
+
+  if(inRail && isSidebarActive()){
+    rail()?.querySelector('.sec-holder')?.appendChild(containerSec);
+  }else{
+    insertContentNode(wrap);
+  }
+
+  bStar.onclick=function(){ grid.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
+  bSl.onclick=function(){ grid.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
+  layoutSkillGrid(grid); attachSectionDnd(); updateAddMenuVisibility();
+  if(inRail){ var th=containerSec.querySelector('.sec-tools .handle'); if(th) th.style.display='none'; }
+  return grid;
 }
 function ensureRailSkillsSection(){ if(!isSidebarActive()) return null; var exist=rail().querySelector('.grid-skills') || stack.querySelector('.grid-skills'); if(exist) return exist; return createSectionSkills(true); }
 
@@ -753,7 +732,7 @@ function makeEduCard(kind){
   var yr=c.querySelector('.edu-year'); yr.addEventListener('input',function(){ if(yr.textContent.length>9){ yr.textContent=yr.textContent.slice(0,9); } }); return c;
 }
 
-/* Drag & drop (handle-only) */
+/* Drag & drop */
 function attachDnd(container,itemSel){ if(!container || container._dndAttached) return; container._dndAttached=true; var dragEl=null, ph=null;
   container.addEventListener('dragstart',function(e){ var it=e.target.closest(itemSel); if(!it) return; if(!e.target.closest('.handle')){ e.preventDefault(); return; } dragEl=it; e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain',''); }catch(_){} ph=document.createElement('div'); ph.className='drop-ph'; ph.style.height=it.offsetHeight+'px'; try{ var img=document.createElement('canvas'); img.width=1; img.height=1; e.dataTransfer.setDragImage(img,0,0); }catch(_){} setTimeout(function(){ it.style.opacity='0.35'; },0); });
   container.addEventListener('dragend',function(){ if(dragEl){ dragEl.style.opacity=''; if(ph) ph.remove(); dragEl=null; ph=null; } });
@@ -779,9 +758,9 @@ function openAddMenu(){
   function close(e){ if(!addMenu.contains(e.target) && e.target!==dotAdd){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } } setTimeout(function(){ document.addEventListener('click',close); },0);
 }
 dotAdd.addEventListener('click',openAddMenu);
-addMenu.addEventListener('click',function(e){ var b=e.target.closest('.big'); if(!b) return; addMenu.classList.remove('open'); var K=b.getAttribute('data-add'); if(K==='section-skills') createSectionSkills(false); if(K==='section-edu') createSectionEdu(); if(K==='section-exp') createSectionExp(); moveAddAnchor(); });
+addMenu.addEventListener('click',function(e){ var b=e.target.closest('.big'); if(!b) return; addMenu.classList.remove('open'); var K=b.getAttribute('data-add'); if(K==='section-skills') createSectionSkills(false); if(K==='section-edu') createSectionEdu(); if(K==='section-exp') ensureExpSection(); moveAddAnchor(); });
 
-/* Theme / hero (menus) */
+/* Theme / hero */
 $$('.swatch',ddTheme).forEach(function(s){ s.addEventListener('click',function(){ document.body.setAttribute('data-theme', s.getAttribute('data-k')); ddTheme.classList.remove('open'); }); });
 $$('.pill',ddTheme).forEach(function(p){ p.addEventListener('click',function(){ $$('.pill',ddTheme).forEach(function(x){x.classList.remove('active');}); p.classList.add('active'); var k=p.getAttribute('data-hero'), headers=$$('.topbar,.fancy',stack); headers.forEach(function(h){ var host=h.classList.contains('topbar')?h:h.querySelector('.hero'); if(k==='gradient'){ host.style.background='linear-gradient(135deg,var(--accent2),var(--accent))'; host.style.backgroundImage=''; } if(k==='pattern'){ host.style.background='linear-gradient(135deg,var(--accent2),var(--accent)), radial-gradient(circle at 20% 20%, #ffffff22 2px, transparent 2px)'; host.style.backgroundSize='auto,16px 16px'; } if(k==='image'){ heroImageInput.click(); } }); }); });
 heroImageInput.addEventListener('change',function(){ var f=heroImageInput.files&&heroImageInput.files[0]; if(!f) return; var url=URL.createObjectURL(f); $$('.topbar,.fancy',stack).forEach(function(h){ var host=h.classList.contains('topbar')?h:h.querySelector('.hero'); host.style.background='url('+url+') center/cover'; }); setTimeout(function(){ URL.revokeObjectURL(url); },7000); });
@@ -794,62 +773,141 @@ startScratchBtn.onclick=function(){ (isSidebarActive()? sideMain() : stack).quer
 function restoreProject(data){ document.body.setAttribute('data-theme',data.theme||'magentaPurple'); $$('.node',stack).forEach(function(n){n.remove();}); if(data.header){ var h=mkNode(true); h.innerHTML=data.header; h.querySelectorAll('[data-avatar]').forEach(initAvatar); stack.insertBefore(h,$('#canvasAdd')); } (data.nodes||[]).forEach(function(o){ var n=mkNode(); n.innerHTML=o.html; n.querySelectorAll('[data-avatar]').forEach(initAvatar); insertContentNode(n); }); $$('[data-dnd="skills"]').forEach(function(g){ attachDnd(g,'.skill'); }); $$('[data-dnd="cards"]').forEach(function(g){ attachDnd(g, g.classList.contains('edu-grid')?'.edu-card':'.exp-card'); }); moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility(); }
 
 /* Print / Preview */
-pdfBtn.onclick=function(){ var was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(function(){ window.print(); if(!was) setTimeout(function(){document.body.classList.remove('preview');},180); },60); };
-navPrev.onclick=function(){ var on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); navPrev.textContent=on?'Exit preview':'Preview'; };
+$('#pdfBtn').onclick=function(){ var was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(function(){ window.print(); if(!was) setTimeout(function(){document.body.classList.remove('preview');},180); },60); };
+$('#togglePreview').onclick=function(){ var on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); this.textContent=on?'Exit preview':'Preview'; };
 
-/* WIZARD — progress + navigation */
+/* WIZARD UI */
 function renderProgress(){ var p=$('#wprogress'); p.innerHTML=''; stepsOrder.forEach(function(_,i){ var d=document.createElement('div'); d.className='pitem'+(i===currentStep?' current':'')+(i<currentStep?' done':''); d.innerHTML='<span class="pcheck"><i class="fa-solid fa-check"></i></span><span>'+stepLabels[i]+'</span>'; p.appendChild(d); }); }
 function showOnly(el){ Object.keys(cards).forEach(function(k){ cards[k].style.display='none'; cards[k].classList.remove('show'); }); el.style.display='block'; requestAnimationFrame(function(){ el.classList.add('show'); }); if(el===cards.welcomeCard){ $('#wprogress').style.display='none'; wlayout.classList.add('intro'); $('#backBtn').disabled=true; $('#startOverBtn').style.display='none'; } else { $('#wprogress').style.display='block'; wlayout.classList.remove('intro'); $('#backBtn').disabled = currentStep===0; $('#startOverBtn').style.display = backCount>=2 ? 'inline-block':'none'; } }
 function finishWelcome(){ welcome.classList.add('hide'); setTimeout(function(){ welcome.remove(); },420); }
+function onStepEnter(){ var id=stepsOrder[currentStep]; if(id==='wizLayouts'){ ensureHeader(wizardData.layout); } if(id==='wizTheme'){ document.body.setAttribute('data-theme', wizardData.theme); } if(id==='wizSkills'){ renderWizardSkills(); $('#cbRow').style.display = isSidebarActive() ? 'block' : 'none'; } renderProgress(); }
+function goNext(){ currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); }
 
-/* initial */
+/* init wizard welcome */
 showOnly(cards.welcomeCard);
 
 /* Layout/Theme pickers (wizard) */
 function ensureHeader(kind){ if(stack.querySelector('.topbar,.fancy,.sidebar-layout')) return; migrateLayout(kind||'header-side',true); }
-function onStepEnter(){ var id=stepsOrder[currentStep]; if(id==='wizLayouts'){ ensureHeader(wizardData.layout); } if(id==='wizTheme'){ document.body.setAttribute('data-theme', wizardData.theme); } if(id==='wizSkills'){ renderWizardSkills(); $('#cbRow').style.display = isSidebarActive() ? 'block' : 'none'; } if(id==='wizEdu'){ renderWizardEduPreview(); } renderProgress(); }
-
-/* Global footer actions */
-$('#startWizard').onclick=function(){ currentStep=0; showOnly(cards[stepsOrder[currentStep]]); $('#wprogress').style.display='block'; onStepEnter(); }
-$('#startBlank').onclick=function(){ finishWelcome(); }
-$('#backBtn').onclick=function(){ if(currentStep===0){ currentStep=0; showOnly(cards.welcomeCard); return; } backCount++; currentStep--; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); }
-$('#nextBtn').onclick=function(){ backCount=0; var id=stepsOrder[currentStep]; if(id==='wizLayouts'){ currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizTheme'){ currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizName'){ ensureHeader(); var v=($('#inpName').value||'').trim(); if(v){ wizardData.name=v; stack.querySelector('.name').textContent=v; } currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizPhone'){ var v=($('#inpPhone').value||'').trim(); if(v){ wizardData.phone=v; addOrUpdateChip('phone', v); } currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizEmail'){ var v=($('#inpEmail').value||'').trim(); if(v){ wizardData.email=v; addOrUpdateChip('email', v); } currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizAddress'){ var v=($('#inpAddr').value||'').trim(); if(v){ wizardData.addr=v; addOrUpdateChip('address', v); } currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizLinked'){ var u=($('#inpLinked').value||'').trim().replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i,'').replace(/^\//,''); if(u){ wizardData.linked=u; addOrUpdateChip('linkedin','linkedin.com/in/'+u); } currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizSkills'){ var data=serializeWizardSkills(); wizardData.skills=data.items; wizardData.place=data.place; if(wizardData.skills.length>0){ applySkillsToResume(wizardData); } currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizEdu'){ applyEduToResume(); currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); return; }
-  if(id==='wizExp'){ addWizardExp(); finishWelcome(); }
-};
+$('#startWizard').onclick=function(){ currentStep=0; showOnly(cards[stepsOrder[currentStep]]); $('#wprogress').style.display='block'; onStepEnter(); };
+$('#startBlank').onclick=function(){ finishWelcome(); };
+$('#backBtn').onclick=function(){ if(currentStep===0){ currentStep=0; showOnly(cards.welcomeCard); return; } backCount++; currentStep--; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); };
 $('#startOverBtn').onclick=function(){ if(!confirm('Start the wizard over? This won’t delete anything you already placed.')) return; currentStep=0; backCount=0; wizardData.skills=[]; wizardData.place=null; wizardData.edu=[]; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); };
+
+$('#nextBtn').onclick=function(){
+  backCount=0;
+  var id=stepsOrder[currentStep];
+  try{
+    if(id==='wizLayouts'){ goNext(); return; }
+    if(id==='wizTheme'){ goNext(); return; }
+    if(id==='wizName'){ ensureHeader(); var v=($('#inpName').value||'').trim(); if(v){ wizardData.name=v; stack.querySelector('.name').textContent=v; } goNext(); return; }
+    if(id==='wizPhone'){ var v=($('#inpPhone').value||'').trim(); if(v){ wizardData.phone=v; addOrUpdateChip('phone', v); } goNext(); return; }
+    if(id==='wizEmail'){ var v=($('#inpEmail').value||'').trim(); if(v){ wizardData.email=v; addOrUpdateChip('email', v); } goNext(); return; }
+    if(id==='wizAddress'){ var v=($('#inpAddr').value||'').trim(); if(v){ wizardData.addr=v; addOrUpdateChip('address', v); } goNext(); return; }
+    if(id==='wizLinked'){ var u=($('#inpLinked').value||'').trim().replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i,'').replace(/^\//,''); if(u){ wizardData.linked=u; addOrUpdateChip('linkedin','linkedin.com/in/'+u); } goNext(); return; }
+    if(id==='wizSkills'){
+      var data=serializeWizardSkills();
+      if(data.items.length>0){
+        wizardData.skills=data.items;
+        wizardData.place= data.place || (isSidebarActive() ? ($('#cbSidebarSkills').checked ? 'sidebar' : 'canvas') : 'canvas');
+        applySkillsToResume(wizardData);
+      } else { wizardData.skills=[]; wizardData.place=null; }
+      goNext(); return;
+    }
+    if(id==='wizEdu'){ applyEduToResume(); goNext(); return; }
+    if(id==='wizExp'){ addWizardExp(); finishWelcome(); return; }
+  } catch(err){
+    console.error('Wizard step error:', err);
+    // Advance anyway so the wizard is never stuck.
+    goNext();
+  }
+};
 
 /* picks inside wizard */
 $('#layoutPickerWizard').addEventListener('click',function(e){ var m=e.target.closest('.mock'); if(!m) return; $$('.mock',this).forEach(function(x){x.classList.remove('sel')}); m.classList.add('sel'); wizardData.layout=m.dataset.layout; migrateLayout(wizardData.layout,true); fadeSwitch(); });
 $$('#wizTheme .swatch').forEach(function(s){ s.addEventListener('click',function(){ wizardData.theme=s.dataset.k; document.body.setAttribute('data-theme',wizardData.theme); }); });
-
-/* inputs Enter to continue */
 ['inpName','inpPhone','inpEmail','inpAddr','inpLinked'].forEach(function(id){ var el=document.getElementById(id); el&&el.addEventListener('keydown',function(e){ if(e.key==='Enter'){ $('#nextBtn').click(); } }); });
 
 /* Wizard skills state */
-function serializeWizardSkills(){ var wrap=$('#wizSkillWrap'); var arr=[]; $$('.skill',wrap).forEach(function(row){ var label=(row.querySelector('span[contenteditable]').textContent||'').trim()||'Skill'; if(row.getAttribute('data-type')==='star'){ var n=row.querySelectorAll('.star.active').length; arr.push({type:'star',label:label,value:n}); } else { var v=parseInt(row.querySelector('input[type="range"]').value,10)||0; arr.push({type:'slider',label:label,value:v}); } }); var place=null; if(isSidebarActive() && $('#cbSidebarSkills').checked) place='sidebar'; else if(arr.length>0) place='canvas'; return {items:arr, place:place}; }
-function importSkillsFromResume(){ var grid = stack.querySelector('.grid-skills'); if(!grid) return {items:[], place:null}; var place = grid.closest('.rail') ? 'sidebar' : 'canvas'; var items=[]; $$('.skill',grid).forEach(function(row){ var label=(row.querySelector('span[contenteditable]').textContent||'').trim()||'Skill'; if(row.getAttribute('data-type')==='star'){ var n=row.querySelectorAll('.star.active').length; items.push({type:'star',label:label,value:n}); } else { var v=parseInt(row.querySelector('input[type="range"]').value,10)||0; items.push({type:'slider',label:label,value:v}); } }); return {items:items, place:place}; }
-function ensureSkillsGridAt(place){ var grid=stack.querySelector('.grid-skills'); var inRail = grid && !!grid.closest('.rail'); if(place==='sidebar' && (!grid || !inRail)){ if(grid){ var rem=inRail?grid.closest('.section'):grid.closest('.node'); rem&&rem.remove(); grid=null; } grid=ensureRailSkillsSection(); } else if(place!=='sidebar'){ if(grid && inRail){ var rem2=grid.closest('.section'); rem2&&rem2.remove(); grid=null; } if(!grid) grid=createSectionSkills(false); } return grid; }
-function applySkillsToResume(state){ var place=state.place||'canvas'; if(state.skills.length===0) return; var grid=ensureSkillsGridAt(place); if(!grid) return; grid.innerHTML=''; state.skills.forEach(function(it){ var row=it.type==='star'?makeStarRow(it.label):makeSliderRow(it.label); if(it.type==='star'){ var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active',i<it.value); }); } else { row.querySelector('input[type="range"]').value=it.value; } grid.appendChild(row); }); ensureSkillsGrouped(grid); layoutSkillGrid(grid); moveAddAnchor(); updateAddMenuVisibility(); }
-function renderWizardSkills(){ var wrap=$('#wizSkillWrap'); wrap.innerHTML=''; if(wizardData.skills.length===0){ var imp=importSkillsFromResume(); if(imp.items.length>0){ wizardData.skills=imp.items; wizardData.place=imp.place; } } wizardData.skills.forEach(function(it){ var row=it.type==='star'?makeStarRow(it.label,{draggable:false}):makeSliderRow(it.label,{draggable:false}); if(it.type==='star'){ var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active', i<it.value); }); } else { row.querySelector('input[type="range"]').value=it.value; } wrap.appendChild(row); }); if(isSidebarActive()){ $('#cbRow').style.display='block'; $('#cbSidebarSkills').checked = wizardData.place==='sidebar'; } else { $('#cbRow').style.display='none'; } }
-$('#wizAddStar').onclick=function(){ $('#wizSkillWrap').appendChild(makeStarRow('Skill',{draggable:false})); }
-$('#wizAddSlider').onclick=function(){ $('#wizSkillWrap').appendChild(makeSliderRow('Skill',{draggable:false})); }
+function serializeWizardSkills(){
+  var wrap=$('#wizSkillWrap'); var arr=[];
+  $$('.skill',wrap).forEach(function(row){
+    var label=(row.querySelector('span[contenteditable]').textContent||'').trim()||'Skill';
+    if(row.getAttribute('data-type')==='star'){
+      var n=row.querySelectorAll('.star.active').length;
+      arr.push({type:'star',label:label,value:n});
+    }else{
+      var v=parseInt(row.querySelector('input[type="range"]').value,10)||0;
+      arr.push({type:'slider',label:label,value:v});
+    }
+  });
+  var place=null;
+  if(isSidebarActive()){
+    place = $('#cbSidebarSkills').checked ? 'sidebar' : (arr.length ? 'canvas' : null);
+  }else{
+    place = arr.length ? 'canvas' : null;
+  }
+  return {items:arr, place:place};
+}
+function importSkillsFromResume(){
+  var grid = stack.querySelector('.grid-skills'); if(!grid) return {items:[], place:null};
+  var place = grid.closest('.rail') ? 'sidebar' : 'canvas';
+  var items=[]; $$('.skill',grid).forEach(function(row){
+    var label=(row.querySelector('span[contenteditable]').textContent||'').trim()||'Skill';
+    if(row.getAttribute('data-type')==='star'){
+      var n=row.querySelectorAll('.star.active').length; items.push({type:'star',label:label,value:n});
+    } else {
+      var v=parseInt(row.querySelector('input[type="range"]').value,10)||0; items.push({type:'slider',label:label,value:v});
+    }
+  });
+  return {items:items, place:place};
+}
+function ensureSkillsGridAt(place){
+  var grid=stack.querySelector('.grid-skills'); var inRail = grid && !!grid.closest('.rail');
+  if(place==='sidebar' && (!grid || !inRail)){
+    if(grid){ var rem=inRail?grid.closest('.section'):grid.closest('.node'); rem&&rem.remove(); grid=null; }
+    grid=ensureRailSkillsSection();
+  } else if(place!=='sidebar'){
+    if(grid && inRail){ var rem2=grid.closest('.section'); rem2&&rem2.remove(); grid=null; }
+    if(!grid) grid=createSectionSkills(false);
+  }
+  return grid;
+}
+function applySkillsToResume(state){
+  if(!state || !state.skills || !state.skills.length) return;
+  var place=state.place||'canvas';
+  var grid=ensureSkillsGridAt(place); if(!grid) return;
+  grid.innerHTML='';
+  state.skills.forEach(function(it){
+    var row=it.type==='star'?makeStarRow(it.label):makeSliderRow(it.label);
+    if(it.type==='star'){ var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active',i<it.value); }); }
+    else { row.querySelector('input[type="range"]').value=it.value; }
+    grid.appendChild(row);
+  });
+  ensureSkillsGrouped(grid); layoutSkillGrid(grid); moveAddAnchor(); updateAddMenuVisibility();
+}
+function renderWizardSkills(){
+  var wrap=$('#wizSkillWrap'); wrap.innerHTML='';
+  if(wizardData.skills.length===0){
+    var imp=importSkillsFromResume(); if(imp.items.length>0){ wizardData.skills=imp.items; wizardData.place=imp.place; }
+  }
+  wizardData.skills.forEach(function(it){
+    var row=it.type==='star'?makeStarRow(it.label,{draggable:false}):makeSliderRow(it.label,{draggable:false});
+    if(it.type==='star'){ var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active', i<it.value); }); }
+    else { row.querySelector('input[type="range"]').value=it.value; }
+    wrap.appendChild(row);
+  });
+  if(isSidebarActive()){ $('#cbRow').style.display='block'; $('#cbSidebarSkills').checked = wizardData.place==='sidebar'; } else { $('#cbRow').style.display='none'; }
+}
+$('#wizAddStar').onclick=function(){ $('#wizSkillWrap').appendChild(makeStarRow('Skill',{draggable:false})); };
+$('#wizAddSlider').onclick=function(){ $('#wizSkillWrap').appendChild(makeSliderRow('Skill',{draggable:false})); };
 
-/* Wizard EDU state */
-$('#wizEduAdd').onclick=function(){ var kind=$('#eduKind').value; var title=($('#eduTitle').value||'').trim()||'Title'; var academy=($('#eduAcademy').value||'').trim()||'Academy name (wraps to two lines if needed)'; var year=($('#eduYear').value||'').trim().slice(0,9)||'2018–2022'; wizardData.edu.push({kind:kind,title:title,academy:academy,year:year}); renderWizardEduPreview(); $('#eduTitle').value=''; $('#eduAcademy').value=''; $('#eduYear').value=''; }
-$('#wizEduClear').onclick=function(){ wizardData.edu=[]; renderWizardEduPreview(); }
-function renderWizardEduPreview(){ /* no list UI to keep compact; presence is enough */ }
+/* EDU wizard */
+$('#wizEduAdd').onclick=function(){ var kind=$('#eduKind').value; var title=($('#eduTitle').value||'').trim()||'Title'; var academy=($('#eduAcademy').value||'').trim()||'Academy name (wraps to two lines if needed)'; var year=($('#eduYear').value||'').trim().slice(0,9)||'2018–2022'; wizardData.edu.push({kind:kind,title:title,academy:academy,year:year}); $('#eduTitle').value=''; $('#eduAcademy').value=''; $('#eduYear').value=''; };
+$('#wizEduClear').onclick=function(){ wizardData.edu=[]; };
 function applyEduToResume(){ if(wizardData.edu.length===0) return; var host=stack.querySelector('.edu-grid'); if(!host){ createSectionEdu(); host=stack.querySelector('.edu-grid'); } host.innerHTML=''; wizardData.edu.forEach(function(e){ var card=makeEduCard(e.kind); card.querySelector('.edu-title').textContent=e.title; card.querySelector('.edu-academy').textContent=e.academy; card.querySelector('.edu-year').textContent=e.year; host.appendChild(card); }); attachDnd(host,'.edu-card'); }
 
 /* EXP helper */
-$('#wizExpAdd').onclick=function(){ addWizardExp(); }
+$('#wizExpAdd').onclick=function(){ addWizardExp(); };
 function addWizardExp(){ var d=($('#expDates').value||'').trim()||'Jan 2022'; var r=($('#expRole').value||'').trim()||'Job title'; var o=($('#expOrg').value||'').trim()||'@Company'; var ds=($('#expDesc').value||'').trim()||'Describe impact, scale and results.'; var host=ensureExpSection(); host.querySelector('.exp-list').appendChild(makeExpCard(d,r,o,ds)); attachDnd(host.querySelector('.exp-list'),'.exp-card'); moveAddAnchor(); }
 
 /* Menus */
@@ -867,10 +925,10 @@ document.addEventListener('click',function(e){ if(fmtbar._target && !fmtbar.cont
 fmtbar.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; var t=fmtbar._target; if(!t) return; var cmd=b.getAttribute('data-cmd'); var bullet=b.getAttribute('data-bullet'); if(cmd){ document.execCommand(cmd,false,null); t.focus(); } if(bullet){ t.focus(); t.dataset.bullet=bullet; document.execCommand('insertText',false,bullet); } });
 function bulletKeydown(e){ var b=e.currentTarget.dataset.bullet; if(e.key==='Enter' && b){ e.preventDefault(); document.execCommand('insertHTML',false,'<br>'+b); } if(e.key==='Backspace'){ var txt=e.currentTarget.textContent; if(txt.indexOf('•')===-1 && txt.indexOf('✓')===-1 && txt.indexOf('🏆')===-1){ delete e.currentTarget.dataset.bullet; } } }
 
-/* init */
+/* kick off */
 document.body.setAttribute('data-theme', wizardData.theme);
 moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility();
-migrateLayout('header-side',true); // matches default selected in wizard
+migrateLayout('header-side',true);
 })();
 </script>
 </body>
