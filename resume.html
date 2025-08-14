@@ -1,257 +1,239 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Easy Resume Builder — Wizard • Sections • Mockups</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
+/* =========================
+   Core palette + switches
+   ========================= */
 :root{
-  --accent:#8b5cf6; --accent2:#d946ef; --ink:#e6e8ef;
-  --bg:#0e1117; --panel:#0f1420; --line:#23283b; --card:#f8f9fb;
-  --fancy-min:180px; --fancy-avatar:140px; --fancy-gap:calc(var(--fancy-avatar)+28px);
-  --topbar-min:170px; --topbar-avatar:120px;
+  --accent:#8b5cf6; --accent2:#d946ef;
+  --ink:#e6e8ef; --ink-2:#c9cbe2;
+  --bg:#0e1117; --panel:#0f1420; --panel-2:#0c1324;
+  --line:#23283b; --paper:#ffffff; --paper-2:#f8f9fb;
   --rail-width:300px;
   --shadow:0 8px 28px rgba(0,0,0,.18);
-  --skillW: 160px; --skillGap: 12px; --star: 16px;
+  --glow:0 8px 28px color-mix(in srgb, var(--accent) 40%, #0000);
+  --glow-2:0 10px 40px color-mix(in srgb, var(--accent2) 35%, #0000);
+  --meter:120px;              /* star/slider width (canvas) */
+  --meter-rail:112px;         /* star/slider width (sidebar) */
+  --star-gap:6px;             /* default star spacing */
+  --star-gap-tight:4px;       /* tighter (sidebar) */
+  --bubble:#0f1420; --bubbleBr:#1f2540;
 }
-
-/* themes */
 body[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
 body[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
 body[data-theme="city"]{ --accent:#34d399; --accent2:#9ca3af }
-body[data-theme="magentaPurple"]{ --accent:#9333ea; --accent2:#ec4899 }
-body[data-theme="magentaPink"]{ --accent:#f97316; --accent2:#ec4899 }
-body[data-theme="blueGreen"]{ --accent:#2ecc71; --accent2:#22c1c3 }
-body[data-theme="mono"]{ --accent:#374151; --accent2:#9ca3af }
+body[data-theme="magentaPurple"]{ --accent:#c026d3; --accent2:#9333ea }
+body[data-theme="magentaPink"]{ --accent:#ec4899; --accent2:#f97316 }
+body[data-theme="blueGreen"]{ --accent:#22c1c3; --accent2:#2ecc71 }
+body[data-theme="slate"]{ --accent:#5a5f6b; --accent2:#a8b0ba }
 
-/* basics */
+body[data-dark="1"]{
+  --paper:#0d1422; --paper-2:#0f1828; --ink:#e7ebff; --ink-2:#cfd6ff;
+}
+
+/* =========================
+   Base layout + nav
+   ========================= */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--ink);display:grid;grid-template-rows:auto 1fr}
 
-/* NAV */
+/* nav */
 .nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
 .brand{font-weight:800}
 .menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.mbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:7px 10px;border-radius:10px;cursor:pointer}
-.mbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
+.mbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:7px 10px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+.mbtn:hover{box-shadow:var(--glow)}
 .dropdown{position:relative}
 .dropdown-menu{position:absolute;top:120%;left:0;background:#0f1420;border:1px solid var(--line);border-radius:12px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;padding:10px;z-index:9999}
 .dropdown.open .dropdown-menu{display:block}
-.dropdown-menu button{display:block;width:100%;text-align:left;background:transparent;color:#e6e8ef;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
-.dropdown-menu button:hover{background:#172038}
+.dropdown-menu button{display:block;width:100%;text-align:left;background:transparent;color:#e6e8ef;border:0;padding:10px 12px;border-radius:10px;cursor:pointer}
+.dropdown-menu button:hover{background:#172038;box-shadow:var(--glow)}
 
-/* theme swatches (menu) */
-.theme-row{display:flex;gap:10px;justify-content:center;padding:6px}
-.swatch{width:44px;height:22px;border-radius:999px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(90deg,var(--a2),var(--a1))}
+/* theme swatches + custom + dark toggle */
+.theme-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.swatch{height:34px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(90deg,var(--a2),var(--a1));box-shadow:var(--shadow)}
+.swatch:hover{box-shadow:var(--glow)}
 .swatch[data-k="coral"]{--a1:#ff7b54;--a2:#ffd166}
 .swatch[data-k="sea"]{--a1:#4facfe;--a2:#38d2ff}
 .swatch[data-k="city"]{--a1:#34d399;--a2:#9ca3af}
 .swatch[data-k="magentaPurple"]{--a1:#c026d3;--a2:#9333ea}
 .swatch[data-k="magentaPink"]{--a1:#ec4899;--a2:#f97316}
 .swatch[data-k="blueGreen"]{--a1:#22c1c3;--a2:#2ecc71}
-.swatch[data-k="mono"]{--a1:#9ca3af;--a2:#111827}
-.hero-style{display:flex;gap:8px;justify-content:center;padding:8px}
-.pill{padding:6px 10px;border:1px solid #2b324b;border-radius:999px;background:#12182a;color:#e6e8ef;cursor:pointer}
-.pill.active{outline:2px solid #7c99ff}
-#heroImageInput{display:none}
+.swatch[data-k="slate"]{--a1:#5a5f6b;--a2:#a8b0ba}
+.custom-picker{display:flex;gap:8px;align-items:center;padding:8px;border:1px dashed #2b324b;border-radius:12px;margin-top:8px}
+.custom-picker input[type=color]{width:36px;height:26px;border:0;background:transparent;padding:0}
+.toggle{--h:22px;width:44px;height:var(--h);border-radius:var(--h);background:#26304a;border:1px solid #384062;position:relative;cursor:pointer;display:inline-block;vertical-align:middle}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s ease}
+.toggle[data-on="1"]{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.toggle[data-on="1"]::after{left:24px}
 
-/* CANVAS */
+/* =========================
+   Canvas / Page
+   ========================= */
 #canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
-.page{background:#fff;color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
+#canvas.blurred{filter:blur(4px);transform:scale(.99)}
+.page{background:var(--paper);color:#111;width:860px;min-height:100%;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
 .page::before{content:"";position:absolute;inset:16px;pointer-events:none;background:
-  linear-gradient(90deg,transparent 15px,#eef2f7 16px),
-  linear-gradient(transparent 15px,#eef2f7 16px);background-size:16px 16px;opacity:.45;border-radius:14px}
-#sheet{padding:24px;min-height:1120px}
-.fadeSwitch{opacity:.2;transition:opacity .2s ease}
-.fadeSwitch.show{opacity:1}
+  linear-gradient(90deg,transparent 15px,var(--paper-2) 16px),
+  linear-gradient(transparent 15px,var(--paper-2) 16px);background-size:16px 16px;opacity:.35;border-radius:14px}
+#sheet{padding:24px}
 .stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
 .placeholder{grid-column:1/-1;display:grid;place-items:center;color:#8c95b1}
 .placeholder svg{width:48px;height:48px;margin:0 auto 8px}
 
-/* nodes + UI */
-.node{position:relative;background:var(--card);border-radius:14px;padding:10px 10px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);grid-column:span 12;transition:transform .18s ease, box-shadow .18s ease}
+/* nodes */
+.node{position:relative;background:var(--paper-2);border-radius:14px;padding:10px 10px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);grid-column:span 12;transition:transform .18s ease, box-shadow .18s ease}
 .node.sel{outline:2px solid #7c99ff; box-shadow:0 12px 30px rgba(124,153,255,.25)}
 .node[data-locked="1"]{background:transparent;box-shadow:none;padding:0}
+
+/* bubble controls */
+.bubble{background:var(--bubble);border:1px solid var(--bubbleBr);color:#e6e8ef;border-radius:12px;padding:6px 9px;cursor:pointer;box-shadow:var(--shadow)}
+.bubble:hover{box-shadow:var(--glow)}
+
+/* toolbar above canvas selection */
 .floatbar{position:sticky;top:8px;z-index:5000;display:none;justify-content:center;gap:6px}
 .floatbar.show{display:flex}
-.fbtn{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:16px;padding:6px 9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35)}
-.fbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
 
-/* add */
+/* big Add */
 .add-squircle{grid-column:1/-1;display:grid;place-items:center;padding:28px 0}
-.add-dot{width:68px;height:68px;border-radius:20px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:24px;font-weight:900}
+.add-dot{width:86px;height:86px;border-radius:22px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:var(--paper);box-shadow:var(--shadow);font-size:28px;font-weight:900}
 .add-dot:hover{border-color:#7c99ff;color:#7c99ff}
 
-/* bubbly controls */
-.handle,.ctrl-mini .mini,.rm,.mbtn-bubble{
-  background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:5
-}
-.handle{display:inline-grid;place-items:center;width:26px;height:26px;cursor:grab;user-select:none}
+/* chips */
+.chip{background:var(--paper);border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:inline-flex;gap:10px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08);min-height:32px}
+.chip i:first-child{opacity:.9}
+.chip span[contenteditable]{min-width:52px;max-width:360px;outline:0;flex:1}
+.chip .rm{background:#ef4444;border:0;color:#fff;border-radius:999px;padding:6px;cursor:pointer;margin-left:auto}
+
+/* drag handle (solid, round) */
+.handle{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--bubble);border:1px solid var(--bubbleBr);color:#9aa3c7;cursor:grab;user-select:none;box-shadow:var(--shadow)}
 .handle::before{content:"⋮⋮";font-weight:900;line-height:1}
+.handle:active{cursor:grabbing}
+
+/* DND placeholder */
 .drop-ph{border:2px dashed #94a3b8;border-radius:12px;min-height:42px;background:#f8fafc80}
 
-/* chip */
-.chip{background:#fff;border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:inline-flex;gap:10px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-.chip i{min-width:14px;text-align:center}
-.chip span[contenteditable]{white-space:pre-wrap}
+/* skills */
+.skill{display:grid;grid-template-columns:auto 1fr var(--meter) auto;align-items:center;gap:10px;margin:6px 0}
+.rail .skill{grid-template-columns:auto 1fr var(--meter-rail) auto}
+.skill .stars{display:inline-grid;grid-auto-flow:column;gap:var(--star-gap);justify-content:end;justify-self:end}
+.rail .skill .stars{gap:var(--star-gap-tight)}
+.star{cursor:pointer;width:16px;height:16px;fill:#d1d5db;transition:transform .08s ease}
+.star.active{fill:#f59e0b}
+.star:active{transform:scale(.9)}
+.skill .rm{display:block}
+input[type=range]{-webkit-appearance:none;appearance:none;width:var(--meter);height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));justify-self:end}
+.rail input[type=range]{width:var(--meter-rail)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
 
-/* section */
-.section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative}
-.section .title-item{margin:-4px -4px 8px -4px;background:#f3f6ff;border-radius:12px;padding:10px 10px 12px;position:relative}
-.title-item .trow{display:flex;justify-content:center;align-items:center;gap:8px;font-weight:800}
+/* section titles */
+.title-item{padding:12px 10px;background:var(--paper-2);border-radius:12px;position:relative}
+.trow{display:flex;align-items:center;gap:8px;font-weight:800}
 .title-item h2{margin:0;font-size:20px}
 .title-item .u{height:4px;border-radius:999px;margin:8px auto 0;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px}
-.sec-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-.sec-tools .rm{display:inline-block}
-.help{font-size:12px;color:#5b6276;text-align:center;margin:6px 0 10px}
+.sec-tools{position:absolute;right:10px;top:10px;display:flex;gap:8px}
 
-/* skills grid + rows with right-fixed controls */
-.grid-skills{display:grid;gap:12px;min-width:0}
+/* grid variations */
+.grid-skills{display:grid;gap:12px}
 .grid-skills.cols-1{grid-template-columns:1fr;max-width:520px;margin:0 auto}
 .grid-skills.cols-2{grid-template-columns:1fr 1fr}
 .grid-skills.cols-3{grid-template-columns:1fr 1fr 1fr}
 .sidebar-layout [data-zone="main"] .grid-skills.cols-3{grid-template-columns:1fr 1fr}
-.sidebar-layout .rail .grid-skills{grid-template-columns:1fr !important}
-.skill{
-  display:grid;
-  grid-template-columns:auto minmax(0,1fr) var(--skillW) auto;
-  align-items:center;gap:var(--skillGap);margin:6px 0; min-width:0;
-}
-.skill > span[contenteditable]{
-  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-}
-.skill .rm{display:inline-block}
-.skill .stars{display:inline-flex;gap:6px;justify-content:flex-end;width:var(--skillW);margin-left:auto}
-.skill .stars .star{cursor:pointer;width:var(--star);height:var(--star);fill:#d1d5db;transition:transform .08s ease}
-.skill .stars .star.active{fill:#f59e0b}
-.skill .stars .star:active{transform:scale(.9)}
-input[type=range]{-webkit-appearance:none;appearance:none;width:var(--skillW);height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));justify-self:end;margin-left:auto}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+.rail .section .grid-skills{padding:6px}
 
-/* Sidebar tighter */
-.sidebar-layout .rail{
-  background:linear-gradient(135deg,var(--accent2),var(--accent));
-  border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;
-  --skillW:120px; --skillGap:12px; --star:14px;
-}
-.sidebar-layout [data-zone="main"]{display:grid;grid-auto-rows:min-content;gap:16px;min-height:200px}
-.rail .section .title-item{margin-bottom:8px}
-
-/* Experience */
-.badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, #fff);color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
-.exp-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;box-shadow:inset 0 1px 0 rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.05);display:grid;gap:6px;position:relative}
-.exp-list{display:grid;gap:12px}
-.exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-.exp-tools .rm{display:inline-block}
-
-/* Formatting toolbar */
-.fmtbar{position:absolute;display:none;gap:6px;background:#0f1420;border:1px solid #1f2540;padding:6px 8px;border-radius:12px;z-index:12000;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.fmtbar button{background:#12182a;border:1px solid #2b324b;color:#e6e8ef;border-radius:10px;padding:4px 6px;cursor:pointer}
-
-/* Education */
+/* experience + education */
+.badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, var(--paper));color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px}
+.exp-card{background:color-mix(in srgb, var(--accent) 12%, var(--paper));border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;box-shadow:inset 0 1px 0 rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.05);display:grid;gap:6px;position:relative}
+.exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:8px}
 .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.edu-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.05);position:relative;display:grid;gap:6px}
-.edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-.edu-tools .rm{display:inline-block}
-.edu-line1{display:flex;align-items:center;gap:8px;font-weight:800}
-.edu-title-icon.course{color:var(--accent2)}
-.edu-title-icon.degree{color:var(--accent)}
-.edu-title{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-.edu-academy{font-weight:600;line-height:1.2;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.edu-year{white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.edu-card{background:color-mix(in srgb, var(--accent2) 12%, var(--paper)); border:1px solid color-mix(in srgb, var(--accent2) 22%, #0000); border-radius:14px; padding:12px 14px; box-shadow:0 1px 2px rgba(0,0,0,.05); position:relative; display:grid; gap:6px}
+.edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:8px}
+.edu-row{display:flex;gap:10px;align-items:center}
+.edu-year{font-size:12px;letter-spacing:.2px;min-width:72px;max-width:120px}
+.edu-title{font-weight:700}
 
 /* headers */
-.topbar{position:relative;border-radius:14px;overflow:visible;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:var(--topbar-min)}
+.topbar{position:relative;border-radius:14px;overflow:visible;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:170px}
 .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
 .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:center}
 .topbar .left .chips{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:10px}
 .topbar .right{display:flex;justify-content:center}
-.topbar .avatar{width:var(--topbar-avatar);height:var(--topbar-avatar)}
+.topbar .avatar{width:120px;height:120px}
 .header-actions{position:absolute;right:14px;top:14px;display:flex;gap:8px}
 
 .fancy{position:relative;border-radius:14px;overflow:visible}
-.fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:var(--fancy-min);background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:180px;background:linear-gradient(135deg,var(--accent2),var(--accent))}
 .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
-.fancy .chip-grid{display:grid;grid-template-columns:1fr var(--fancy-gap) 1fr;gap:10px 18px;margin:10px auto 0;max-width:740px}
+.fancy .chip-grid{display:grid;grid-template-columns:1fr 140px 1fr;gap:10px 18px;margin:10px auto 0;max-width:740px}
 .chip-col{display:flex;flex-direction:column;gap:10px}
-.fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:var(--fancy-avatar);height:var(--fancy-avatar);top:0;z-index:30}
-.fancy .below{height:calc(var(--fancy-avatar)/2 + 12px)}
+.fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:0;z-index:30}
+.fancy .below{height:82px}
+
 .sidebar-layout{display:grid;grid-template-columns:var(--rail-width) minmax(0,1fr);gap:16px;min-height:320px}
+.rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center}
 .rail .avatar{width:140px;height:140px;border-width:6px}
 .rail .name{font-weight:900;font-size:26px;text-align:center}
 .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
-.rail .rail-actions{display:flex;gap:8px;justify-content:center}
+.rail .rail-actions{display:flex;gap:8px}
 .rail .sec-holder{width:100%;padding-top:6px}
 .rail .section{width:100%}
+.rail .section .title-item{margin-bottom:8px}
+.sidebar-layout [data-zone="main"]{display:grid;grid-auto-rows:min-content;gap:16px;min-height:200px}
 
 /* avatar */
-.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:100%;height:100%}
+.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid var(--paper);width:100%;height:100%}
 .avatar input{display:none}
 .avatar canvas{width:100%;height:100%;display:block}
 .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
-/* Add menu (anchored to +) */
-.pop{position:fixed;left:0;top:0;transform:translate(-50%,-110%);background:#0f1420;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:9999}
+/* pop add menu */
+.pop{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:12px;display:none;z-index:9999}
 .pop.open{display:block}
-.pop .tray{display:flex;gap:8px;align-items:center;justify-content:center}
-.pop .big{display:inline-grid;place-items:center;min-width:48px;width:48px;height:48px;border:1px solid #2b324b;border-radius:12px;background:#12182a;color:#e6e8ef;cursor:pointer;font-size:0}
-.pop .big i{font-size:18px}
-.pop .big:hover{outline:2px solid #7c99ff}
+.pop .tray{display:flex;gap:10px;align-items:center;justify-content:center}
+.pop .square{width:52px;height:52px;border:1px solid #2b324b;border-radius:12px;background:#12182a;color:#e6e8ef;cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow)}
+.pop .square:hover{box-shadow:var(--glow)}
 
-/* Layout mock tiles */
-.wrow{display:flex;gap:22px;justify-content:space-between;margin-top:10px}
-.mock{flex:1;min-height:190px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative;transition:transform .15s ease, box-shadow .15s ease}
-.mock:hover{box-shadow:0 0 0 3px rgba(124,153,255,.35) inset; transform:translateY(-3px)}
-.mock.sel{outline:2px solid #ffb86c}
-.mock:active{transform:scale(.99)}
-/* sidebar mock: left rail only + lines right */
-.mock[data-layout="header-side"] .rail{position:absolute;left:14px;top:14px;bottom:14px;width:30%;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);display:flex;flex-direction:column;align-items:center;padding-top:10px}
-.mock[data-layout="header-side"] .rail .av{width:42px;height:42px;border-radius:999px;background:#cfd6ff;border:3px solid #fff;margin:10px 0}
-.mock .lines{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-.mock .line{height:8px;border-radius:999px;background:#2b375f;margin-inline:auto;width:70%}
-.mock .line.short{width:45%}
-.mock .right-av{position:absolute;right:24px;top:calc(50% - 24px);width:48px;height:48px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
-.mock .center-av{position:absolute;left:50%;transform:translateX(-50%);top:44px;width:48px;height:48px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
-.mock[data-layout="header-fancy"] .hero{height:78px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);margin-bottom:14px}
-.mock[data-layout="header-top"] .hero{height:78px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);margin-bottom:14px}
-
-/* WIZARD modal */
+/* wizard */
 #welcome{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:20000;opacity:1;transition:opacity .35s ease}
 #welcome.hide{opacity:0;pointer-events:none}
-.wmodal{width:min(980px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
-.wlayout{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:start}
-.wlayout.intro{grid-template-columns:1fr} /* center welcome */
-.wprogress{background:#0c1324;border:1px solid #1f2540;border-radius:14px;padding:12px}
-.pitem{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin:6px 0}
-.pitem::before{content:"";position:absolute;left:6px;top:0;bottom:0;width:3px;border-radius:999px;background:#2b324b}
-.pitem span{margin-left:10px}
-.pcheck{display:none;width:18px;height:18px;border-radius:50%;background:#16a34a;color:#fff;align-items:center;justify-content:center;font-size:12px}
-.pitem.done .pcheck{display:flex}
-.pitem.current{background:#0b1222}
-.pitem.current::before{background:linear-gradient(180deg,var(--accent2),var(--accent));width:6px}
-.pitem.current span{font-size:16px;font-weight:800}
-.wcontent{position:relative}
-.wtitle{font-size:22px;font-weight:800;margin:0 0 6px}
-.wsub{opacity:.9;margin:0 0 14px}
-.fade{opacity:0;transform:translateY(4px);transition:opacity .2s ease, transform .2s ease}
-.fade.show{opacity:1;transform:none}
-
-/* wizard theme swatches (2-col grid, centered) */
-.big-swatches{display:grid;grid-template-columns:repeat(2, 180px);justify-content:center;gap:18px;margin-top:12px}
-.big-swatches .swatch{width:180px;height:44px;border-radius:12px;border:2px solid #2b324b}
-.big-swatches .swatch:hover{outline:2px solid #7c99ff}
-
-/* wizard footer */
-.wfooter{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
-.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+.wcard{width:min(960px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:22px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+.wleft{border-right:1px solid #1f2540;padding-right:12px}
+.wsteps{display:grid;gap:12px}
+.step-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid #1f2540;background:#0c1324}
+.step-pill.active{outline:2px solid #7c99ff}
+.wright{min-height:220px}
+.wtitle{font-size:22px;font-weight:800;margin:0 0 8px}
+.wsub{opacity:.75;margin-bottom:10px}
+.wrow{display:flex;gap:14px;justify-content:flex-start;flex-wrap:wrap}
+.mock{flex:0 0 260px;min-height:180px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative}
+.mock.sel{outline:2px solid #ffb86c}
+.mock .rail{position:absolute;left:14px;top:14px;bottom:14px;width:28%;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a);display:flex;flex-direction:column;align-items:center;padding-top:10px}
+.mock .rail .av{width:44px;height:44px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.mock .lines{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.mock .line{height:10px;border-radius:999px;background:#2b375f;margin-inline:auto;width:60%}
+.mock .line.short{width:40%}
+.mock .hero{height:70px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
+.mock .center-av{position:absolute;left:50%;transform:translateX(-50%);top:50px;width:56px;height:56px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.mock .right-av{position:absolute;right:24px;top:32px;width:56px;height:56px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+.wactions{display:flex;gap:10px;margin-top:14px}
+.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:var(--shadow)}
 .wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
-.wbtn.ghost{background:transparent}
-.wbtn:disabled{opacity:.6;cursor:not-allowed}
+.wbtn:hover{box-shadow:var(--glow-2)}
 
-.preview .node .rm,.preview .fbtn,.preview .add-dot,.preview .pop,.preview .header-actions .mbtn,.preview .rail-actions button,.preview .chip .rm,.preview .ctrl-mini,.preview .handle,.preview .help{display:none!important}
-.preview .page::before{opacity:.15}
+/* inline formatting toolbar */
+.fmtbar{position:absolute;display:none;gap:6px;background:#0f1420;border:1px solid #1f2540;padding:6px 8px;border-radius:10px;z-index:12000}
+.fmtbar button{background:#12182a;border:1px solid #2b324b;color:#e6e8ef;border-radius:8px;padding:4px 6px;cursor:pointer;box-shadow:var(--shadow)}
+.fmtbar button:hover{box-shadow:var(--glow)}
+
+.preview .node .rm,.preview .fbtn,.preview .add-dot,.preview .pop,.preview .header-actions .mbtn,.preview .rail-actions button,.preview .chip .rm,.preview .ctrl-mini,.preview .handle,.preview .sec-tools,.preview .exp-tools,.preview .edu-tools{display:none!important}
+.preview .page::before{opacity:.12}
+
 @media print{ .nav,#welcome{display:none!important} #canvas{filter:none} .page{box-shadow:none} .page::before{opacity:0} }
 </style>
 </head>
@@ -260,63 +242,70 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <span class="brand">Easy Resume</span>
     <div class="menu">
       <div class="dropdown" id="ddFile">
-        <button class="mbtn" type="button">File ▾</button>
+        <button class="mbtn">File ▾</button>
         <div class="dropdown-menu">
-          <button id="saveJSON" type="button"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
-          <button id="loadJSON" type="button"><i class="fa-solid fa-folder-open"></i> Load project</button>
-          <button id="startScratch" type="button"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
+          <button id="saveJSON"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
+          <button id="loadJSON"><i class="fa-solid fa-folder-open"></i> Load project</button>
+          <button id="startScratch"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
         </div>
       </div>
 
       <div class="dropdown" id="ddLayout">
-        <button class="mbtn" type="button">Layout options ▾</button>
+        <button class="mbtn">Layout options ▾</button>
         <div class="dropdown-menu" style="width:680px">
           <div class="wrow" id="layoutPickerMenu">
-            <!-- Sidebar mock -->
-            <div class="mock sel" data-layout="header-side" title="Sidebar">
+            <!-- Sidebar -->
+            <div class="mock" data-layout="header-side" title="Sidebar">
               <div class="rail"><div class="av"></div></div>
-              <div class="lines" style="margin-left:34%"><div class="line"></div><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+              <div class="lines" style="margin-left:34%"><div class="line"></div><div class="line"></div><div class="line"></div><div class="line short"></div></div>
             </div>
             <!-- Fancy top -->
-            <div class="mock" data-layout="header-fancy" title="Top Fancy">
+            <div class="mock sel" data-layout="header-fancy" title="Top Fancy">
               <div class="hero"></div><div class="center-av"></div>
-              <div class="lines"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+              <div class="lines" style="margin-top:84px"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
             </div>
             <!-- Top bar -->
             <div class="mock" data-layout="header-top" title="Top Bar">
               <div class="hero"></div><div class="right-av"></div>
-              <div class="lines"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+              <div class="lines" style="margin-top:14px"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="dropdown" id="ddTheme">
-        <button class="mbtn" type="button">Theme ▾</button>
-        <div class="dropdown-menu">
+        <button class="mbtn">Theme ▾</button>
+        <div class="dropdown-menu" style="width:300px">
           <div class="theme-row">
-            <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div><div class="swatch" data-k="city"></div>
+            <div class="swatch" data-k="coral" title="Coral"></div>
+            <div class="swatch" data-k="sea" title="Sea"></div>
+            <div class="swatch" data-k="city" title="City"></div>
+            <div class="swatch" data-k="magentaPurple" title="Magenta • Purple"></div>
           </div>
-          <div class="theme-row">
-            <div class="swatch" data-k="magentaPurple"></div><div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
+          <div class="theme-row" style="margin-top:10px">
+            <div class="swatch" data-k="magentaPink" title="Magenta • Orange"></div>
+            <div class="swatch" data-k="blueGreen" title="Blue • Green"></div>
+            <div class="swatch" data-k="slate" title="Slate"></div>
+            <div class="swatch" data-k="custom" id="customSwatch" title="Custom"></div>
           </div>
-          <div class="theme-row"><div class="swatch" data-k="mono"></div></div>
-          <div style="border-top:1px solid #23283b;margin:8px 0"></div>
-          <div class="hero-style">
-            <span class="pill active" data-hero="gradient"><i class="fa-solid fa-swatchbook"></i> Gradient</span>
-            <span class="pill" data-hero="pattern"><i class="fa-solid fa-grip"></i> Pattern</span>
-            <span class="pill" data-hero="image"><i class="fa-solid fa-image"></i> Image</span>
-            <input type="file" id="heroImageInput" accept="image/*">
+          <div class="custom-picker" id="customPicker" style="display:none">
+            <span>Custom</span> <input type="color" id="c1" value="#8b5cf6"> <input type="color" id="c2" value="#d946ef">
+            <button class="mbtn" id="saveCustom">Save</button>
+          </div>
+          <div style="border-top:1px solid #23283b;margin:10px 0"></div>
+          <div style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+            <span>Dark mode</span>
+            <span class="toggle" id="darkToggle" data-on="0" aria-label="Dark mode toggle"></span>
           </div>
         </div>
       </div>
 
-      <button id="pdfBtn" class="mbtn" type="button"><i class="fa-solid fa-download"></i> Download</button>
-      <button id="togglePreview" class="mbtn" type="button">Preview</button>
+      <button id="pdfBtn" class="mbtn"><i class="fa-solid fa-download"></i> Download</button>
+      <button id="togglePreview" class="mbtn">Preview</button>
     </div>
   </div>
 
-  <div id="canvas">
+  <div id="canvas" class="blurred">
     <div class="page" id="page">
       <div id="sheet">
         <div class="floatbar" id="floatbar"></div>
@@ -334,148 +323,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   </div>
 
   <div class="pop" id="addMenu">
-    <div class="tray">
-      <button class="big" type="button" title="Skills" data-add="section-skills"><i class="fa-solid fa-layer-group"></i></button>
-      <button class="big" type="button" title="Education" data-add="section-edu"><i class="fa-solid fa-user-graduate"></i></button>
-      <button class="big" type="button" title="Experience" data-add="section-exp"><i class="fa-solid fa-briefcase"></i></button>
-    </div>
+    <div class="tray" id="addTray"></div>
   </div>
 
   <!-- Wizard -->
-  <div id="welcome" aria-modal="true" role="dialog">
-    <div class="wmodal">
-      <div class="wlayout intro" id="wlayout">
-        <div class="wprogress" id="wprogress" style="display:none"></div>
-        <div class="wcontent" id="wcontent">
-          <!-- panes -->
-          <div class="wcard fade show" id="welcomeCard">
-            <div class="wtitle">Welcome to the Easy Resume Builder</div>
-            <div class="wsub">Choose how to begin.</div>
-            <div style="display:flex;gap:28px;justify-content:center;align-items:flex-start">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-                <button class="wbtn primary" type="button" id="startWizard">Wizard</button>
-                <div style="font-size:12px;opacity:.8">Guided step-by-step set-up.</div>
-              </div>
-              <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-                <button class="wbtn" type="button" id="startBlank">Manual mode</button>
-                <div style="font-size:12px;opacity:.8">Start from scratch, arrange freely.</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Layout -->
-          <div class="wcard fade" id="wizLayouts" style="display:none">
-            <div class="wtitle">Choose your layout</div>
-            <div class="wsub">Pick a starting header style.</div>
-            <div class="wrow" id="layoutPickerWizard">
-              <div class="mock sel" data-layout="header-side">
-                <div class="rail"><div class="av"></div></div>
-                <div class="lines" style="margin-left:34%"><div class="line"></div><div class="line"></div><div class="line short"></div><div class="line"></div></div>
-              </div>
-              <div class="mock" data-layout="header-fancy">
-                <div class="hero"></div><div class="center-av"></div>
-                <div class="lines"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
-              </div>
-              <div class="mock" data-layout="header-top">
-                <div class="hero"></div><div class="right-av"></div>
-                <div class="lines"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Theme -->
-          <div class="wcard fade" id="wizTheme" style="display:none">
-            <div class="wtitle">Choose a color theme</div>
-            <div class="big-swatches">
-              <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div>
-              <div class="swatch" data-k="city"></div><div class="swatch" data-k="magentaPurple"></div>
-              <div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
-              <div class="swatch" data-k="mono"></div>
-            </div>
-          </div>
-
-          <!-- Simple inputs -->
-          <div class="wcard fade" id="wizName" style="display:none"><div class="wtitle">What’s your name?</div>
-            <div class="wsub">We’ll drop it into the header.</div>
-            <div style="display:flex;justify-content:center;gap:12px"><input id="inpName" placeholder="Your full name" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/></div>
-          </div>
-          <div class="wcard fade" id="wizPhone" style="display:none"><div class="wtitle">Phone number</div>
-            <div style="display:flex;justify-content:center;gap:12px"><input id="inpPhone" placeholder="+34 600 123 456" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/></div>
-          </div>
-          <div class="wcard fade" id="wizEmail" style="display:none"><div class="wtitle">Email address</div>
-            <div style="display:flex;justify-content:center;gap:12px"><input id="inpEmail" placeholder="you@example.com" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/></div>
-          </div>
-          <div class="wcard fade" id="wizAddress" style="display:none"><div class="wtitle">Where are you?</div>
-            <div style="display:flex;justify-content:center;gap:12px"><input id="inpAddr" placeholder="City, Country" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/></div>
-          </div>
-          <div class="wcard fade" id="wizLinked" style="display:none"><div class="wtitle">LinkedIn</div>
-            <div class="wsub">Enter just your username, we’ll format it.</div>
-            <div style="display:flex;justify-content:center;gap:8px;align-items:center">
-              <div style="opacity:.7">linkedin.com/in/</div>
-              <input id="inpLinked" placeholder="you" style="width:50%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/>
-            </div>
-          </div>
-
-          <!-- Skills -->
-          <div class="wcard fade" id="wizSkills" style="display:none">
-            <div class="wtitle">Add your skills</div>
-            <div class="wsub" style="margin-bottom:14px">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything</b>. The stars/slider reflect your confidence in that skill.</div>
-            <div style="display:flex;flex-direction:column;gap:16px;align-items:center">
-              <div id="wizSkillWrap" style="--skillW:160px;--skillGap:16px;width:90%"></div>
-              <div class="ctrl-mini" style="display:flex;justify-content:center;gap:12px">
-                <button class="mini" type="button" id="wizAddStar"><i class="fa-solid fa-plus"></i> ★</button>
-                <button class="mini" type="button" id="wizAddSlider"><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i></button>
-              </div>
-              <label id="cbRow" style="display:none;margin-top:8px;font-size:13px;opacity:.9">
-                <input type="checkbox" id="cbSidebarSkills" style="margin-right:6px"> Display skills in the sidebar
-              </label>
-            </div>
-          </div>
-
-          <!-- Education -->
-          <div class="wcard fade" id="wizEdu" style="display:none">
-            <div class="wtitle">Add your education</div>
-            <div class="wsub">Use one line titles; academies can wrap to two lines; year chip up to 9 chars.</div>
-            <div style="background:#0c1324;border:1px solid #1f2540;border-radius:12px;padding:12px;margin:10px 0">
-              <div style="display:grid;grid-template-columns:110px 1fr 1fr 120px;gap:8px;align-items:center">
-                <select id="eduKind" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-                  <option value="course">Course</option>
-                  <option value="degree">Degree</option>
-                </select>
-                <input id="eduTitle" placeholder="Title" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-                <input id="eduAcademy" placeholder="Academy name" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-                <input id="eduYear" placeholder="2018–2022" maxlength="9" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-              </div>
-            </div>
-            <div style="display:flex;justify-content:center;gap:10px">
-              <button class="wbtn" type="button" id="wizEduAdd">+ Add</button>
-              <button class="wbtn" type="button" id="wizEduClear">Clear</button>
-            </div>
-          </div>
-
-          <!-- Experience -->
-          <div class="wcard fade" id="wizExp" style="display:none">
-            <div class="wtitle">Add experience</div>
-            <div class="wsub">You can add more later from the canvas.</div>
-            <div style="background:#0c1324;border:1px solid #1f2540;border-radius:12px;padding:12px;margin:10px 0">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <input id="expDates" placeholder="Jan 2022 – Present" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-                <input id="expRole" placeholder="Job title" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-                <input id="expOrg" placeholder="@Company" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-                <input id="expDesc" placeholder="Brief description" style="grid-column:1/-1;padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef">
-              </div>
-            </div>
-            <div style="display:flex;justify-content:center;gap:10px">
-              <button class="wbtn" type="button" id="wizExpAdd">+ Add another</button>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="wfooter">
-            <button class="wbtn ghost" id="startOverBtn" style="margin-right:auto;display:none">Start over</button>
-            <button class="wbtn" id="backBtn">Back</button>
-            <button class="wbtn primary" id="nextBtn">Next</button>
-          </div>
+  <div id="welcome">
+    <div class="wcard" id="wiz">
+      <div class="wleft">
+        <div class="wsteps" id="wizSteps"></div>
+      </div>
+      <div class="wright">
+        <div class="wtitle">Welcome to the Easy Resume Builder</div>
+        <div class="wsub">Choose how to begin.</div>
+        <div class="wactions">
+          <button class="wbtn primary" id="startWizard">Wizard</button>
+          <button class="wbtn" id="startBlank">Manual mode</button>
         </div>
       </div>
     </div>
@@ -483,452 +345,684 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
   <!-- Formatting toolbar -->
   <div class="fmtbar" id="fmtbar">
-    <button type="button" data-cmd="bold"><b>B</b></button>
-    <button type="button" data-cmd="italic"><i>I</i></button>
-    <button type="button" data-cmd="underline"><u>U</u></button>
-    <button type="button" data-bullet="• ">•</button>
-    <button type="button" data-bullet="✓ " title="Check"><i class="fa-solid fa-check"></i></button>
-    <button type="button" data-bullet="🏆 " title="Trophy">🏆</button>
+    <button data-cmd="bold"><b>B</b></button>
+    <button data-cmd="italic"><i>I</i></button>
+    <button data-cmd="underline"><u>U</u></button>
+    <button data-insert="• ">•</button>
+    <button data-insert="✔ ">✔</button>
+    <button data-insert="🏆 ">🏆</button>
   </div>
+
 <script>
 (function(){
 'use strict';
 
-/* helpers */
+/* ---------------------------
+   helpers + polyfills
+--------------------------- */
 if(!Element.prototype.matches){Element.prototype.matches=Element.prototype.msMatchesSelector||Element.prototype.webkitMatchesSelector||function(s){var m=(this.document||this.ownerDocument).querySelectorAll(s),i=0;while(m[i]&&m[i]!==this)i++;return !!m[i];};}
 if(!Element.prototype.closest){Element.prototype.closest=function(s){var el=this;while(el&&el.nodeType===1){if(el.matches(s))return el;el=el.parentElement||el.parentNode;}return null;};}
-function $(s,r){return (r||document).querySelector(s)}
-function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
 
-/* core refs */
-var stack=$('#stack'), ph=$('#ph'); var floatbar=$('#floatbar');
-var dotAdd=$('#dotAdd'), addMenu=$('#addMenu'), heroImageInput=$('#heroImageInput');
-var ddFile=$('#ddFile'), ddLayout=$('#ddLayout'), ddTheme=$('#ddTheme');
-var saveBtn=$('#saveJSON'), loadBtn=$('#loadJSON'), startScratchBtn=$('#startScratch');
+const $=(s,r)=> (r||document).querySelector(s);
+const $$=(s,r)=> Array.prototype.slice.call((r||document).querySelectorAll(s));
 
-/* WIZARD state */
-var welcome=$('#welcome'), wlayout=$('#wlayout');
-var cards=['welcomeCard','wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizEdu','wizExp']
-  .reduce(function(a,id){a[id]=document.getElementById(id);return a;},{});
-var stepsOrder=['wizLayouts','wizTheme','wizName','wizPhone','wizEmail','wizAddress','wizLinked','wizSkills','wizEdu','wizExp'];
-var stepLabels=['Layout','Theme','Name','Phone','Email','Address','LinkedIn','Skills','Education','Experience'];
-var currentStep=0, backCount=0;
-var wizardData={ layout:'header-side', theme:document.body.getAttribute('data-theme')||'magentaPurple', name:'', phone:'', email:'', addr:'', linked:'', skills:[], place:null, edu:[] };
+/* ---------------------------
+   Refs
+--------------------------- */
+const stack=$('#stack'), ph=$('#ph'), canvas=$('#canvas');
+const floatbar=$('#floatbar'), navPrev=$('#togglePreview'), pdfBtn=$('#pdfBtn');
+const dotAdd=$('#dotAdd'), addMenu=$('#addMenu'), addTray=$('#addTray');
+const ddFile=$('#ddFile'), ddLayout=$('#ddLayout'), ddTheme=$('#ddTheme');
+const saveBtn=$('#saveJSON'), loadBtn=$('#loadJSON'), startScratchBtn=$('#startScratch');
+const darkToggle=$('#darkToggle');
 
-/* layout helpers */
+/* Wizard state */
+const W={ step:0, steps:['Layout','Theme','Name','Phone','Email','Address','LinkedIn','Skills','Education','Experience'],
+  data:{ layout:'header-fancy', theme:'magentaPurple', name:'', chips:{}, skills:[], skillsInSidebar:false, edu:[], exp:[] }
+};
+
+/* ---------------------------
+   Layout helpers
+--------------------------- */
 function isSidebarActive(){ return !!stack.querySelector('.sidebar-layout'); }
 function sideMain(){ return stack.querySelector('.sidebar-layout [data-zone="main"]'); }
-function rail(){ return stack.querySelector('.sidebar-layout .rail'); }
-function updatePH(){ ph.style.display=(isSidebarActive()?(sideMain() && sideMain().querySelector('.node')):stack.querySelector('.node'))?'none':'grid'; }
-function moveAddAnchor(){ var add=$('#canvasAdd'); if(!add) return; var parent=isSidebarActive()? (sideMain()||stack) : stack; if(add.parentElement!==parent) parent.appendChild(add); parent.appendChild(add); updatePH(); updateAddMenuVisibility(); }
+function moveAddAnchor(){
+  const add=document.getElementById('canvasAdd'); if(!add) return;
+  if(isSidebarActive()){ const m=sideMain(); if(m && add.parentElement!==m) m.appendChild(add); }
+  else if(add.parentElement!==stack) stack.appendChild(add);
+}
+function updatePH(){
+  const has = isSidebarActive() ? (sideMain() && sideMain().querySelector('.node:not([data-locked])')) : stack.querySelector('.node:not([data-locked])');
+  ph.style.display = has ? 'none' : 'grid';
+}
 
-/* selection */
-var selected=null; function select(node){ if(selected) selected.classList.remove('sel'); selected=node; if(selected) selected.classList.add('sel'); floatbar.classList.remove('show'); }
+/* ---------------------------
+   Selection + Floatbar
+--------------------------- */
+let selected=null;
+function select(node){
+  if(selected) selected.classList.remove('sel');
+  selected=node; if(selected) selected.classList.add('sel');
+  if(!node || isSidebarActive()){ floatbar.classList.remove('show'); return; }
+  floatbar.innerHTML='';
+  const del=document.createElement('button'); del.className='bubble'; del.textContent='🗑 Delete';
+  del.onclick=()=>{ node.remove(); updatePH(); select(null); };
+  floatbar.appendChild(del);
+  floatbar.classList.add('show');
+}
+function mkNode(locked){ const n=document.createElement('div'); n.className='node'; if(locked) n.setAttribute('data-locked','1'); n.addEventListener('click',e=>{ if(e.target.closest('.rm,.mbtn,.square,.mini,.handle')) return; select(n); }); return n; }
+function insertContentNode(node){
+  const wrap=node.classList.contains('node')? node : (function(){const w=mkNode(); w.appendChild(node); return w;})();
+  const host=isSidebarActive()? sideMain():stack;
+  host.insertBefore(wrap, document.getElementById('canvasAdd'));
+  updatePH(); select(wrap); return wrap;
+}
 
-/* create node wrapper */
-function mkNode(locked){ var n=document.createElement('div'); n.className='node'; if(locked) n.setAttribute('data-locked','1'); else n.setAttribute('draggable','true'); n.addEventListener('click',function(e){ if(e.target.closest('.rm,.mbtn,.big,.mini,.handle')) return; select(n); }); return n; }
-function insertContentNode(node){ var wrap=node.classList.contains('node')? node : (function(){var w=mkNode(); w.appendChild(node); return w;})(); if(isSidebarActive() && sideMain()){ sideMain().insertBefore(wrap, $('#canvasAdd')); } else { stack.insertBefore(wrap, $('#canvasAdd')); } updatePH(); select(wrap); return wrap; }
-
-/* avatar cropper (unchanged core) */
+/* ---------------------------
+   Avatar cropper (unchanged core)
+--------------------------- */
 function initAvatar(wrapper){
-  var input=wrapper.querySelector('input'), canvas=wrapper.querySelector('canvas'); if(!canvas) return;
-  var ctx=canvas.getContext('2d',{willReadFrequently:true}); var S={img:null,scale:1,minScale:1,x:0,y:0,drag:false,sx:0,sy:0};
+  const input=wrapper.querySelector('input'), canvas=wrapper.querySelector('canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const S={img:null,scale:1,minScale:1,x:0,y:0,drag:false,sx:0,sy:0};
   function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); if(S.img){ ctx.imageSmoothingQuality='high'; ctx.drawImage(S.img,S.x,S.y,S.img.width*S.scale,S.img.height*S.scale); wrapper.setAttribute('data-empty','0'); } ctx.restore(); }
-  var snap=wrapper.getAttribute('data-snapshot'); if(snap){ var img=new Image(); img.onload=function(){ S.img=img; var sx=canvas.width/img.width, sy=canvas.height/img.height; S.minScale=Math.max(sx,sy); S.scale=S.minScale; S.x=(canvas.width-img.width*S.scale)/2; S.y=(canvas.height-img.height*S.scale)/2; draw(); }; img.src=snap; }
-  wrapper.addEventListener('click',function(){ if(input) input.click(); });
-  if(input) input.addEventListener('change',function(){ var f=input.files&&input.files[0]; if(!f) return; var img=new Image(); img.onload=function(){ S.img=img; var sx=canvas.width/img.width, sy=canvas.height/img.height; S.minScale=Math.max(sx,sy); S.scale=S.minScale; S.x=(canvas.width-img.width*S.scale)/2; S.y=(canvas.height-img.height*S.scale)/2; draw(); }; var url=URL.createObjectURL(f); img.src=url; setTimeout(function(){ URL.revokeObjectURL(url); },7000); });
-  canvas.addEventListener('mousedown',function(e){ S.drag=true; S.sx=e.clientX; S.sy=e.clientY; });
-  window.addEventListener('mouseup',function(){ S.drag=false; });
-  window.addEventListener('mousemove',function(e){ if(!S.drag) return; S.x+=e.clientX-S.sx; S.y+=e.clientY-S.sy; S.sx=e.clientX; S.sy=e.clientY; draw(); });
-  canvas.addEventListener('wheel',function(e){ e.preventDefault(); if(!S.img) return; var d=e.deltaY<0?1.05:0.95; var ns=S.scale*d; if(ns<S.minScale) ns=S.minScale; if(ns>5) ns=5; var r=canvas.getBoundingClientRect(); var mx=e.clientX-r.left, my=e.clientY-r.top; var dx=(mx-S.x)/S.scale, dy=(my-S.y)/S.scale; S.x=mx-dx*ns; S.y=my-dy*ns; S.scale=ns; draw(); },{passive:false});
+  const snap=wrapper.getAttribute('data-snapshot'); if(snap){ const img=new Image(); img.onload=function(){ S.img=img; const sx=canvas.width/img.width, sy=canvas.height/img.height; S.minScale=Math.max(sx,sy); S.scale=S.minScale; S.x=(canvas.width-img.width*S.scale)/2; S.y=(canvas.height-img.height*S.scale)/2; draw(); }; img.src=snap; }
+  wrapper.addEventListener('click',()=>{ if(input) input.click(); });
+  if(input) input.addEventListener('change',function(){ const f=input.files&&input.files[0]; if(!f) return; const img=new Image(); img.onload=function(){ S.img=img; const sx=canvas.width/img.width, sy=canvas.height/img.height; S.minScale=Math.max(sx,sy); S.scale=S.minScale; S.x=(canvas.width-img.width*S.scale)/2; S.y=(canvas.height-img.height*S.scale)/2; draw(); }; const url=URL.createObjectURL(f); img.src=url; setTimeout(()=>URL.revokeObjectURL(url),7000); });
+  canvas.addEventListener('mousedown',e=>{ S.drag=true; S.sx=e.clientX; S.sy=e.clientY; });
+  window.addEventListener('mouseup',()=>{ S.drag=false; });
+  window.addEventListener('mousemove',e=>{ if(!S.drag) return; S.x+=e.clientX-S.sx; S.y+=e.clientY-S.sy; S.sx=e.clientX; S.sy=e.clientY; draw(); });
+  canvas.addEventListener('wheel',function(e){ e.preventDefault(); if(!S.img) return; const d=e.deltaY<0?1.05:0.95; let ns=S.scale*d; if(ns<S.minScale) ns=S.minScale; if(ns>5) ns=5; const r=canvas.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; const dx=(mx-S.x)/S.scale, dy=(my-S.y)/S.scale; S.x=mx-dx*ns; S.y=my-dy*ns; S.scale=ns; draw(); },{passive:false});
 }
 
-/* chip helpers + menu */
-var ICONS={ phone:'<i class="fa-solid fa-phone"></i>', email:'<i class="fa-solid fa-envelope"></i>', address:'<i class="fa-solid fa-location-dot"></i>', linkedin:'<i class="fa-brands fa-linkedin"></i>', dot:'<i class="fa-solid fa-circle"></i>' };
-var MENU_ITEMS=[ {k:'phone',label:'Phone',placeholder:'+34 600 123 456',icon:ICONS.phone},{k:'email',label:'Email',placeholder:'you@example.com',icon:ICONS.email},{k:'address',label:'Address',placeholder:'City, Country',icon:ICONS.address},{k:'linkedin',label:'LinkedIn',placeholder:'linkedin.com/in/you',icon:ICONS.linkedin},{k:'custom',label:'Info',placeholder:'Free text',icon:ICONS.dot} ];
-function buildChip(it){
-  var d=document.createElement('div'); d.className='chip'; d.dataset.k=it.k;
-  d.innerHTML=it.icon+'<span contenteditable>'+it.placeholder+'</span> <button class="rm" type="button" title="Remove">×</button>';
-  var span=d.querySelector('span[contenteditable]'); d.querySelector('.rm').onclick=function(ev){ ev.stopPropagation(); d.remove(); };
-  span.addEventListener('input',function(){
-    if(it.k!=='address'){ span.textContent=span.textContent.replace(/\n/g,' '); }
-    else{
-      var parts=span.textContent.split(/\n/);
-      if(parts.length>2){ span.textContent=parts.slice(0,2).join('\n'); }
-    }
-  });
-  span.addEventListener('keydown',function(e){
-    if(it.k!=='address' && e.key==='Enter'){ e.preventDefault(); }
-    if(it.k==='address'){
-      var lines=span.textContent.split(/\n/).length;
-      if(e.key==='Enter' && lines>=2){ e.preventDefault(); }
-    }
-  });
-  return d;
-}
-function addOrUpdateChip(type,text){
-  var hdr=stack.querySelector('.topbar,.fancy,.sidebar-layout'); if(!hdr) return;
-  var existing=(hdr.querySelector('.chip[data-k="'+type+'"]')) || null;
-  if(!existing){
-    var it=MENU_ITEMS.find(function(x){return x.k===type;}) || MENU_ITEMS[0];
-    existing=buildChip(it);
-    if(hdr.classList.contains('topbar')) hdr.querySelector('[data-info]').appendChild(existing);
-    else if(hdr.querySelector('.fancy')){ var L=hdr.querySelector('[data-info-left]'), R=hdr.querySelector('[data-info-right]'); (L.scrollHeight<=R.scrollHeight?L:R).appendChild(existing); }
-    else hdr.querySelector('.rail [data-info]').appendChild(existing);
-  }
-  if(text){ existing.querySelector('span[contenteditable]').textContent=text; }
-}
-function openChipMenu(onPick,anchorEl){
-  var pop=document.createElement('div'); pop.className='pop open';
-  var rect=(anchorEl||dotAdd).getBoundingClientRect(); pop.style.left=(rect.left+rect.width/2)+'px'; pop.style.top=(rect.top)+'px';
-  pop.innerHTML='<div class="tray">'+MENU_ITEMS.map(function(i){return '<button class="big" type="button" data-k="'+i.k+'" title="'+i.label+'"><span style="width:18px;text-align:center">'+i.icon+'</span></button>';}).join('')+'</div>';
+/* ---------------------------
+   Chips
+--------------------------- */
+const ICONS={ phone:'<i class="fa-solid fa-phone"></i>', email:'<i class="fa-solid fa-envelope"></i>', address:'<i class="fa-solid fa-location-dot"></i>', linkedin:'<i class="fa-brands fa-linkedin"></i>', dot:'<i class="fa-solid fa-circle"></i>' };
+const MENU_ITEMS=[ {k:'phone',label:'Phone',placeholder:'+34 600 123 456',icon:ICONS.phone},{k:'email',label:'Email',placeholder:'you@example.com',icon:ICONS.email},{k:'address',label:'Address',placeholder:'City, Country',icon:ICONS.address},{k:'linkedin',label:'LinkedIn',placeholder:'linkedin.com/in/you',icon:ICONS.linkedin},{k:'custom',label:'Info',placeholder:'Free text',icon:ICONS.dot} ];
+function buildChip(it){ const d=document.createElement('div'); d.className='chip'; d.innerHTML=it.icon+'<span contenteditable>'+it.placeholder+'</span><button class="rm" title="Remove">×</button>'; d.querySelector('.rm').onclick=ev=>{ ev.stopPropagation(); d.remove(); }; return d; }
+function openChipMenu(onPick){
+  const pop=document.createElement('div'); pop.className='pop open'; pop.style.bottom='auto'; pop.style.top='80px';
+  pop.innerHTML='<div class="tray">'+MENU_ITEMS.map(i=>`<button class="square" data-k="${i.k}" title="${i.label}">${i.icon}</button>`).join('')+'</div>';
   document.body.appendChild(pop);
   function close(){ pop.remove(); document.removeEventListener('click',outside); }
-  pop.addEventListener('click',function(e){ var k=(e.target.closest('button')||{}).dataset&&e.target.closest('button').dataset.k; if(!k) return; onPick(MENU_ITEMS.find(function(x){return x.k===k;})); close(); });
+  pop.addEventListener('click',function(e){ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k; onPick(MENU_ITEMS.find(x=>x.k===k)); close(); });
   function outside(e){ if(!pop.contains(e.target)) close(); }
-  setTimeout(function(){ document.addEventListener('click',outside); },0);
+  setTimeout(()=>document.addEventListener('click',outside),0);
+}
+function addChip(type,text){
+  const hdr=stack.querySelector('.topbar,.fancy,.sidebar-layout'); if(!hdr) return;
+  const it=MENU_ITEMS.find(x=>x.k===type) || MENU_ITEMS[0];
+  const chip=buildChip(it);
+  if(text){ chip.querySelector('span[contenteditable]').textContent=text; }
+  if(hdr.classList.contains('topbar')) hdr.querySelector('[data-info]').appendChild(chip);
+  else if(hdr.classList.contains('fancy')){
+    const L=hdr.querySelector('[data-info-left]'), R=hdr.querySelector('[data-info-right]');
+    (L.scrollHeight<=R.scrollHeight?L:R).appendChild(chip);
+  } else hdr.querySelector('.rail [data-info]').appendChild(chip);
 }
 
-/* headers + migrate */
-function createTopBar(){ var node=mkNode(true); node.innerHTML='<div class="topbar" data-hero="gradient"><div class="header-actions"><button class="mbtn" type="button" data-add-chip><i class="fa-solid fa-plus"></i> Add chip</button></div><div class="topbar-grid"><div class="left"><h1 class="name" contenteditable>YOUR NAME</h1><div class="chips" data-info></div></div><div class="right"><div class="avatar" data-avatar data-empty="1"><canvas width="120" height="120"></canvas><input type="file" accept="image/*"></div></div></div></div>'; initAvatar(node.querySelector('.topbar [data-avatar]')); node.querySelector('[data-add-chip]').onclick=function(){ openChipMenu(function(it){ addOrUpdateChip(it.k); }, this); }; return node; }
-function createFancy(){ var node=mkNode(true); node.innerHTML='<div class="fancy"><div class="hero" data-hero="gradient"><div class="header-actions"><button class="mbtn" type="button" data-add-chip><i class="fa-solid fa-plus"></i> Add chip</button></div><h1 class="name" contenteditable>YOUR NAME</h1><div class="chip-grid"><div class="chip-col left" data-info-left></div><div></div><div class="chip-col right" data-info-right></div></div></div><div class="avatar-float"><div class="avatar" data-avatar data-empty="1" style="width:var(--fancy-avatar);height:var(--fancy-avatar)"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div></div><div class="below"></div></div>'; initAvatar(node.querySelector('.fancy [data-avatar]')); node.querySelector('[data-add-chip]').onclick=function(){ openChipMenu(function(it){ addOrUpdateChip(it.k); }, this); }; return node; }
-function createSidebar(){
-  var node=mkNode(true);
-  node.innerHTML='<div class="sidebar-layout"><div class="rail"><div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div><div class="name" contenteditable>YOUR NAME</div><div class="rail-actions"><button class="mbtn" type="button" data-add-chip title="Add contact/info"><i class="fa-solid fa-plus"></i> Chip</button><button class="mbtn" type="button" data-add-rail-skills title="Add Skills section"><i class="fa-solid fa-layer-group"></i> Skills</button></div><div class="chips" data-info></div><div class="sec-holder"></div></div><div data-zone="main"></div></div>';
-  initAvatar(node.querySelector('.rail [data-avatar]'));
-  node.querySelector('[data-add-chip]').onclick=function(){ openChipMenu(function(it){ addOrUpdateChip(it.k); }, this); };
-  node.querySelector('[data-add-rail-skills]').onclick=function(){ ensureRailSkillsSection(); updateAddMenuVisibility(); };
+/* ---------------------------
+   Headers (3 layouts)
+--------------------------- */
+function createTopBar(){
+  const node=mkNode(true);
+  node.innerHTML=`
+  <div class="topbar" data-hero="gradient">
+    <div class="header-actions">
+      <button class="mbtn" data-add-chip><i class="fa-solid fa-plus"></i> Add chip</button>
+    </div>
+    <div class="topbar-grid">
+      <div class="left">
+        <h1 class="name" contenteditable>YOUR NAME</h1>
+        <div class="chips" data-info></div>
+      </div>
+      <div class="right">
+        <div class="avatar" data-avatar data-empty="1"><canvas width="120" height="120"></canvas><input type="file" accept="image/*"></div>
+      </div>
+    </div>
+  </div>`;
+  initAvatar(node.querySelector('.topbar [data-avatar]'));
+  node.querySelector('[data-add-chip]').onclick=()=>openChipMenu(it=> node.querySelector('[data-info]').appendChild(buildChip(it)) );
   return node;
 }
-function fadeSwitch(){ var sh=$('#sheet'); sh.classList.add('fadeSwitch'); setTimeout(function(){ sh.classList.add('show'); setTimeout(function(){ sh.classList.remove('fadeSwitch'); sh.classList.remove('show'); },220); },10); }
+function createFancy(){
+  const node=mkNode(true);
+  node.innerHTML=`
+  <div class="fancy">
+    <div class="hero" data-hero="gradient">
+      <div class="header-actions">
+        <button class="mbtn" data-add-chip><i class="fa-solid fa-plus"></i> Add chip</button>
+      </div>
+      <h1 class="name" contenteditable>YOUR NAME</h1>
+      <div class="chip-grid"><div class="chip-col left" data-info-left></div><div></div><div class="chip-col right" data-info-right></div></div>
+    </div>
+    <div class="avatar-float"><div class="avatar" data-avatar data-empty="1" style="width:140px;height:140px"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div></div>
+    <div class="below"></div>
+  </div>`;
+  initAvatar(node.querySelector('.fancy [data-avatar]'));
+  node.querySelector('[data-add-chip]').onclick=function(){ const L=node.querySelector('[data-info-left]'), R=node.querySelector('[data-info-right]'); (L.scrollHeight<=R.scrollHeight?L:R).appendChild(buildChip(MENU_ITEMS[0])); };
+  return node;
+}
+function createSidebar(){
+  const node=mkNode(true);
+  node.innerHTML=`
+  <div class="sidebar-layout">
+    <div class="rail">
+      <div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div>
+      <div class="name" contenteditable>YOUR NAME</div>
+      <div class="rail-actions">
+        <button class="mbtn" data-add-chip title="Add contact/info"><i class="fa-solid fa-plus"></i> Chip</button>
+      </div>
+      <div class="chips" data-info></div>
+      <div class="sec-holder" id="railSecHolder"></div>
+    </div>
+    <div data-zone="main"></div>
+  </div>`;
+  initAvatar(node.querySelector('.rail [data-avatar]'));
+  node.querySelector('[data-add-chip]').onclick=()=>openChipMenu(it=> node.querySelector('.rail [data-info]').appendChild(buildChip(it)) );
+  return node;
+}
 
-function setupLP(id){var box=document.getElementById(id); if(!box) return; $$('.mock',box).forEach(function(m){ m.addEventListener('click',function(){ $$('.mock',box).forEach(function(x){ x.classList.remove('sel'); }); m.classList.add('sel'); migrateLayout(m.getAttribute('data-layout'),true); fadeSwitch(); wizardData.layout=m.getAttribute('data-layout'); }); });}
+/* ---------------------------
+   Layout picker (menu)
+--------------------------- */
+function setupLP(id){
+  const box=document.getElementById(id); if(!box) return;
+  $$('.mock',box).forEach(m=>{
+    m.addEventListener('click',function(){
+      $$('.mock',box).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); migrateLayout(m.getAttribute('data-layout'),true);
+    });
+  });
+}
 setupLP('layoutPickerWizard'); setupLP('layoutPickerMenu');
 
+/* ---------------------------
+   Layout migration
+--------------------------- */
 function migrateLayout(kind,live){
-  var header=$$('.node',stack).find(function(n){ return n.querySelector('.topbar')||n.querySelector('.fancy')||n.querySelector('.sidebar-layout'); });
-  var name='', chipsHTML='', leftHTML='', rightHTML='', snap=''; var idx=0, mainNodes=[], railSkills=null;
+  const header=$$('.node',stack).find(n=> n.querySelector('.topbar')||n.querySelector('.fancy')||n.querySelector('.sidebar-layout'));
+  let name='', chipsHTML='', leftHTML='', rightHTML='', snap=''; let idx=0, mainNodes=[];
   if(header){
     idx=$$('.node',stack).indexOf(header);
-    var nm=header.querySelector('.name'); name=nm?nm.textContent:'';
+    const nm=header.querySelector('.name'); name=nm?nm.textContent:'';
     if(header.querySelector('.fancy')){ leftHTML=(header.querySelector('[data-info-left]')||{}).innerHTML||''; rightHTML=(header.querySelector('[data-info-right]')||{}).innerHTML||''; }
     if(header.querySelector('.topbar')) { chipsHTML=(header.querySelector('[data-info]')||{}).innerHTML||''; }
-    if(header.querySelector('.sidebar-layout')){
-      chipsHTML=(header.querySelector('.rail [data-info]')||{}).innerHTML||'';
-      mainNodes=$$('[data-zone="main"]>.node',header);
-      railSkills=header.querySelector('.rail .section')?.outerHTML || null;
-    }
-    var cv=header.querySelector('[data-avatar] canvas'); try{ snap=cv?cv.toDataURL('image/png'):(header.querySelector('[data-avatar]')||{}).getAttribute&&header.querySelector('[data-avatar]').getAttribute('data-snapshot')||''; }catch(_){}
+    if(header.querySelector('.sidebar-layout')){ chipsHTML=(header.querySelector('.rail [data-info]')||{}).innerHTML||''; mainNodes=$$('[data-zone="main"]>.node',header); }
+    const cv=header.querySelector('[data-avatar] canvas'); try{ snap=cv?cv.toDataURL('image/png'):(header.querySelector('[data-avatar]')||{}).getAttribute&&header.querySelector('[data-avatar]').getAttribute('data-snapshot')||''; }catch(_){}
     header.remove();
   }
-  var host=null; if(kind==='header-top') host=createTopBar(); if(kind==='header-fancy') host=createFancy(); if(kind==='header-side') host=createSidebar();
+  let host=null; if(kind==='header-top') host=createTopBar(); if(kind==='header-fancy') host=createFancy(); if(kind==='header-side') host=createSidebar();
   if(name) host.querySelector('.name').textContent=name;
-  if(snap){ var h=host.querySelector('[data-avatar]'); h.setAttribute('data-snapshot',snap); initAvatar(h); }
-  if(host.querySelector('.fancy')){ var L=host.querySelector('[data-info-left]'), R=host.querySelector('[data-info-right]'); var t=document.createElement('div'); t.innerHTML=(leftHTML||'')+(rightHTML||'')+(chipsHTML||''); $$('.chip',t).forEach(function(el,i){ (i%2?R:L).appendChild(el); }); }
+  if(snap){ const h=host.querySelector('[data-avatar]'); h.setAttribute('data-snapshot',snap); initAvatar(h); }
+  if(host.querySelector('.fancy')){ const L=host.querySelector('[data-info-left]'), R=host.querySelector('[data-info-right]'); const t=document.createElement('div'); t.innerHTML=(leftHTML||'')+(rightHTML||'')+(chipsHTML||''); $$('.chip',t).forEach((el,i)=> (i%2?R:L).appendChild(el)); }
   if(host.querySelector('.topbar') && chipsHTML) host.querySelector('[data-info]').innerHTML=chipsHTML;
   if(host.querySelector('.sidebar-layout') && chipsHTML) host.querySelector('.rail [data-info]').innerHTML=chipsHTML;
 
-  var anchor=stack.children[idx]||document.getElementById('canvasAdd'); stack.insertBefore(host,anchor);
+  const anchor=stack.children[idx]||document.getElementById('canvasAdd'); stack.insertBefore(host,anchor);
 
   if(kind==='header-side'){
-    var main=sideMain();
-    if(mainNodes.length){ mainNodes.forEach(function(n){ main.appendChild(n); }); }
-    if(railSkills){
-      var holder=host.querySelector('.rail .sec-holder'); holder.innerHTML = railSkills;
-      var g=holder.querySelector('.grid-skills'); if(g){ attachDnd(g,'.skill'); layoutSkillGrid(g); }
-      holder.querySelectorAll('[data-add-star]').forEach(function(b){ b.onclick=function(){ var gg=holder.querySelector('.grid-skills'); gg.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(gg); layoutSkillGrid(gg); };});
-      holder.querySelectorAll('[data-add-slider]').forEach(function(b){ b.onclick=function(){ var gg=holder.querySelector('.grid-skills'); gg.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(gg); layoutSkillGrid(gg); };});
-      var railSec=holder.querySelector('.section .sec-tools .handle'); if(railSec) railSec.style.display='none';
-    }
+    const main=sideMain();
+    if(mainNodes.length){ mainNodes.forEach(n=> main.appendChild(n)); }
+    else { $$('.node',stack).forEach(n=>{ if(n!==host && !n.getAttribute('data-locked')) main.appendChild(n); }); }
   }
-  moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility();
-  if(!live) ddLayout.classList.remove('open');
+  moveAddAnchor(); updatePH(); if(!live) ddLayout.classList.remove('open');
+}
+function ensureHeader(kind){ if(stack.querySelector('.topbar,.fancy,.sidebar-layout')) return; migrateLayout(kind||'header-fancy',true); }
+
+/* ---------------------------
+   Skills (rows + section)
+--------------------------- */
+function makeStarRow(label){
+  const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.setAttribute('data-type','star');
+  d.innerHTML=`<span class="handle" title="Drag"></span><span class="lbl" contenteditable>${label||'Skill'}</span>
+  <span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span>
+  <button class="rm bubble" title="Remove">×</button>`;
+  $$('.star',d).forEach(s=> s.addEventListener('click',e=>{ const n=parseInt(e.target.closest('.star').getAttribute('data-i'),10); $$('.star',d).forEach((s2,i)=> s2.classList.toggle('active',i<n)); }));
+  d.querySelector('.rm').onclick=e=>{ e.stopPropagation(); d.remove(); };
+  return d;
+}
+function makeSliderRow(label){
+  const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.setAttribute('data-type','slider');
+  d.innerHTML=`<span class="handle" title="Drag"></span><span class="lbl" contenteditable>${label||'Skill'}</span>
+  <input type="range" min="0" max="100" value="60"><button class="rm bubble" title="Remove">×</button>`;
+  d.querySelector('.rm').onclick=e=>{ e.stopPropagation(); d.remove(); };
+  return d;
+}
+function ensureSkillsGrouped(grid){
+  const rows=$$('.skill',grid);
+  const stars=rows.filter(r=> r.dataset.type==='star');
+  const sliders=rows.filter(r=> r.dataset.type!=='star');
+  rows.forEach(r=> r.remove());
+  stars.concat(sliders).forEach(r=> grid.appendChild(r));
+}
+function layoutSkillGrid(grid){
+  const n=grid.querySelectorAll('.skill').length;
+  const inRail=!!grid.closest('.rail');
+  const inMain=!!grid.closest('.sidebar-layout [data-zone="main"]');
+  grid.classList.remove('cols-1','cols-2','cols-3');
+  if(inRail){ grid.classList.add('cols-1'); }
+  else if(inMain){ grid.classList.add(n>=2?'cols-2':'cols-1'); }
+  else { grid.classList.add(n>=3?'cols-3':n===2?'cols-2':'cols-1'); }
+  attachDnd(grid,'.skill');
 }
 
-/* Skills rows + grid */
-function labelGuard(el){ el.addEventListener('blur',function(){ if((el.textContent||'').trim()==='') el.textContent='Skill'; }); }
-function makeStarRow(label,opts){opts=opts||{}; var d=document.createElement('div'); d.className='skill'; if(opts.draggable!==false) d.setAttribute('draggable','true'); d.setAttribute('data-type','star'); d.innerHTML='<span class="handle" title="Drag"></span><span contenteditable>'+(label||'Skill')+'</span><span class="stars">'+[1,2,3,4,5].map(function(i){return '<svg class="star" data-i="'+i+'" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';}).join('')+'</span><button class="rm" type="button" title="Remove">×</button>'; $$('.star',d).forEach(function(s){ s.addEventListener('click',function(e){ var n=parseInt(e.target.closest('.star').getAttribute('data-i'),10); $$('.star',d).forEach(function(s2,i){ s2.classList.toggle('active',i<n); }); }); }); d.querySelector('.rm').onclick=function(e){ e.stopPropagation(); d.remove(); }; labelGuard(d.querySelector('span[contenteditable]')); return d; }
-function makeSliderRow(label,opts){opts=opts||{}; var d=document.createElement('div'); d.className='skill'; if(opts.draggable!==false) d.setAttribute('draggable','true'); d.setAttribute('data-type','slider'); d.innerHTML='<span class="handle" title="Drag"></span><span contenteditable>'+(label||'Skill')+'</span><input type="range" min="0" max="100" value="60"><button class="rm" type="button" title="Remove">×</button>'; d.querySelector('.rm').onclick=function(e){ e.stopPropagation(); d.remove(); }; labelGuard(d.querySelector('span[contenteditable]')); return d; }
-function ensureSkillsGrouped(grid){ var rows=$$('.skill',grid); var stars=rows.filter(function(r){return r.getAttribute('data-type')==='star'}); var sliders=rows.filter(function(r){return r.getAttribute('data-type')!=='star'}); rows.forEach(function(r){r.remove()}); stars.concat(sliders).forEach(function(r){grid.appendChild(r)}); }
-function layoutSkillGrid(grid){ var n=grid.querySelectorAll('.skill').length; var inRail=!!grid.closest('.rail'); var inMain=!!grid.closest('.sidebar-layout [data-zone="main"]'); grid.classList.remove('cols-1','cols-2','cols-3'); if(inRail){ grid.classList.add('cols-1'); } else if(inMain){ grid.classList.add(n>=2?'cols-2':'cols-1'); } else { grid.classList.add(n>=3?'cols-3':n===2?'cols-2':'cols-1'); } attachDnd(grid,'.skill'); }
-function mkTitle(icon, text, onDelete, withHandle=true){
-  var t=document.createElement('div'); t.className='title-item';
-  t.innerHTML='<div class="trow">'+(icon?'<i class="fa-solid '+icon+'"></i>':'')+'<h2>'+text+'</h2></div><div class="u"></div>';
-  var tools=document.createElement('div'); tools.className='sec-tools';
-  if(withHandle){ var h=document.createElement('button'); h.className='handle'; h.title='Drag section'; tools.appendChild(h); }
-  var del=document.createElement('button'); del.className='rm'; del.type='button'; del.title='Delete section'; del.textContent='×';
-  del.onclick=function(){ if(confirm('You\'re deleting the section "'+text+'" that contains data. Confirm?')){ onDelete && onDelete(); updateAddMenuVisibility(); moveAddAnchor(); } };
-  tools.appendChild(del); t.appendChild(tools); return t;
+/* Section title + confirm delete */
+function mkTitle(icon, text, onDelete, extraToolsHTML){
+  const t=document.createElement('div');
+  t.className='title-item';
+  t.innerHTML=`<div class="trow">${icon?`<i class="fa-solid ${icon}"></i>`:''}<h2>${text}</h2></div><div class="u"></div>`;
+  const tools=document.createElement('div'); tools.className='sec-tools';
+  tools.innerHTML=(extraToolsHTML||'')+`<button class="bubble rm" title="Delete section">×</button>`;
+  tools.querySelector('.rm').onclick=()=>{ if(confirm(`Delete section "${text}"? This cannot be undone.`)) onDelete && onDelete(); };
+  t.appendChild(tools);
+  return t;
 }
-function skillsExists(){ return !!stack.querySelector('.grid-skills'); }
-function createSectionSkills(inRail){
-  if(skillsExists()) return stack.querySelector('.grid-skills');
-  var containerSec = document.createElement('div'); containerSec.className='section';
-  var wrap=mkNode(); wrap.appendChild(containerSec);
-  var title=mkTitle('fa-layer-group','Skills',function(){ wrap.remove(); }, !inRail);
-  containerSec.appendChild(title);
-  var help=document.createElement('div'); help.className='help'; help.textContent='Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.'; containerSec.appendChild(help);
-  var grid=document.createElement('div'); grid.className='grid-skills cols-1'; grid.setAttribute('data-dnd','skills'); containerSec.appendChild(grid);
-  var controls=document.createElement('div'); controls.className='ctrl-mini'; controls.style.display='flex'; controls.style.justifyContent='center'; controls.style.gap='10px';
-  var bStar=document.createElement('button'); bStar.className='mini'; bStar.type='button'; bStar.setAttribute('data-add-star',''); bStar.innerHTML='<i class="fa-solid fa-plus"></i> ★';
-  var bSl=document.createElement('button'); bSl.className='mini'; bSl.type='button'; bSl.setAttribute('data-add-slider',''); bSl.innerHTML='<i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i>';
-  controls.appendChild(bStar); controls.appendChild(bSl); containerSec.appendChild(controls);
 
-  if(inRail && isSidebarActive()){
-    rail()?.querySelector('.sec-holder')?.appendChild(containerSec);
-  }else{
-    insertContentNode(wrap);
-  }
-
-  bStar.onclick=function(){ grid.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
-  bSl.onclick=function(){ grid.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
-  layoutSkillGrid(grid); attachSectionDnd(); updateAddMenuVisibility();
-  if(inRail){ var th=containerSec.querySelector('.sec-tools .handle'); if(th) th.style.display='none'; }
-  return grid;
+/* Skills Section (with move button) */
+function createSectionSkills(){
+  const wrap=mkNode();
+  const moveBtnHtml=`<button class="bubble" data-move-skill title="Move section"><i class="fa-solid fa-up-down"></i></button>`;
+  wrap.appendChild(mkTitle('fa-layer-group','Skills',()=>wrap.remove(),moveBtnHtml));
+  const sec=document.createElement('div'); sec.className='section';
+  sec.innerHTML=`<div style="opacity:.7; font-size:12px; padding:6px 10px">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
+    <div class="grid-skills cols-1" data-dnd="skills"></div>
+    <div class="ctrl-mini" style="margin-top:8px">
+      <button class="bubble" data-add-star title="Add ★"><i class="fa-solid fa-plus"></i></button>
+      <button class="bubble" data-add-slider title="Add slider"><i class="fa-solid fa-sliders"></i></button>
+    </div>`;
+  wrap.appendChild(sec);
+  insertContentNode(wrap);
+  const grid=sec.querySelector('.grid-skills');
+  sec.querySelector('[data-add-star]').onclick=()=>{ grid.appendChild(makeStarRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
+  sec.querySelector('[data-add-slider]').onclick=()=>{ grid.appendChild(makeSliderRow('Skill')); ensureSkillsGrouped(grid); layoutSkillGrid(grid); };
+  // Move button (canvas <-> sidebar)
+  sec.parentElement.querySelector('[data-move-skill]').onclick=function(){
+    if(!isSidebarActive()){ alert('Switch to the Sidebar layout first (Layout options).'); return; }
+    const railHolder=$('#railSecHolder');
+    if(wrap.closest('.rail')){ sideMain().insertBefore(wrap, document.getElementById('canvasAdd')); }
+    else { railHolder.appendChild(wrap); }
+    layoutSkillGrid(grid); moveAddAnchor(); updatePH();
+  };
+  layoutSkillGrid(grid);
+  return wrap;
 }
-function ensureRailSkillsSection(){ if(!isSidebarActive()) return null; var exist=rail().querySelector('.grid-skills') || stack.querySelector('.grid-skills'); if(exist) return exist; return createSectionSkills(true); }
+function skillsSectionExists(){
+  return !!stack.querySelector('.grid-skills');
+}
 
 /* Experience */
-function ensureExpSection(){ var container=isSidebarActive()? sideMain() : stack; var host=$$('.node',container).find(function(n){ var h=n.querySelector? n.querySelector('.trow h2'):null; return h && h.textContent==='Work experience'; }); if(host) return host;
-  host=mkNode(); var sec=document.createElement('div'); sec.className='section';
-  sec.appendChild(mkTitle('fa-briefcase','Work experience',function(){ host.remove(); }));
-  sec.innerHTML+='<div class="exp-list" data-dnd="cards"></div><div class="ctrl-mini" style="display:flex;justify-content:center"><button class="mini" type="button" data-add-exp><i class="fa-solid fa-plus"></i> Add role</button></div>';
-  host.appendChild(sec); insertContentNode(host);
+function ensureExpSection(){
+  const container=isSidebarActive()? sideMain() : stack;
+  let host=$$('.node',container).find(n=>{ const h=n.querySelector?.('.trow h2'); return h && h.textContent==='Work experience'; });
+  if(host) return host;
+  host=mkNode();
+  host.appendChild(mkTitle('fa-briefcase','Work experience',()=>host.remove()));
+  const sec=document.createElement('div'); sec.className='section';
+  sec.innerHTML='<div class="exp-list" data-dnd="cards"></div><div class="ctrl-mini" style="margin-top:12px"><button class="bubble" data-add-exp><i class="fa-solid fa-plus"></i> Add role</button></div>';
+  host.appendChild(sec);
+  insertContentNode(host);
   sec.querySelector('[data-add-exp]').onclick=function(){ sec.querySelector('.exp-list').appendChild(makeExpCard()); attachDnd(sec.querySelector('.exp-list'),'.exp-card'); };
-  attachSectionDnd(); updateAddMenuVisibility(); return host;
+  return host;
 }
+function createSectionExp(){ const host=ensureExpSection(); host.querySelector('[data-add-exp]').click(); return host; }
 function makeExpCard(dates,role,org,desc){
-  var c=document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
-  c.innerHTML='<div class="exp-tools"><span class="handle" title="Drag"></span><button class="rm" type="button" title="Delete">×</button></div>'
-    +'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
-      +'<span class="badge exp-year" contenteditable>'+((dates&&dates.slice(0,16))||'Jan 2022')+'</span>'
-      +'<div style="font-weight:800" contenteditable>'+(role||'Job title')+'</div>'
-    +'</div>'
-    +'<div style="font-weight:700;color:#374151" contenteditable>'+(org||'@Company')+'</div>'
-    +'<div class="editable desc" contenteditable>'+(desc||'Describe impact, scale and results.')+'</div>';
-  c.querySelector('.rm').onclick=function(e){ e.stopPropagation(); c.remove(); };
-  c.querySelector('.exp-year').addEventListener('input',function(ev){ var el=ev.currentTarget; if(el.textContent.length>16){ el.textContent=el.textContent.slice(0,16); } });
-  var descEl=c.querySelector('.desc'); descEl.addEventListener('focus',function(){ showFmtbar(descEl); }); descEl.addEventListener('keydown',bulletKeydown); return c;
+  const c=document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
+  c.innerHTML=`
+    <div class="exp-tools"><span class="handle" title="Drag"></span><button class="bubble rm" title="Delete">×</button></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="badge" contenteditable>${dates||'Jan 2022'}</span>
+      <div style="font-weight:800" contenteditable>${role||'Job title'}</div>
+    </div>
+    <div style="font-weight:700;color:#374151" contenteditable>${org||'@Company'}</div>
+    <div class="editable desc" contenteditable>${desc||'Describe impact, scale and results.'}</div>`;
+  c.querySelector('.rm').onclick=e=>{ e.stopPropagation(); c.remove(); };
+  const descEl=c.querySelector('.desc'); descEl.addEventListener('focus',()=>showFmtbar(descEl)); descEl.addEventListener('blur',()=>setTimeout(hideFmtbar,120));
+  return c;
 }
 
 /* Education */
-function createSectionEdu(){ var wrap=mkNode(); var sec=document.createElement('div'); sec.className='section';
-  sec.appendChild(mkTitle('fa-user-graduate','Education',function(){ wrap.remove(); }));
-  sec.innerHTML+='<div class="edu-grid" data-dnd="cards"></div><div class="ctrl-mini" style="display:flex;justify-content:center;gap:8px"><button class="mini" type="button" data-add-course><i class="fa-solid fa-plus"></i> Add course</button><button class="mini" type="button" data-add-degree><i class="fa-solid fa-plus"></i> Add degree</button></div>';
+function createSectionEdu(){
+  const wrap=mkNode();
+  wrap.appendChild(mkTitle('fa-graduation-cap','Education',()=>wrap.remove()));
+  const sec=document.createElement('div'); sec.className='section';
+  sec.innerHTML=`
+    <div class="edu-grid" data-dnd="cards"></div>
+    <div class="ctrl-mini" style="margin-top:12px">
+      <button class="bubble" data-add-course><i class="fa-solid fa-plus"></i> Add course</button>
+      <button class="bubble" data-add-degree><i class="fa-solid fa-plus"></i> Add degree</button>
+    </div>`;
   wrap.appendChild(sec); insertContentNode(wrap);
-  var grid=sec.querySelector('.edu-grid');
-  sec.querySelector('[data-add-course]').onclick=function(){ grid.appendChild(makeEduCard('course')); attachDnd(grid,'.edu-card'); };
-  sec.querySelector('[data-add-degree]').onclick=function(){ grid.appendChild(makeEduCard('degree')); attachDnd(grid,'.edu-card'); };
-  attachSectionDnd(); updateAddMenuVisibility(); return wrap;
+  const grid=sec.querySelector('.edu-grid');
+  sec.querySelector('[data-add-course]').onclick=()=>{ grid.appendChild(makeEduCard('course')); attachDnd(grid,'.edu-card'); };
+  sec.querySelector('[data-add-degree]').onclick=()=>{ grid.appendChild(makeEduCard('degree')); attachDnd(grid,'.edu-card'); };
+  return wrap;
 }
 function makeEduCard(kind){
-  var icon = kind==='degree' ? 'fa-graduation-cap degree' : 'fa-scroll course';
-  var c=document.createElement('div'); c.className='edu-card'; c.setAttribute('draggable','true');
-  c.innerHTML='<div class="edu-tools"><span class="handle" title="Drag"></span><button class="rm" type="button" title="Delete">×</button></div>'
-    +'<div class="edu-line1"><i class="fa-solid '+icon+' edu-title-icon"></i><span class="editable edu-title" contenteditable>Title</span></div>'
-    +'<span class="badge edu-year" contenteditable>2018–2022</span>'
-    +'<span class="editable edu-academy" contenteditable>Academy name (wraps to two lines if needed)</span>';
-  c.querySelector('.rm').onclick=function(e){ e.stopPropagation(); c.remove(); };
-  var yr=c.querySelector('.edu-year'); yr.addEventListener('input',function(){ if(yr.textContent.length>9){ yr.textContent=yr.textContent.slice(0,9); } }); return c;
+  const icon = kind==='degree' ? 'fa-graduation-cap' : 'fa-scroll';
+  const c=document.createElement('div'); c.className='edu-card'; c.setAttribute('draggable','true');
+  c.innerHTML=`
+    <div class="edu-tools"><span class="handle" title="Drag"></span><button class="bubble rm" title="Delete">×</button></div>
+    <div class="edu-row">
+      <i class="fa-solid ${icon}" style="color:${kind==='degree'?'var(--accent)':'var(--accent2)'}"></i>
+      <span class="edu-title" contenteditable>Title</span>
+    </div>
+    <span class="badge" contenteditable>2018–2022</span>
+    <div class="editable" contenteditable>Academy name (wraps to two lines if needed)</div>`;
+  c.querySelector('.rm').onclick=e=>{ e.stopPropagation(); c.remove(); };
+  return c;
 }
 
-/* Drag & drop */
-function attachDnd(container,itemSel){ if(!container || container._dndAttached) return; container._dndAttached=true; var dragEl=null, ph=null;
-  container.addEventListener('dragstart',function(e){ var it=e.target.closest(itemSel); if(!it) return; if(!e.target.closest('.handle')){ e.preventDefault(); return; } dragEl=it; e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain',''); }catch(_){} ph=document.createElement('div'); ph.className='drop-ph'; ph.style.height=it.offsetHeight+'px'; try{ var img=document.createElement('canvas'); img.width=1; img.height=1; e.dataTransfer.setDragImage(img,0,0); }catch(_){} setTimeout(function(){ it.style.opacity='0.35'; },0); });
-  container.addEventListener('dragend',function(){ if(dragEl){ dragEl.style.opacity=''; if(ph) ph.remove(); dragEl=null; ph=null; } });
-  container.addEventListener('dragover',function(e){ if(!dragEl) return; e.preventDefault(); var after=getAfter(container,e.clientY); if(after==null) container.appendChild(ph); else container.insertBefore(ph,after); });
-  container.addEventListener('drop',function(e){ e.preventDefault(); if(!dragEl||!ph) return; container.insertBefore(dragEl, ph); ph.remove(); dragEl.style.opacity=''; dragEl=null; ph=null; if(container.matches('.grid-skills')){ ensureSkillsGrouped(container); layoutSkillGrid(container); } moveAddAnchor(); });
-  function getAfter(cont,y){ var els=$$(itemSel+':not(.drop-ph)',cont).filter(function(el){return el!==dragEl}); return els.reduce(function(closest,child){ var b=child.getBoundingClientRect(); var off=y-b.top-b.height/2; if(off<0 && off>closest.offset){ return {offset:off,element:child}; } else return closest; },{offset:-Infinity}).element; } }
-function attachSectionDnd(){ attachDnd(isSidebarActive()? sideMain():stack, '.node:not([data-locked])'); }
+/* ---------------------------
+   DnD util (handle only)
+--------------------------- */
+function attachDnd(container, itemSel){
+  if(!container || container._dndAttached) return;
+  container._dndAttached=true;
+  let dragEl=null, phEl=null;
+  container.addEventListener('dragstart',function(e){
+    const it=e.target.closest(itemSel); if(!it) return;
+    if(!e.target.closest('.handle')){ e.preventDefault(); return; } // handle only
+    dragEl=it; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','');
+    phEl=document.createElement('div'); phEl.className='drop-ph'; phEl.style.height=it.offsetHeight+'px';
+    try{ const img=document.createElement('canvas'); img.width=1; img.height=1; e.dataTransfer.setDragImage(img,0,0);}catch(err){}
+    setTimeout(()=>{ it.style.opacity='0.35'; },0);
+  });
+  container.addEventListener('dragend',()=>{ if(dragEl){ dragEl.style.opacity=''; if(phEl) phEl.remove(); dragEl=null; phEl=null; } });
+  container.addEventListener('dragover',function(e){
+    if(!dragEl) return; e.preventDefault();
+    const after=getDragAfterElement(container, e.clientY);
+    if(after==null) container.appendChild(phEl); else container.insertBefore(phEl, after);
+  });
+  container.addEventListener('drop',function(e){
+    e.preventDefault();
+    if(!dragEl||!phEl) return;
+    container.insertBefore(dragEl, phEl);
+    phEl.remove(); dragEl.style.opacity=''; dragEl=null; phEl=null;
+    if(container.matches('.grid-skills')){ ensureSkillsGrouped(container); layoutSkillGrid(container); }
+  });
+  function getDragAfterElement(cont, y){
+    const els=$$(itemSel+':not(.drop-ph)',cont).filter(el=> el!==dragEl);
+    return els.reduce((closest,child)=>{
+      const box=child.getBoundingClientRect();
+      const offset=y-box.top-box.height/2;
+      if(offset<0 && offset>closest.offset){ return {offset:offset,element:child}; } else { return closest; }
+    },{offset:-Infinity}).element;
+  }
+}
 
-/* Add menu */
-function updateAddMenuVisibility(){
-  var showSkills = !skillsExists();
-  var showEdu = !stack.querySelector('.edu-grid');
-  var showExp = !stack.querySelector('.exp-list');
-  var allDone = !showSkills && !showEdu && !showExp;
-  $('#canvasAdd').style.display = allDone ? 'none' : '';
-  addMenu.querySelector('[data-add="section-skills"]').style.display = showSkills ? '' : 'none';
-  addMenu.querySelector('[data-add="section-edu"]').style.display = showEdu ? '' : 'none';
-  addMenu.querySelector('[data-add="section-exp"]').style.display = showExp ? '' : 'none';
+/* ---------------------------
+   Add menu (dynamic)
+--------------------------- */
+function refreshAddMenu(){
+  addTray.innerHTML='';
+  const showSkills=!skillsSectionExists();
+  const opts=[ showSkills?{k:'section-skills',ico:'fa-layer-group',lbl:'Skills'}:null,
+    {k:'section-edu',ico:'fa-user-graduate',lbl:'Education'},
+    {k:'section-exp',ico:'fa-briefcase',lbl:'Experience'} ].filter(Boolean);
+  opts.forEach(o=>{
+    const b=document.createElement('button'); b.className='square'; b.dataset.add=o.k; b.title=o.lbl; b.innerHTML=`<i class="fa-solid ${o.ico}"></i>`;
+    addTray.appendChild(b);
+  });
 }
 function openAddMenu(){
-  if(!stack.querySelector('.topbar,.fancy,.sidebar-layout')){ ddLayout.classList.add('open'); return; }
-  updateAddMenuVisibility(); var r=dotAdd.getBoundingClientRect(); addMenu.style.left=(r.left + r.width/2)+'px'; addMenu.style.top=(r.top)+'px'; addMenu.classList.add('open');
-  function close(e){ if(!addMenu.contains(e.target) && e.target!==dotAdd){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } } setTimeout(function(){ document.addEventListener('click',close); },0);
+  refreshAddMenu();
+  const hasHeader=!!stack.querySelector('.topbar,.fancy,.sidebar-layout');
+  if(!hasHeader){ ddLayout.classList.add('open'); return; }
+  addMenu.classList.add('open');
+  function close(e){ if(!addMenu.contains(e.target) && e.target!==dotAdd){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } }
+  setTimeout(()=>document.addEventListener('click',close),0);
 }
 dotAdd.addEventListener('click',openAddMenu);
-addMenu.addEventListener('click',function(e){ var b=e.target.closest('.big'); if(!b) return; addMenu.classList.remove('open'); var K=b.getAttribute('data-add'); if(K==='section-skills') createSectionSkills(false); if(K==='section-edu') createSectionEdu(); if(K==='section-exp') ensureExpSection(); moveAddAnchor(); });
+addMenu.addEventListener('click',function(e){
+  const b=e.target.closest('.square'); if(!b) return; addMenu.classList.remove('open');
+  const K=b.getAttribute('data-add');
+  if(K==='section-skills') createSectionSkills();
+  if(K==='section-edu') createSectionEdu();
+  if(K==='section-exp') createSectionExp();
+});
 
-/* Theme / hero */
-$$('.swatch',ddTheme).forEach(function(s){ s.addEventListener('click',function(){ document.body.setAttribute('data-theme', s.getAttribute('data-k')); ddTheme.classList.remove('open'); }); });
-$$('.pill',ddTheme).forEach(function(p){ p.addEventListener('click',function(){ $$('.pill',ddTheme).forEach(function(x){x.classList.remove('active');}); p.classList.add('active'); var k=p.getAttribute('data-hero'), headers=$$('.topbar,.fancy',stack); headers.forEach(function(h){ var host=h.classList.contains('topbar')?h:h.querySelector('.hero'); if(k==='gradient'){ host.style.background='linear-gradient(135deg,var(--accent2),var(--accent))'; host.style.backgroundImage=''; } if(k==='pattern'){ host.style.background='linear-gradient(135deg,var(--accent2),var(--accent)), radial-gradient(circle at 20% 20%, #ffffff22 2px, transparent 2px)'; host.style.backgroundSize='auto,16px 16px'; } if(k==='image'){ heroImageInput.click(); } }); }); });
-heroImageInput.addEventListener('change',function(){ var f=heroImageInput.files&&heroImageInput.files[0]; if(!f) return; var url=URL.createObjectURL(f); $$('.topbar,.fancy',stack).forEach(function(h){ var host=h.classList.contains('topbar')?h:h.querySelector('.hero'); host.style.background='url('+url+') center/cover'; }); setTimeout(function(){ URL.revokeObjectURL(url); },7000); });
-
-/* Save / Load / Reset */
-function getProjectJSON(){ $$('[data-avatar] canvas').forEach(function(cv){ try{ cv.parentElement.setAttribute('data-snapshot',cv.toDataURL('image/png')); }catch(e){} }); var header=stack.querySelector('.node[data-locked="1"]')? stack.querySelector('.node[data-locked="1"]').innerHTML:null; var nodes=isSidebarActive()? $$('.node',sideMain()).map(function(n){return {html:n.innerHTML};}) : $$('.node',stack).filter(function(n){return !n.getAttribute('data-locked');}).map(function(n){return {html:n.innerHTML};}); return { theme:document.body.getAttribute('data-theme')||'magentaPurple', header:header, nodes:nodes }; }
-saveBtn.onclick=function(){ var blob=new Blob([JSON.stringify(getProjectJSON(),null,2)],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resume_project.json'; a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); },3000); };
-loadBtn.onclick=function(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(){ try{ var data=JSON.parse(String(r.result)); restoreProject(data); }catch(e){ alert('Invalid JSON'); } }; r.readAsText(f); }; inp.click(); };
-startScratchBtn.onclick=function(){ (isSidebarActive()? sideMain() : stack).querySelectorAll('.node').forEach(function(n){n.remove();}); updatePH(); updateAddMenuVisibility(); moveAddAnchor(); };
-function restoreProject(data){ document.body.setAttribute('data-theme',data.theme||'magentaPurple'); $$('.node',stack).forEach(function(n){n.remove();}); if(data.header){ var h=mkNode(true); h.innerHTML=data.header; h.querySelectorAll('[data-avatar]').forEach(initAvatar); stack.insertBefore(h,$('#canvasAdd')); } (data.nodes||[]).forEach(function(o){ var n=mkNode(); n.innerHTML=o.html; n.querySelectorAll('[data-avatar]').forEach(initAvatar); insertContentNode(n); }); $$('[data-dnd="skills"]').forEach(function(g){ attachDnd(g,'.skill'); }); $$('[data-dnd="cards"]').forEach(function(g){ attachDnd(g, g.classList.contains('edu-grid')?'.edu-card':'.exp-card'); }); moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility(); }
-
-/* Print / Preview */
-$('#pdfBtn').onclick=function(){ var was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(function(){ window.print(); if(!was) setTimeout(function(){document.body.classList.remove('preview');},180); },60); };
-$('#togglePreview').onclick=function(){ var on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); this.textContent=on?'Exit preview':'Preview'; };
-
-/* WIZARD UI */
-function renderProgress(){ var p=$('#wprogress'); p.innerHTML=''; stepsOrder.forEach(function(_,i){ var d=document.createElement('div'); d.className='pitem'+(i===currentStep?' current':'')+(i<currentStep?' done':''); d.innerHTML='<span class="pcheck"><i class="fa-solid fa-check"></i></span><span>'+stepLabels[i]+'</span>'; p.appendChild(d); }); }
-function showOnly(el){ Object.keys(cards).forEach(function(k){ cards[k].style.display='none'; cards[k].classList.remove('show'); }); el.style.display='block'; requestAnimationFrame(function(){ el.classList.add('show'); }); if(el===cards.welcomeCard){ $('#wprogress').style.display='none'; wlayout.classList.add('intro'); $('#backBtn').disabled=true; $('#startOverBtn').style.display='none'; } else { $('#wprogress').style.display='block'; wlayout.classList.remove('intro'); $('#backBtn').disabled = currentStep===0; $('#startOverBtn').style.display = backCount>=2 ? 'inline-block':'none'; } }
-function finishWelcome(){ welcome.classList.add('hide'); setTimeout(function(){ welcome.remove(); },420); }
-function onStepEnter(){ var id=stepsOrder[currentStep]; if(id==='wizLayouts'){ ensureHeader(wizardData.layout); } if(id==='wizTheme'){ document.body.setAttribute('data-theme', wizardData.theme); } if(id==='wizSkills'){ renderWizardSkills(); $('#cbRow').style.display = isSidebarActive() ? 'block' : 'none'; } renderProgress(); }
-function goNext(){ currentStep++; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); }
-
-/* init wizard welcome */
-showOnly(cards.welcomeCard);
-
-/* Layout/Theme pickers (wizard) */
-function ensureHeader(kind){ if(stack.querySelector('.topbar,.fancy,.sidebar-layout')) return; migrateLayout(kind||'header-side',true); }
-$('#startWizard').onclick=function(){ currentStep=0; showOnly(cards[stepsOrder[currentStep]]); $('#wprogress').style.display='block'; onStepEnter(); };
-$('#startBlank').onclick=function(){ finishWelcome(); };
-$('#backBtn').onclick=function(){ if(currentStep===0){ currentStep=0; showOnly(cards.welcomeCard); return; } backCount++; currentStep--; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); };
-$('#startOverBtn').onclick=function(){ if(!confirm('Start the wizard over? This won’t delete anything you already placed.')) return; currentStep=0; backCount=0; wizardData.skills=[]; wizardData.place=null; wizardData.edu=[]; showOnly(cards[stepsOrder[currentStep]]); onStepEnter(); };
-
-$('#nextBtn').onclick=function(){
-  backCount=0;
-  var id=stepsOrder[currentStep];
-  try{
-    if(id==='wizLayouts'){ goNext(); return; }
-    if(id==='wizTheme'){ goNext(); return; }
-    if(id==='wizName'){ ensureHeader(); var v=($('#inpName').value||'').trim(); if(v){ wizardData.name=v; stack.querySelector('.name').textContent=v; } goNext(); return; }
-    if(id==='wizPhone'){ var v=($('#inpPhone').value||'').trim(); if(v){ wizardData.phone=v; addOrUpdateChip('phone', v); } goNext(); return; }
-    if(id==='wizEmail'){ var v=($('#inpEmail').value||'').trim(); if(v){ wizardData.email=v; addOrUpdateChip('email', v); } goNext(); return; }
-    if(id==='wizAddress'){ var v=($('#inpAddr').value||'').trim(); if(v){ wizardData.addr=v; addOrUpdateChip('address', v); } goNext(); return; }
-    if(id==='wizLinked'){ var u=($('#inpLinked').value||'').trim().replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i,'').replace(/^\//,''); if(u){ wizardData.linked=u; addOrUpdateChip('linkedin','linkedin.com/in/'+u); } goNext(); return; }
-    if(id==='wizSkills'){
-      var data=serializeWizardSkills();
-      if(data.items.length>0){
-        wizardData.skills=data.items;
-        wizardData.place= data.place || (isSidebarActive() ? ($('#cbSidebarSkills').checked ? 'sidebar' : 'canvas') : 'canvas');
-        applySkillsToResume(wizardData);
-      } else { wizardData.skills=[]; wizardData.place=null; }
-      goNext(); return;
-    }
-    if(id==='wizEdu'){ applyEduToResume(); goNext(); return; }
-    if(id==='wizExp'){ addWizardExp(); finishWelcome(); return; }
-  } catch(err){
-    console.error('Wizard step error:', err);
-    // Advance anyway so the wizard is never stuck.
-    goNext();
-  }
+/* ---------------------------
+   Theme menu (swatches + custom + dark)
+--------------------------- */
+$$('.swatch',ddTheme).forEach(s=>{
+  s.addEventListener('click',function(){
+    if(s.dataset.k==='custom'){ $('#customPicker').style.display='flex'; return; }
+    document.body.setAttribute('data-theme', s.getAttribute('data-k')); ddTheme.classList.remove('open');
+  });
+});
+$('#saveCustom').onclick=function(){
+  const c1=$('#c1').value, c2=$('#c2').value;
+  document.documentElement.style.setProperty('--accent',c1);
+  document.documentElement.style.setProperty('--accent2',c2);
+  document.body.setAttribute('data-theme','custom');
+  $('#customPicker').style.display='none';
+  ddTheme.classList.remove('open');
 };
+darkToggle.addEventListener('click',function(){ const on=this.getAttribute('data-on')==='1'; this.setAttribute('data-on', on?'0':'1'); document.body.setAttribute('data-dark', on?'0':'1'); });
 
-/* picks inside wizard */
-$('#layoutPickerWizard').addEventListener('click',function(e){ var m=e.target.closest('.mock'); if(!m) return; $$('.mock',this).forEach(function(x){x.classList.remove('sel')}); m.classList.add('sel'); wizardData.layout=m.dataset.layout; migrateLayout(wizardData.layout,true); fadeSwitch(); });
-$$('#wizTheme .swatch').forEach(function(s){ s.addEventListener('click',function(){ wizardData.theme=s.dataset.k; document.body.setAttribute('data-theme',wizardData.theme); }); });
-['inpName','inpPhone','inpEmail','inpAddr','inpLinked'].forEach(function(id){ var el=document.getElementById(id); el&&el.addEventListener('keydown',function(e){ if(e.key==='Enter'){ $('#nextBtn').click(); } }); });
+/* ---------------------------
+   Save / Load / Reset
+--------------------------- */
+function getProjectJSON(){
+  $$('[data-avatar] canvas').forEach(cv=>{ try{ cv.parentElement.setAttribute('data-snapshot',cv.toDataURL('image/png')); }catch(e){} });
+  const header=stack.querySelector('.node[data-locked="1"]')? stack.querySelector('.node[data-locked="1"]').innerHTML:null;
+  const nodes=isSidebarActive()? $$('.node',sideMain()).map(n=>({html:n.innerHTML})) : $$('.node',stack).filter(n=>!n.getAttribute('data-locked')).map(n=>({html:n.innerHTML}));
+  return { theme:document.body.getAttribute('data-theme')||'magentaPurple', dark:document.body.getAttribute('data-dark')==='1', header, nodes };
+}
+saveBtn.onclick=function(){
+  const blob=new Blob([JSON.stringify(getProjectJSON(),null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resume_project.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+};
+loadBtn.onclick=function(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=function(){ const f=inp.files&&inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=function(){ try{ const data=JSON.parse(String(r.result)); restoreProject(data); }catch(e){ alert('Invalid JSON'); } }; r.readAsText(f); };
+  inp.click();
+};
+startScratchBtn.onclick=function(){ (isSidebarActive()? sideMain() : stack).querySelectorAll('.node').forEach(n=>n.remove()); updatePH(); };
+function restoreProject(data){
+  document.body.setAttribute('data-theme',data.theme||'magentaPurple');
+  document.body.setAttribute('data-dark',data.dark?'1':'0');
+  $$('.node',stack).forEach(n=>n.remove());
+  if(data.header){ const h=mkNode(true); h.innerHTML=data.header; h.querySelectorAll('[data-avatar]').forEach(initAvatar); stack.insertBefore(h,document.getElementById('canvasAdd')); }
+  (data.nodes||[]).forEach(o=>{ const n=mkNode(); n.innerHTML=o.html; n.querySelectorAll('[data-avatar]').forEach(initAvatar); insertContentNode(n); });
+  $$('[data-dnd="skills"]').forEach(g=> attachDnd(g,'.skill'));
+  $$('[data-dnd="cards"]').forEach(g=> attachDnd(g, g.classList.contains('edu-grid')?'.edu-card':'.exp-card'));
+  moveAddAnchor(); updatePH();
+}
 
-/* Wizard skills state */
-function serializeWizardSkills(){
-  var wrap=$('#wizSkillWrap'); var arr=[];
-  $$('.skill',wrap).forEach(function(row){
-    var label=(row.querySelector('span[contenteditable]').textContent||'').trim()||'Skill';
-    if(row.getAttribute('data-type')==='star'){
-      var n=row.querySelectorAll('.star.active').length;
-      arr.push({type:'star',label:label,value:n});
-    }else{
-      var v=parseInt(row.querySelector('input[type="range"]').value,10)||0;
-      arr.push({type:'slider',label:label,value:v});
+/* ---------------------------
+   Print / Preview
+--------------------------- */
+pdfBtn.onclick=function(){ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(function(){ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),180); },60); };
+navPrev.onclick=function(){ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); navPrev.textContent=on?'Exit preview':'Preview'; };
+
+/* ---------------------------
+   Wizard (compact, persistent state)
+--------------------------- */
+const welcome=$('#welcome'), wiz=$('#wiz'), stepsEl=$('#wizSteps');
+function finishWelcome(){ canvas.classList.remove('blurred'); welcome.classList.add('hide'); setTimeout(()=>{ if(welcome && welcome.parentNode) welcome.parentNode.removeChild(welcome); },420); }
+function renderSteps(){
+  stepsEl.innerHTML='';
+  W.steps.forEach((name,i)=>{
+    const p=document.createElement('div'); p.className='step-pill'+(i===W.step?' active':''); p.innerHTML=`<span style="width:8px;height:18px;border-radius:6px;background:${i<W.step?'#36d399':i===W.step?'#7c99ff':'#28324a'};display:inline-block"></span><span>${name}</span>`;
+    stepsEl.appendChild(p);
+  });
+}
+function setRight(contentHTML, actionsHTML){
+  const right=wiz.querySelector('.wright'); right.innerHTML=contentHTML + `<div class="wactions">${actionsHTML}</div>`;
+}
+function go(stepDelta){
+  W.step+=stepDelta; if(W.step<0) W.step=0; if(W.step>=W.steps.length){ finishWelcome(); return; }
+  renderSteps();
+  const name=W.steps[W.step];
+  if(name==='Layout'){
+    setRight(`
+      <div class="wtitle">Choose your layout</div><div class="wsub">Pick a starting header style.</div>
+      <div class="wrow" id="layoutPickerWizard">
+        <div class="mock ${W.data.layout==='header-side'?'sel':''}" data-layout="header-side">
+          <div class="rail"><div class="av"></div></div>
+          <div class="lines" style="margin-left:34%"><div class="line"></div><div class="line"></div><div class="line"></div><div class="line short"></div></div>
+        </div>
+        <div class="mock ${W.data.layout==='header-fancy'?'sel':''}" data-layout="header-fancy">
+          <div class="hero"></div><div class="center-av"></div>
+          <div class="lines" style="margin-top:84px"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+        </div>
+        <div class="mock ${W.data.layout==='header-top'?'sel':''}" data-layout="header-top">
+          <div class="hero"></div><div class="right-av"></div>
+          <div class="lines" style="margin-top:14px"><div class="line"></div><div class="line short"></div><div class="line"></div></div>
+        </div>
+      </div>`,
+      `<button class="wbtn" id="wizBack" disabled>Back</button><button class="wbtn primary" id="wizNext">Next</button>`
+    );
+    setupLP('layoutPickerWizard');
+    $('#wizNext').onclick=function(){ const sel=$('.mock.sel','#layoutPickerWizard'); W.data.layout=sel?sel.dataset.layout:'header-fancy'; migrateLayout(W.data.layout,true); go(1); };
+    $('#wizBack').onclick=()=>{};
+  }
+  else if(name==='Theme'){
+    setRight(`<div class="wtitle">Choose a color theme</div>
+      <div class="theme-row" style="margin-top:10px">
+        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','slate'].map(k=>`<div class="swatch" data-k="${k}" title="${k}"></div>`).join('')}
+      </div>
+      <div class="custom-picker" style="margin-top:12px"><span>Custom</span> <input type="color" id="wc1" value="#8b5cf6"> <input type="color" id="wc2" value="#d946ef"> <button class="wbtn" id="wSaveCustom">Use</button></div>
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px"><span>Dark mode</span><span class="toggle" id="wDark" data-on="${document.body.getAttribute('data-dark')==='1'?'1':'0'}"></span></div>
+    `, `<button class="wbtn" id="wizBack">Back</button><button class="wbtn primary" id="wizNext">Next</button>`);
+    $$('.swatch','.wright').forEach(s=> s.onclick=()=>{ document.body.setAttribute('data-theme',s.dataset.k); });
+    $('#wSaveCustom').onclick=function(){ const a=$('#wc1').value,b=$('#wc2').value; document.documentElement.style.setProperty('--accent',a); document.documentElement.style.setProperty('--accent2',b); document.body.setAttribute('data-theme','custom'); };
+    $('#wDark').onclick=function(){ const on=this.getAttribute('data-on')==='1'; this.setAttribute('data-on',on?'0':'1'); document.body.setAttribute('data-dark',on?'0':'1'); };
+    $('#wizBack').onclick=()=>go(-1); $('#wizNext').onclick=()=>go(1);
+  }
+  else if(['Name','Phone','Email','Address','LinkedIn'].includes(name)){
+    const id=name.toLowerCase();
+    const phs={name:'Your full name',phone:'+34 600 123 456',email:'you@example.com',address:'City, Country',linkedin:'username'};
+    const pre=W.data.chips[id]||'';
+    const hint = id==='linkedin' ? '<div style="opacity:.6;font-size:12px;margin-top:6px">Full URL will be saved as <b>linkedin.com/in/<span id="lkprev">'+(pre||'username')+'</span></b></div>' : '';
+    setRight(`<div class="wtitle">Your ${name.toLowerCase()}?</div>
+      <input id="wizInput" placeholder="${phs[id]}" value="${pre}" style="width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef"/>
+      ${hint}
+    `, `<button class="wbtn" id="wizBack">Back</button><button class="wbtn primary" id="wizNext">Next</button>`);
+    const inp=$('#wizInput'); inp.focus();
+    if(id==='linkedin') inp.addEventListener('input',()=> $('#lkprev').textContent=inp.value||'username');
+    $('#wizBack').onclick=()=>go(-1);
+    $('#wizNext').onclick=function(){
+      const v=inp.value.trim(); W.data.chips[id]=v;
+      ensureHeader(W.data.layout);
+      if(id==='name' && v) stack.querySelector('.name').textContent=v;
+      if(id!=='name' && v){
+        if(id==='linkedin') addChip('linkedin', 'linkedin.com/in/'+v);
+        else addChip(id, v);
+      }
+      go(1);
+    };
+  }
+  else if(name==='Skills'){
+    // builder inside wizard (keeps state)
+    setRight(`<div class="wtitle">Add your skills</div>
+      <div class="wsub">Use stars or a slider. This block can represent <b>languages</b>, <b>tools</b>, <b>abilities</b>—<b>anything</b>. The stars/slider reflect your confidence in that skill.</div>
+      <div id="wizSkills"></div>
+      <div style="margin-top:10px"><label><input type="checkbox" id="wizSkillsSidebar" ${W.data.skillsInSidebar?'checked':''}> Display skills in the sidebar</label></div>
+    `, `<button class="wbtn" id="wizBack">Back</button><button class="wbtn primary" id="wizNext">Next</button>`);
+    const wrap=$('#wizSkills');
+    // render existing
+    function renderSkillRow(row){
+      const id='s'+Math.random().toString(36).slice(2,7);
+      const line=document.createElement('div'); line.style.cssText='display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin:8px 0';
+      line.innerHTML=`<span class="handle"></span><input class="ws-label" value="${row.label||'Skill'}" style="padding:8px;border-radius:10px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef;min-width:220px">
+      <span>${row.kind==='star'
+        ? '<span class="stars">'+[1,2,3,4,5].map((i)=>`<svg class="star ${i<=row.val?'active':''}" data-i="${i}" viewBox="0 0 24 24" style="width:16px;height:16px;fill:${i<=row.val?'#f59e0b':'#2a314a'}"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')+'</span>'
+        : `<input type="range" min="0" max="100" value="${row.val||60}" style="width:180px">`}
+        <button class="wbtn" data-add-star>＋★</button>
+        <button class="wbtn" data-add-slider>＋<i class="fa-solid fa-sliders"></i></button>
+        <button class="wbtn" data-rm>×</button></span>`;
+      // events
+      const lbl=line.querySelector('.ws-label');
+      line.querySelectorAll('[data-add-star],[data-add-slider]').forEach(b=> b.style.display='none'); // centered add buttons below all rows, keep UI simple
+      const rm=line.querySelector('[data-rm]'); rm.onclick=()=> line.remove();
+      const stars=line.querySelectorAll('.star');
+      if(stars.length) stars.forEach(s=> s.onclick=()=>{ const n=+s.dataset.i; stars.forEach((st,i)=> st.classList.toggle('active',i<n)); });
+      wrap.appendChild(line);
     }
-  });
-  var place=null;
-  if(isSidebarActive()){
-    place = $('#cbSidebarSkills').checked ? 'sidebar' : (arr.length ? 'canvas' : null);
-  }else{
-    place = arr.length ? 'canvas' : null;
-  }
-  return {items:arr, place:place};
-}
-function importSkillsFromResume(){
-  var grid = stack.querySelector('.grid-skills'); if(!grid) return {items:[], place:null};
-  var place = grid.closest('.rail') ? 'sidebar' : 'canvas';
-  var items=[]; $$('.skill',grid).forEach(function(row){
-    var label=(row.querySelector('span[contenteditable]').textContent||'').trim()||'Skill';
-    if(row.getAttribute('data-type')==='star'){
-      var n=row.querySelectorAll('.star.active').length; items.push({type:'star',label:label,value:n});
-    } else {
-      var v=parseInt(row.querySelector('input[type="range"]').value,10)||0; items.push({type:'slider',label:label,value:v});
-    }
-  });
-  return {items:items, place:place};
-}
-function ensureSkillsGridAt(place){
-  var grid=stack.querySelector('.grid-skills'); var inRail = grid && !!grid.closest('.rail');
-  if(place==='sidebar' && (!grid || !inRail)){
-    if(grid){ var rem=inRail?grid.closest('.section'):grid.closest('.node'); rem&&rem.remove(); grid=null; }
-    grid=ensureRailSkillsSection();
-  } else if(place!=='sidebar'){
-    if(grid && inRail){ var rem2=grid.closest('.section'); rem2&&rem2.remove(); grid=null; }
-    if(!grid) grid=createSectionSkills(false);
-  }
-  return grid;
-}
-function applySkillsToResume(state){
-  if(!state || !state.skills || !state.skills.length) return;
-  var place=state.place||'canvas';
-  var grid=ensureSkillsGridAt(place); if(!grid) return;
-  grid.innerHTML='';
-  state.skills.forEach(function(it){
-    var row=it.type==='star'?makeStarRow(it.label):makeSliderRow(it.label);
-    if(it.type==='star'){ var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active',i<it.value); }); }
-    else { row.querySelector('input[type="range"]').value=it.value; }
-    grid.appendChild(row);
-  });
-  ensureSkillsGrouped(grid); layoutSkillGrid(grid); moveAddAnchor(); updateAddMenuVisibility();
-}
-function renderWizardSkills(){
-  var wrap=$('#wizSkillWrap'); wrap.innerHTML='';
-  if(wizardData.skills.length===0){
-    var imp=importSkillsFromResume(); if(imp.items.length>0){ wizardData.skills=imp.items; wizardData.place=imp.place; }
-  }
-  wizardData.skills.forEach(function(it){
-    var row=it.type==='star'?makeStarRow(it.label,{draggable:false}):makeSliderRow(it.label,{draggable:false});
-    if(it.type==='star'){ var stars=row.querySelectorAll('.star'); stars.forEach(function(s,i){ s.classList.toggle('active', i<it.value); }); }
-    else { row.querySelector('input[type="range"]').value=it.value; }
-    wrap.appendChild(row);
-  });
-  if(isSidebarActive()){ $('#cbRow').style.display='block'; $('#cbSidebarSkills').checked = wizardData.place==='sidebar'; } else { $('#cbRow').style.display='none'; }
-}
-$('#wizAddStar').onclick=function(){ $('#wizSkillWrap').appendChild(makeStarRow('Skill',{draggable:false})); };
-$('#wizAddSlider').onclick=function(){ $('#wizSkillWrap').appendChild(makeSliderRow('Skill',{draggable:false})); };
+    // draw existing state
+    if(!W.data.skills.length){ W.data.skills=[{kind:'star',label:'Skill',val:3},{kind:'slider',label:'Skill',val:60}]; }
+    W.data.skills.forEach(renderSkillRow);
+    // Add buttons under list
+    const addBox=document.createElement('div'); addBox.style.cssText='display:flex;gap:8px;justify-content:flex-start;margin-top:10px';
+    addBox.innerHTML=`<button class="wbtn" id="wizAddStar">＋★</button><button class="wbtn" id="wizAddSlider">＋<i class="fa-solid fa-sliders"></i></button>`;
+    wrap.appendChild(addBox);
+    $('#wizAddStar').onclick=()=>renderSkillRow({kind:'star',label:'Skill',val:3});
+    $('#wizAddSlider').onclick=()=>renderSkillRow({kind:'slider',label:'Skill',val:60});
 
-/* EDU wizard */
-$('#wizEduAdd').onclick=function(){ var kind=$('#eduKind').value; var title=($('#eduTitle').value||'').trim()||'Title'; var academy=($('#eduAcademy').value||'').trim()||'Academy name (wraps to two lines if needed)'; var year=($('#eduYear').value||'').trim().slice(0,9)||'2018–2022'; wizardData.edu.push({kind:kind,title:title,academy:academy,year:year}); $('#eduTitle').value=''; $('#eduAcademy').value=''; $('#eduYear').value=''; };
-$('#wizEduClear').onclick=function(){ wizardData.edu=[]; };
-function applyEduToResume(){ if(wizardData.edu.length===0) return; var host=stack.querySelector('.edu-grid'); if(!host){ createSectionEdu(); host=stack.querySelector('.edu-grid'); } host.innerHTML=''; wizardData.edu.forEach(function(e){ var card=makeEduCard(e.kind); card.querySelector('.edu-title').textContent=e.title; card.querySelector('.edu-academy').textContent=e.academy; card.querySelector('.edu-year').textContent=e.year; host.appendChild(card); }); attachDnd(host,'.edu-card'); }
+    $('#wizBack').onclick=()=>go(-1);
+    $('#wizNext').onclick=function(){
+      // read rows
+      const rows=[...wrap.querySelectorAll('.ws-label')].map(lbl=>{
+        const rowEl=lbl.closest('div'); const hasStars=rowEl.querySelector('.star');
+        return {
+          kind:hasStars?'star':'slider',
+          label:lbl.value.trim()||'Skill',
+          val:hasStars?[...rowEl.querySelectorAll('.star.active')].length: +rowEl.querySelector('input[type=range]').value
+        };
+      });
+      W.data.skills=rows;
+      W.data.skillsInSidebar = $('#wizSkillsSidebar').checked;
+      // Commit to document: create or update skills section
+      let sec = stack.querySelector('.grid-skills')?.closest('.node');
+      if(!sec){ sec=createSectionSkills(); }
+      const grid=sec.querySelector('.grid-skills'); grid.innerHTML='';
+      rows.forEach(r=> grid.appendChild(r.kind==='star'? makeStarRow(r.label): makeSliderRow(r.label)));
+      ensureSkillsGrouped(grid); layoutSkillGrid(grid);
+      // move to rail if requested
+      if(W.data.skillsInSidebar && isSidebarActive() && !sec.closest('.rail')) $('#railSecHolder').appendChild(sec);
+      if(!W.data.skillsInSidebar && sec.closest('.rail') && isSidebarActive()) sideMain().insertBefore(sec, document.getElementById('canvasAdd'));
+      moveAddAnchor(); updatePH();
+      go(1);
+    };
+  }
+  else if(name==='Education'){
+    setRight(`<div class="wtitle">Education</div><div class="wsub">Add a couple of education cards (you can edit later).</div>`,
+      `<button class="wbtn" id="wizBack">Back</button><button class="wbtn primary" id="wizNext">Next</button>`);
+    if(!$('[data-dnd="cards"].edu-grid')){ const s=createSectionEdu(); attachDnd(s.querySelector('.edu-grid'),'.edu-card'); }
+    $('#wizBack').onclick=()=>go(-1); $('#wizNext').onclick=()=>go(1);
+  }
+  else if(name==='Experience'){
+    setRight(`<div class="wtitle">Experience</div><div class="wsub">Add roles; you can reorder later.</div>`,
+      `<button class="wbtn" id="wizBack">Back</button><button class="wbtn primary" id="wizNext">Done</button>`);
+    if(!$('.exp-list')){ const h=ensureExpSection(); attachDnd(h.querySelector('.exp-list'),'.exp-card'); }
+    $('#wizBack').onclick=()=>go(-1); $('#wizNext').onclick=()=>finishWelcome();
+  }
+}
+$('#startWizard').onclick=function(){ ensureHeader('header-fancy'); W.step=0; renderSteps(); go(0); };
+$('#startBlank').onclick=function(){ finishWelcome(); };
 
-/* EXP helper */
-$('#wizExpAdd').onclick=function(){ addWizardExp(); };
-function addWizardExp(){ var d=($('#expDates').value||'').trim()||'Jan 2022'; var r=($('#expRole').value||'').trim()||'Job title'; var o=($('#expOrg').value||'').trim()||'@Company'; var ds=($('#expDesc').value||'').trim()||'Describe impact, scale and results.'; var host=ensureExpSection(); host.querySelector('.exp-list').appendChild(makeExpCard(d,r,o,ds)); attachDnd(host.querySelector('.exp-list'),'.exp-card'); moveAddAnchor(); }
-
-/* Menus */
+/* ---------------------------
+   Menu toggles
+--------------------------- */
 function toggleDD(dd){ dd.classList.toggle('open'); }
-ddFile.querySelector('button').onclick=function(e){ e.stopPropagation(); toggleDD(ddFile); };
-ddLayout.querySelector('button').onclick=function(e){ e.stopPropagation(); toggleDD(ddLayout); };
-ddTheme.querySelector('button').onclick=function(e){ e.stopPropagation(); toggleDD(ddTheme); };
-document.addEventListener('click',function(e){ [ddFile,ddLayout,ddTheme].forEach(function(dd){ if(!dd.contains(e.target)) dd.classList.remove('open'); }); });
+ddFile.querySelector('button').onclick=()=>toggleDD(ddFile);
+ddLayout.querySelector('button').onclick=()=>toggleDD(ddLayout);
+ddTheme.querySelector('button').onclick=()=>toggleDD(ddTheme);
+document.addEventListener('click',e=>{ [ddFile,ddLayout,ddTheme].forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); }); });
 
-/* Formatting toolbar */
-var fmtbar=$('#fmtbar');
-function showFmtbar(target){ var rect=target.getBoundingClientRect(); fmtbar.style.left=(window.scrollX+rect.left)+'px'; fmtbar.style.top=(window.scrollY+rect.top-40)+'px'; fmtbar.style.display='flex'; fmtbar._target=target; }
+/* ---------------------------
+   Formatting bar
+--------------------------- */
+const fmtbar=$('#fmtbar');
+function showFmtbar(target){ const rect=target.getBoundingClientRect(); fmtbar.style.left=(window.scrollX+rect.left)+'px'; fmtbar.style.top=(window.scrollY+rect.top-40)+'px'; fmtbar.style.display='flex'; fmtbar._target=target; }
 function hideFmtbar(){ fmtbar.style.display='none'; fmtbar._target=null; }
-document.addEventListener('click',function(e){ if(fmtbar._target && !fmtbar.contains(e.target) && !fmtbar._target.contains(e.target)){ hideFmtbar(); } });
-fmtbar.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; var t=fmtbar._target; if(!t) return; var cmd=b.getAttribute('data-cmd'); var bullet=b.getAttribute('data-bullet'); if(cmd){ document.execCommand(cmd,false,null); t.focus(); } if(bullet){ t.focus(); t.dataset.bullet=bullet; document.execCommand('insertText',false,bullet); } });
-function bulletKeydown(e){ var b=e.currentTarget.dataset.bullet; if(e.key==='Enter' && b){ e.preventDefault(); document.execCommand('insertHTML',false,'<br>'+b); } if(e.key==='Backspace'){ var txt=e.currentTarget.textContent; if(txt.indexOf('•')===-1 && txt.indexOf('✓')===-1 && txt.indexOf('🏆')===-1){ delete e.currentTarget.dataset.bullet; } } }
+fmtbar.addEventListener('click',function(e){
+  const b=e.target.closest('button'); if(!b) return;
+  const t=fmtbar._target; if(!t) return;
+  const cmd=b.getAttribute('data-cmd'); const ins=b.getAttribute('data-insert');
+  if(cmd){ document.execCommand(cmd,false,null); t.focus(); }
+  if(ins){ insertAtCaret(t, ins); }
+});
+function insertAtCaret(el, text){ el.focus(); const sel=window.getSelection(); if(!sel||!sel.rangeCount) return; const range=sel.getRangeAt(0); range.deleteContents(); range.insertNode(document.createTextNode(text)); range.collapse(false); }
 
-/* kick off */
-document.body.setAttribute('data-theme', wizardData.theme);
-moveAddAnchor(); updatePH(); attachSectionDnd(); updateAddMenuVisibility();
-migrateLayout('header-side',true);
+/* ---------------------------
+   Init
+--------------------------- */
+moveAddAnchor(); updatePH(); renderSteps();
 })();
 </script>
 </body>
