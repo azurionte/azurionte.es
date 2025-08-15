@@ -83,7 +83,7 @@ animation:spark .6s ease}
 .node{grid-column:span 12}
 
 /* === Sidebar layout (rail grows with page; content to the right) ======== */
-.sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px;min-height:100%}
+.sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px}
 .sidebar-layout .rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;align-self:stretch}
 .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
 .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
@@ -95,7 +95,7 @@ animation:spark .6s ease}
 .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
 .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
 .topbar .right{display:flex;justify-content:flex-end}
-.topbar .right .avatar{width:120px;height:120px;border-width:4px; margin-right:3px}
+.topbar .right .avatar{width:120px;height:120px;border-width:4px;margin-right:3px}
 
 /* === Top fancy ========================================================== */
 .fancy{position:relative;border-radius:14px}
@@ -341,15 +341,19 @@ pdfBtn.onclick=()=>{ const was=document.body.classList.contains('preview'); docu
 /* welcome */
 function openWizard(){ wizard.style.display='grid'; welcome.style.display='none'; buildWizard(); }
 $('#startWizard').addEventListener('click',e=>{ e.stopPropagation(); openWizard(); });
-$('#startBlank').addEventListener('click',e=>{ e.stopPropagation(); welcome.style.display='none'; addWrap.style.display='flex'; });
+$('#startBlank').addEventListener('click',e=>{ e.stopPropagation(); welcome.style.display='none'; ensurePlusAtEnd(); });
 
 /* helpers */
 function headerNode(){ return stack.querySelector('[data-header]')?.closest('.node'); }
-function contentHost(){ /* where sections go */
+function contentHost(){ // where sections + plus button go
   if(S.layout==='side'){ return headerNode()?.querySelector('[data-zone="main"]') || stack; }
   return stack;
 }
-function ensurePlusAtEnd(){ stack.appendChild(addWrap); addWrap.style.display='flex'; }
+function ensurePlusAtEnd(){
+  const host=contentHost();
+  if(host && addWrap.parentElement!==host){ host.appendChild(addWrap); }
+  addWrap.style.display='flex';
+}
 
 /* avatar helpers (preserve across layouts) */
 function drawCover(ctx,img,w,h){
@@ -403,9 +407,7 @@ function createHeader(kind, prevRect){
         <div class="chips" data-info></div>
         <div class="sec-holder" data-rail-sections></div>
       </div>
-      <div data-zone="main">
-        <!-- right-side content -->
-      </div>
+      <div data-zone="main"></div>
     </div>`;
   }
   if(kind==='header-fancy'){
@@ -433,7 +435,12 @@ function createHeader(kind, prevRect){
   }
   stack.insertBefore(node, addWrap);
   initAvatars(node);
-  /* restore contact + avatar */
+
+  // sync name typed directly in header back to state, and restore value
+  const nm=node.querySelector('.name');
+  if(nm){ nm.oninput=(e)=>{ S.contact.name=e.target.textContent||''; }; nm.textContent=S.contact.name||'YOUR NAME'; }
+
+  // restore contact chips + avatar
   saveContact();
   applySavedAvatar(node);
 
@@ -449,8 +456,10 @@ function createHeader(kind, prevRect){
     setTimeout(()=>{ node.style.transition=''; node.style.transform=''; },380);
   }
 
-  // re-render sections to correct side/right host
+  // re-render sections into the correct host (right side for sidebar)
   renderAllSections();
+  // ensure the + button sits in the right place (right column when sidebar)
+  ensurePlusAtEnd();
 }
 
 /* contact chips & live update */
@@ -482,10 +491,10 @@ function saveContact(){
 /* ===== Sections ========================================================= */
 function sectionHostInsert(el){
   const host=contentHost();
-  if(host===stack){ /* classic full-width on grid */
+  if(host===stack){ // full-width on grid
     const wrapper=document.createElement('div'); wrapper.className='node'; wrapper.appendChild(el);
     stack.insertBefore(wrapper, addWrap);
-  }else{ /* sidebar layout → right column */
+  }else{ // sidebar layout → right column
     host.appendChild(el);
   }
 }
@@ -499,19 +508,15 @@ function renderSkills(){
     <div class="grid-skills ${!(S.skillsInSidebar && S.layout==='side')?'cols-2':''}" data-sgrid></div>`;
   const grid=sec.querySelector('[data-sgrid]');
 
-  // rows with drag + delete + inline edit (canvas)
   S.skills.forEach((it,idx)=>{
     const row=document.createElement('div'); row.className='skill'; row.draggable=true; row.dataset.i=idx;
     row.innerHTML=`<div class="label"><span class="grab">⋮⋮</span><span class="ws-label" contenteditable>${it.label||'Skill'}</span><button class="sdel" title="Remove">✕</button></div><div class="right"></div>`;
     const R=row.querySelector('.right');
 
-    // delete
     row.querySelector('.sdel').onclick=()=>{ S.skills.splice(idx,1); renderSkills(); };
 
-    // edit label
     row.querySelector('.ws-label').oninput=e=>{ it.label=e.target.textContent||''; };
 
-    // stars or slider
     if(it.type==='star'){
       const holder=document.createElement('div'); holder.className='stars';
       for(let i=1;i<=5;i++){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('star'); if(i<=(+it.value||0)) s.classList.add('active'); s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; s.onclick=()=>{ it.value=i; holder.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; holder.appendChild(s); }
@@ -520,16 +525,19 @@ function renderSkills(){
       const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50; r.oninput=()=>it.value=r.value; R.appendChild(r);
     }
 
-    // drag re-order
-    row.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; grid.querySelectorAll('.skill').forEach(x=>x.classList.remove('dragging')); row.classList.add('dragging'); });
+    // drag re-order (robust target index)
+    row.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; row.classList.add('dragging'); });
     row.addEventListener('dragend',()=>row.classList.remove('dragging'));
     row.addEventListener('dragover',ev=>{ ev.preventDefault(); });
-    row.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=+row.dataset.i; const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); renderSkills(); });
+    row.addEventListener('drop',ev=>{ ev.preventDefault();
+      const from=+ev.dataTransfer.getData('text/plain');
+      const to=Array.from(grid.children).indexOf(row);
+      const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); renderSkills();
+    });
 
     grid.appendChild(row);
   });
 
-  // move-to-sidebar button only in sidebar layout
   if(S.layout==='side'){
     const bt=document.createElement('div');
     bt.style.textAlign='center'; bt.style.marginTop='8px';
@@ -581,7 +589,7 @@ function renderExp(){
   });
   sectionHostInsert(sec);
 }
-function renderAllSections(){ renderSkills(); renderEdu(); renderExp(); updatePlusMenu(); }
+function renderAllSections(){ renderSkills(); renderEdu(); renderExp(); updatePlusMenu(); ensurePlusAtEnd(); }
 
 /* plus menu */
 function updatePlusMenu(){
@@ -616,6 +624,7 @@ addTray.addEventListener('click',e=>{
   if(k==='edu'){ if(!S.edu.length) S.edu=[{kind:'course',year:'2018–2022',academy:'Academy name (wraps to two lines if needed)',title:'Title'}]; renderEdu(); }
   if(k==='exp'){ if(!S.exp.length) S.exp=[{dates:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; renderExp(); }
   updatePlusMenu();
+  ensurePlusAtEnd();
 });
 
 /* morph helper */
