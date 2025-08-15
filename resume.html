@@ -113,7 +113,7 @@ body[data-mat="glass"] .node:not([data-locked="1"]){background:rgba(255,255,255,
 /* chips (theme-aware) */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
-.chip .rm{display:none} /* hide in canvas; build/remove via wizard */
+.chip .rm{display:none}
 .chip i{width:16px;text-align:center}
 
 /* skills presentation (canvas) */
@@ -127,12 +127,15 @@ body[data-mat="glass"] .node:not([data-locked="1"]){background:rgba(255,255,255,
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));outline:1px solid rgba(0,0,0,.22)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
 
-/* ==== WELCOME ============================================================ */
+/* ==== WELCOME (adjusted) ================================================ */
 #welcome{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:20000}
-.wcard{width:min(880px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:24px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
-.wtitle{font-weight:900;font-size:22px;margin:0 0 14px}
-.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end}
-.wcol{display:grid;justify-items:center;gap:8px}
+.wcard{width:min(880px,94vw);min-height:320px; /* taller */
+  background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:32px;
+  color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);
+  display:grid;justify-items:center;gap:16px}
+.wtitle{font-weight:900;font-size:22px;margin:0 0 6px;text-align:center} /* centered */
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end;justify-items:center}
+.wcol{display:grid;justify-items:center;gap:8px;width:300px;height:70px} /* size per request */
 .wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
 .wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
 
@@ -282,11 +285,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <div class="wtitle">Welcome to the Easy Resume Builder</div>
       <div class="wgrid">
         <div class="wcol">
-          <button class="wbtn primary" id="startWizard">Wizard</button>
+          <button class="wbtn primary" id="startWizard" type="button">Wizard</button>
           <div style="opacity:.8">Guided step-by-step set-up.</div>
         </div>
         <div class="wcol">
-          <button class="wbtn" id="startBlank">Manual mode</button>
+          <button class="wbtn" id="startBlank" type="button">Manual mode</button>
           <div style="opacity:.8">Start from scratch, arrange freely.</div>
         </div>
       </div>
@@ -300,9 +303,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <div class="wiz-right">
         <div id="wizBody"></div>
         <div class="navline">
-          <button class="mbtn" id="wizStartOver" style="margin-right:auto;display:none">Start over</button>
-          <button class="mbtn" id="wizBack">Back</button>
-          <button class="mbtn" id="wizNext" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Next</button>
+          <button class="mbtn" id="wizStartOver" style="margin-right:auto;display:none" type="button">Start over</button>
+          <button class="mbtn" id="wizBack" type="button">Back</button>
+          <button class="mbtn" id="wizNext" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none" type="button">Next</button>
         </div>
       </div>
     </div>
@@ -341,9 +344,15 @@ $('#applyGrad').onclick=()=>{ setCustomGradient($('#c1').value,$('#c2').value); 
 togglePrev.onclick=()=>{ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); togglePrev.textContent=on?'Exit preview':'Preview'; }
 pdfBtn.onclick=()=>{ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(()=>{ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),180); },60); };
 
-/* welcome */
-$('#startWizard').onclick=()=>{ wizard.style.display='grid'; buildWizard(); };
-$('#startBlank').onclick=()=>{ welcome.remove(); addWrap.style.display='flex'; };
+/* welcome (fixed click handlers + centering) */
+function openWizard(){ wizard.style.display='grid'; welcome.style.display='none'; buildWizard(); }
+$('#startWizard').addEventListener('click',e=>{ e.stopPropagation(); openWizard(); });
+$('#startBlank').addEventListener('click',e=>{ e.stopPropagation(); welcome.style.display='none'; addWrap.style.display='flex'; });
+/* also delegate just in case */
+welcome.addEventListener('click',e=>{
+  if(e.target.id==='startWizard'){ openWizard(); }
+  if(e.target.id==='startBlank'){ welcome.style.display='none'; addWrap.style.display='flex'; }
+});
 
 /* utils */
 function headerNode(){ return stack.querySelector('[data-header]')?.closest('.node'); }
@@ -363,16 +372,13 @@ function initAvatars(root){
 
 /* chips style logic (paper/glass + dark) */
 function chipMode(){ return (S.mat==='glass')?'glass': (S.dark?'dark':'light'); }
-function tintForTheme(){ // simple bright/dark decision for glass text
-  const darkThemes=['grayBlack','magentaPurple']; return darkThemes.includes(S.theme)?'lightText':'darkText';
-}
+function tintForTheme(){ const darkThemes=['grayBlack','magentaPurple']; return darkThemes.includes(S.theme)?'lightText':'darkText'; }
 function applyChipTheme(el){
   const mode=chipMode(), tint=tintForTheme();
   el.style.background=''; el.style.color='';
   if(mode==='glass'){ el.style.background='rgba(255,255,255,.10)'; el.style.backdropFilter='blur(6px)'; el.style.border='1px solid #ffffff28'; el.style.color=(tint==='lightText')?'#fff':'#111'; }
   else if(mode==='dark'){ el.style.background='#0c1324'; el.style.color='#e6ecff'; el.style.border='1px solid #1f2a44'; }
   else { el.style.background='#fff'; el.style.color='#111'; el.style.border='1px solid rgba(0,0,0,.08)'; }
-  // icon tint
   const ic=el.querySelector('i'); if(ic){ ic.style.color='var(--accent)'; }
 }
 function applyChipThemeAll(){ $$('.chip').forEach(applyChipTheme); }
@@ -636,10 +642,7 @@ function renderStep(){
       const d=document.createElement('div'); d.className='ws-row';
       d.innerHTML=`<div class="ws-head"><span class="handle" draggable="true" title="Drag"></span><button class="mbtn" data-rm style="padding:6px 10px">×</button><span class="ws-label" contenteditable>${it.label||'Skill'}</span></div><div class="right"></div>`;
       const R=d.querySelector('.right');
-      // stars or slider
       if(it.type==='star'){
-        const box=document.createElementNS('http://www.w3.org/2000/svg','svg'); box.setAttribute('viewBox','0 0 120 24'); box.style.width='100%';
-        // render 5 tiny stars we can click: simpler with HTML elements:
         const holder=document.createElement('div'); holder.className='ws-stars';
         for(let i=1;i<=5;i++){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('ws-star'); if(i<=(+it.value||0)) s.classList.add('active'); s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; s.onclick=()=>{ it.value=i; holder.querySelectorAll('.ws-star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; holder.appendChild(s); }
         R.appendChild(holder);
@@ -649,7 +652,6 @@ function renderStep(){
       }
       d.querySelector('[data-rm]').onclick=()=>{ S.skills.splice(idx,1); paint(); };
       d.querySelector('.ws-label').oninput=e=>it.label=e.target.textContent||'';
-      // drag with placeholder
       d.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; d.classList.add('dragging'); });
       d.addEventListener('dragend',()=>d.classList.remove('dragging'));
       d.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wrap.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; wrap.insertBefore(ph,d.nextSibling); }});
@@ -677,7 +679,6 @@ function renderStep(){
         <div style="margin-top:6px"><span contenteditable class="ws-label">${it.academy||'Academy name (wraps to two lines if needed)'}</span></div>`;
       c.querySelector('[data-rm]').onclick=()=>{ S.edu.splice(idx,1); paint(); };
       c.querySelectorAll('[contenteditable]').forEach((el,ix)=> el.oninput=()=>{ if(ix===0) it.title=el.textContent; else if(ix===1) it.year=el.textContent.slice(0,9); else it.academy=el.textContent; });
-      // drag placeholder
       c.querySelector('.handle').addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',idx));
       c.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wr.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; ph.style.height=c.offsetHeight+'px'; wr.insertBefore(ph,c.nextSibling);} });
       c.addEventListener('dragleave',()=>{ const ph=wr.querySelector('.ph'); if(ph) ph.remove(); });
@@ -710,7 +711,6 @@ function renderStep(){
     function paint(){ wr.innerHTML=''; S.exp.forEach(it=>wr.appendChild(card(it))); }
     paint();
     $('#addRole').onclick=(ev)=>{ S.exp.push({dates:'',role:'',org:'',desc:''}); paint();
-      // sparkle/added toast near button
       const b=ev.currentTarget, r=b.getBoundingClientRect(); const t=document.createElement('div'); t.className='toast'; t.textContent='Experience added'; document.body.appendChild(t); t.style.left=(r.left+window.scrollX)+'px'; t.style.top=(r.top+window.scrollY-40)+'px'; setTimeout(()=>t.remove(),900);
     };
   }
@@ -737,7 +737,7 @@ $('#layoutQuick').addEventListener('click',e=>{ const k=e.target.closest('.mock'
 
 /* initial setup */
 refreshTheme();
-stack.querySelector('.node')?.remove(); // keep canvas clean behind welcome
+stack.querySelector('.node')?.remove();
 })();
 </script>
 </body>
