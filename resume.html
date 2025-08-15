@@ -1,21 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Easy Resume Builder — Wizard • Sections • Mockups</title>
-
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Easy Resume Builder</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
 <style>
+/* === tokens =============================================================== */
 :root{
-  --accent:#8b5cf6; --accent2:#d946ef; --ink:#e6e8ef;
+  --accent:#8b5cf6; --accent2:#d946ef;
+  --ink:#e6e8ef; --ink-d:#0e1117;
   --bg:#0e1117; --panel:#0f1420; --line:#23283b; --card:#ffffff;
-  --glass:#0f1420cc;
   --shadow:0 10px 30px rgba(0,0,0,.25);
-  --rail-width:300px;
-  --star-gap:6px;            /* tighter stars */
-  --skill-right:128px;       /* fixed right column width for stars/sliders */
+  --rail:300px;
+  --star-gap:6px;
+  --skill-right:128px;
 }
 body[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
 body[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
@@ -25,16 +24,13 @@ body[data-theme="magentaPink"]{ --accent:#ec4899; --accent2:#f97316 }
 body[data-theme="blueGreen"]{ --accent:#22c1c3; --accent2:#2ecc71 }
 body[data-theme="grayBlack"]{ --accent:#8892a6; --accent2:#414b57 }
 
+/* === base ================================================================ */
 *{box-sizing:border-box}
 html,body{height:100%}
-body{
-  margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
-  background:var(--bg);color:var(--ink);
-  display:grid;grid-template-rows:auto 1fr;
-}
-a{color:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;display:grid;grid-template-rows:auto 1fr}
+a{color:inherit;text-decoration:none}
 
-/* ───────── NAV ───────── */
+/* === top bar ============================================================= */
 .nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
 .brand{font-weight:800}
 .menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
@@ -43,13 +39,15 @@ a{color:inherit}
 .dropdown{position:relative}
 .dropdown-menu{position:absolute;top:120%;left:0;background:#0f1420;border:1px solid var(--line);border-radius:12px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;padding:10px;z-index:9999}
 .dropdown.open .dropdown-menu{display:block}
-.dropdown-menu button{display:block;width:100%;text-align:left;background:transparent;color:#e6e8ef;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
-.dropdown-menu button:hover{background:#172038}
 
-/* Theme pop */
-.theme-pop{min-width:320px}
-.theme-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.swatch{height:38px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))}
+/* theme pop */
+.theme-pop{min-width:340px}
+.theme-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.swatch{height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2));position:relative;overflow:hidden}
+.swatch:active::after{content:"";position:absolute;inset:-60px;pointer-events:none;background:
+radial-gradient(circle at center, #fff6 0 8px, #fff0 9px) no-repeat center/120px 120px;
+animation:spark .6s ease}
+@keyframes spark{from{opacity:1;transform:scale(.6)}to{opacity:0;transform:scale(1.6)}}
 .swatch[data-k="coral"]{--a1:#ff7b54;--a2:#ffd166}
 .swatch[data-k="sea"]{--a1:#4facfe;--a2:#38d2ff}
 .swatch[data-k="city"]{--a1:#34d399;--a2:#9ca3af}
@@ -59,150 +57,153 @@ a{color:inherit}
 .swatch[data-k="grayBlack"]{--a1:#8892a6;--a2:#414b57}
 .k-row{display:flex;align-items:center;gap:8px;margin-top:12px}
 .k-row input[type=color]{width:28px;height:28px;border:0;border-radius:8px;cursor:pointer}
-.toggle{display:inline-flex;align-items:center;gap:10px}
 .switch{width:46px;height:26px;border-radius:999px;background:#2a314a;border:1px solid #3b4569;position:relative;cursor:pointer}
 .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#cfd6ff;transition:left .18s ease}
 .switch.on{background:#3b82f6}
 .switch.on::after{left:23px}
 
-/* ───────── CANVAS ───────── */
+/* === canvas ============================================================= */
 #canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
-.page{background:var(--card);color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative;transition:background .25s ease, color .25s ease}
+.page{background:var(--card);color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
 [data-dark="1"] .page{background:#0d1220;color:#e6e8ef}
 #sheet{padding:24px;min-height:1120px}
 .stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
-.placeholder{grid-column:1/-1;display:none}
 
-/* nodes */
-.node{position:relative;background:var(--card);border-radius:14px;padding:10px 10px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);grid-column:span 12;transition:transform .18s ease, box-shadow .18s ease}
-.node.sel{outline:2px solid #7c99ff; box-shadow:0 12px 30px rgba(124,153,255,.25)}
-.node[data-locked="1"]{background:transparent;box-shadow:none;padding:0}
-
-/* toolbar */
-.floatbar{position:sticky;top:8px;z-index:5000;display:none;justify-content:center;gap:6px}
-.fbtn{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;padding:8px 10px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25)}
-.fbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
-
-/* big Add */
+/* add button */
 .add-squircle{grid-column:1/-1;display:flex;justify-content:center;padding:28px 0}
 .add-dot{width:86px;height:86px;border-radius:22px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:28px;font-weight:900}
 .add-dot:hover{border-color:#7c99ff;color:#7c99ff}
 
-/* chips */
-.chip{background:#fff;border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08);justify-content:space-between}
-.chip .rm{background:#ef4444;border:0;color:#fff;border-radius:8px;padding:2px 6px;cursor:pointer;margin-left:8px}
+/* avatar */
+.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
+.avatar input{display:none}
+.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
-/* drag handle */
-.handle{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:10px;background:#0f1420;color:#fff;border:1px solid #27314f;cursor:grab;user-select:none;box-shadow:0 6px 16px rgba(0,0,0,.35)}
-.handle::before{content:"⋮";font-weight:900;}
-
-/* sidebar layout + rails */
-.sidebar-layout{display:grid;grid-template-columns:var(--rail-width) minmax(0,1fr);gap:16px;min-height:320px}
+/* layouts */
+.sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px;min-height:320px}
 .sidebar-layout .rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;min-height:1060px}
 .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
 .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
 .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-/* headers */
-.topbar{position:relative;border-radius:14px;overflow:visible;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
+.topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
 .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
 .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
 .topbar .right{display:flex;justify-content:flex-end}
+.topbar .right .avatar{width:120px;height:120px;border-width:4px}
 
-.fancy{position:relative;border-radius:14px;overflow:visible}
+.fancy{position:relative;border-radius:14px}
 .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
 .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
-.fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:10px auto 0;max-width:740px}
+.fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:72px;row-gap:10px;margin:8px auto 0;max-width:740px}
 .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
 .fancy .below{height:88px}
 
-/* avatar */
-.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
-.avatar canvas{width:100%;height:100%;display:block}
-.avatar input{display:none}
-.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
-
-/* section titles */
-.sec{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative}
+/* section shells */
+.node{grid-column:span 12}
+.sec{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px}
 [data-dark="1"] .sec{background:#0f1420;border-color:#1f2a44}
-.stitle{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800}
-.stitle .u{height:4px;border-radius:999px;margin:8px auto 0;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px}
+body[data-mat="glass"] .sec,
+body[data-mat="glass"] .node:not([data-locked="1"]){background:rgba(255,255,255,.06);backdrop-filter:blur(8px);border-color:#ffffff22}
+[data-dark="1"][data-mat="glass"] .sec{background:#ffffff12}
 
-/* skills block */
-.tip{opacity:.7;font-size:12px;margin-bottom:8px}
+.stitle{display:flex;align-items:center;gap:10px;justify-content:center;font-weight:800}
+.stitle .u{height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px;margin-top:8px;margin-inline:auto}
+
+/* chips (theme-aware) */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
+.chip .rm{display:none} /* hide in canvas; build/remove via wizard */
+.chip i{width:16px;text-align:center}
+
+/* skills presentation (canvas) */
 .grid-skills{display:grid;gap:10px}
 .grid-skills.cols-2{grid-template-columns:1fr 1fr}
 .skill{display:grid;grid-template-columns:1fr var(--skill-right);align-items:center;gap:10px;padding:4px 0}
 .skill .label{display:flex;align-items:center;gap:8px}
-.skill .label [contenteditable]{min-width:36px;display:inline-block}
 .stars{display:inline-flex;gap:var(--star-gap);justify-content:flex-end}
-.star{cursor:pointer;width:18px;height:18px;fill:#d1d5db;transition:transform .08s ease}
+.star{cursor:pointer;width:18px;height:18px;fill:#d1d5db}
 .star.active{fill:#f59e0b}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));outline:1px solid rgba(0,0,0,.18)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));outline:1px solid rgba(0,0,0,.22)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
 
-/* card chrome (glass vs paper) */
-body[data-mat="glass"] .sec,
-body[data-mat="glass"] .node:not([data-locked="1"]) { background:rgba(255,255,255,.06); backdrop-filter:blur(8px); border-color:#ffffff22 }
-[data-dark="1"][data-mat="glass"] .sec{background:#ffffff12}
-
-/* wizard shell */
-#welcome{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);z-index:20000}
-.wcard{width:min(980px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:22px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
-.welcome-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:end}
-.welcome-col{display:grid;justify-items:center;gap:8px}
-.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+/* ==== WELCOME ============================================================ */
+#welcome{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:20000}
+.wcard{width:min(880px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:24px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
+.wtitle{font-weight:900;font-size:22px;margin:0 0 14px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end}
+.wcol{display:grid;justify-items:center;gap:8px}
+.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
 .wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
-.center{display:flex;justify-content:center;gap:12px;align-items:center}
-#wizard{display:none}
 
-/* wizard modal */
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:21000}
-.wiz{width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;gap:0;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden}
+/* ==== WIZARD ============================================================= */
+.modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:21000}
+.wiz{width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden}
 .wiz-left{background:#0c111f;border-right:1px solid #1b2340;padding:16px}
 .step-list{display:grid;gap:8px}
 .step{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;color:#c9d1ff80}
 .step.on{color:#e8ecff;background:#131a31}
 .step .dot{width:8px;height:8px;border-radius:50%;background:#2e3b66}
 .step.done .dot{background:#26d07c}
-.wiz-right{padding:20px 22px}
-.wtitle{font-size:22px;font-weight:800;margin:0 0 8px}
-.wsub{opacity:.75;margin-bottom:10px}
-.wrow{display:flex;gap:14px;flex-wrap:wrap}
-.navline{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
-.btn{border:1px solid #2b324b;background:#12182a;color:#e6e8ef;border-radius:12px;padding:9px 14px;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.25)}
-.btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
-.btn:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset}
+.wiz-right{padding:20px 22px;display:flex;flex-direction:column;min-height:480px}
+#wizBody{flex:1}
+.navline{display:flex;gap:10px;justify-content:flex-end}
 
-/* layout mocks */
-.mock{flex:1;min-width:260px;min-height:160px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative;transition:transform .15s ease}
+/* inline inputs for wizard */
+.wipt{background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.wipt::placeholder{color:#95a0c7}
+
+/* layout mocks (smaller, corrected) */
+.mock{flex:1;min-width:220px;min-height:130px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative;transition:transform .15s ease}
 .mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .mock.sel{outline:2px solid #ffb86c}
 .mock .hero{border-radius:12px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
 .mock .line{height:8px;border-radius:999px;background:#2b375f}
+
+/* sidebar mock */
 .mock.sidebar .hero{position:absolute;inset:14px auto 14px 14px;width:30%}
 .mock.sidebar .pp{position:absolute;left:34px;top:34px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.sidebar .txt{position:absolute;left:38%;right:20px;top:26px;display:grid;gap:10px}
+
+/* fancy mock */
 .mock.fancy .hero{height:64px;margin:8px}
 .mock.fancy .pp{position:absolute;left:50%;transform:translateX(-50%);top:58px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.fancy .txt{position:absolute;left:26px;right:26px;top:120px;display:grid;gap:10px}
+
+/* topbar mock (avatar fully inside, 3px inset) */
 .mock.topbar .hero{height:64px;margin:8px}
-.mock.topbar .pp{position:absolute;right:28px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.mock.topbar .pp{position:absolute;right:31px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.topbar .txt{position:absolute;left:26px;right:120px;top:28px;display:grid;gap:10px}
 
-/* add menu bubble */
+/* skills in wizard (labels are inline editable text) */
+.ws-row{display:grid;grid-template-columns:1fr 180px;gap:10px;align-items:center;margin:6px 0}
+.ws-head{display:flex;align-items:center;gap:8px}
+.ws-label[contenteditable]{padding:2px 4px;border-radius:6px}
+.ws-label[contenteditable]:focus{outline:1px dashed #4e62c9;background:#0c1328}
+.ws-stars{display:inline-flex;gap:var(--star-gap)}
+.ws-star{width:18px;height:18px;fill:#5f6b95;cursor:pointer}
+.ws-star.active{fill:#f59e0b}
+.ws-range{width:100%}
+.ph{border:2px dashed #3a4a7a;border-radius:12px;height:46px;opacity:.8}
+
+/* add toast (experience) */
+.toast{position:absolute;padding:6px 10px;border-radius:999px;background:#16a34a;color:#fff;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);animation:toast .9s ease forwards}
+@keyframes toast{to{opacity:1;transform:translateY(-6px)}}
+
+/* add floating menu */
 .pop{position:fixed;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:18000}
 .pop.open{display:block}
 .pop .tray{display:flex;gap:10px}
 .pop .sq{width:48px;height:48px;border-radius:12px;border:1px solid #293255;background:#12182a;color:#e6e8ef;display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 32px rgba(0,0,0,.35)}
 .pop .sq:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset}
 
-/* preview hides */
-.preview .handle,.preview .chip .rm,.preview .ctrl-mini,.preview .add-dot,.preview .header-actions .mbtn,.preview .fmtbar,.preview .tip{display:none!important}
-@media print{ .nav,#welcome,.modal{display:none!important} .page{box-shadow:none} }
+/* preview hides helpers */
+.preview .add-dot,.preview .tip,.preview .fmtbar,.preview .handle,.preview .chip .rm{display:none!important}
+@media print{ .nav,#welcome,#wizard,.pop{display:none!important} .page{box-shadow:none} }
 </style>
 </head>
 <body data-theme="magentaPurple" data-mat="paper">
+  <!-- top bar -->
   <div class="nav">
     <span class="brand">Easy Resume</span>
     <div class="menu">
@@ -239,9 +240,8 @@ body[data-mat="glass"] .node:not([data-locked="1"]) { background:rgba(255,255,25
         <button class="mbtn">Theme ▾</button>
         <div class="dropdown-menu theme-pop">
           <div class="theme-row" id="themeRow">
-            <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div>
-            <div class="swatch" data-k="city"></div><div class="swatch" data-k="magentaPurple"></div>
-            <div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
+            <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div><div class="swatch" data-k="city"></div>
+            <div class="swatch" data-k="magentaPurple"></div><div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
             <div class="swatch" data-k="grayBlack"></div>
           </div>
           <div class="k-row"><span>Dark mode</span><div id="darkToggle" class="switch"></div></div>
@@ -262,34 +262,30 @@ body[data-mat="glass"] .node:not([data-locked="1"]) { background:rgba(255,255,25
     </div>
   </div>
 
+  <!-- canvas -->
   <div id="canvas">
     <div class="page" id="page">
       <div id="sheet">
-        <div class="floatbar" id="floatbar"></div>
         <div class="stack" id="stack">
-          <!-- clean canvas; plus appears when needed -->
-          <div class="add-squircle" id="canvasAdd" style="display:none">
-            <div class="add-dot" id="dotAdd">+</div>
-          </div>
+          <div class="add-squircle" id="canvasAdd" style="display:none"><div class="add-dot" id="dotAdd">+</div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Add bubble -->
-  <div class="pop" id="addMenu">
-    <div class="tray" id="addTray"></div>
-  </div>
+  <!-- floating add menu -->
+  <div class="pop" id="addMenu"><div class="tray" id="addTray"></div></div>
 
-  <!-- Welcome -->
+  <!-- welcome -->
   <div id="welcome">
     <div class="wcard">
-      <div class="welcome-grid">
-        <div class="welcome-col">
+      <div class="wtitle">Welcome to the Easy Resume Builder</div>
+      <div class="wgrid">
+        <div class="wcol">
           <button class="wbtn primary" id="startWizard">Wizard</button>
           <div style="opacity:.8">Guided step-by-step set-up.</div>
         </div>
-        <div class="welcome-col">
+        <div class="wcol">
           <button class="wbtn" id="startBlank">Manual mode</button>
           <div style="opacity:.8">Start from scratch, arrange freely.</div>
         </div>
@@ -297,30 +293,30 @@ body[data-mat="glass"] .node:not([data-locked="1"]) { background:rgba(255,255,25
     </div>
   </div>
 
-  <!-- Wizard -->
+  <!-- wizard -->
   <div id="wizard" class="modal">
     <div class="wiz">
-      <div class="wiz-left">
-        <div class="step-list" id="stepList"></div>
-      </div>
+      <div class="wiz-left"><div class="step-list" id="stepList"></div></div>
       <div class="wiz-right">
         <div id="wizBody"></div>
         <div class="navline">
-          <button class="btn" id="wizStartOver" style="margin-right:auto;display:none">Start over</button>
-          <button class="btn" id="wizBack">Back</button>
-          <button class="btn primary" id="wizNext">Next</button>
+          <button class="mbtn" id="wizStartOver" style="margin-right:auto;display:none">Start over</button>
+          <button class="mbtn" id="wizBack">Back</button>
+          <button class="mbtn" id="wizNext" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Next</button>
         </div>
       </div>
     </div>
   </div>
 
 <script>
-(function(){
-'use strict';
-
-/* tiny helpers */
+(()=>{'use strict';
 const $=(s,r)=> (r||document).querySelector(s);
 const $$=(s,r)=> Array.from((r||document).querySelectorAll(s));
+
+/* state */
+const S={ layout:null, theme:'magentaPurple', dark:false, mat:'paper',
+  contact:{name:'',phone:'',email:'',address:'',linkedin:''},
+  skillsInSidebar:false, skills:[], edu:[], exp:[] };
 
 /* elements */
 const stack=$("#stack"), addWrap=$("#canvasAdd"), addBtn=$("#dotAdd"), addMenu=$("#addMenu"), addTray=$("#addTray");
@@ -329,184 +325,183 @@ const pdfBtn=$("#pdfBtn"), togglePrev=$("#togglePreview");
 const welcome=$("#welcome"), wizard=$("#wizard");
 const stepList=$("#stepList"), wizBody=$("#wizBody"), wizBack=$("#wizBack"), wizNext=$("#wizNext"), wizStartOver=$("#wizStartOver");
 
-/* global state (persists across steps) */
-const S={
-  layout:null,              // 'side' | 'fancy' | 'top'
-  theme:'magentaPurple',
-  dark:false,
-  mat:'paper',
-  contact:{ name:'', phone:'', email:'', address:'', linkedin:'' },
-  skillsInSidebar:false,
-  skills:[],                // [{type:'star'|'slider', label:'', value:3|60}]
-  edu:[],                   // [{kind:'course'|'degree', year:'', academy:'', title:''}]
-  exp:[]                    // [{dates:'', role:'', org:'', desc:''}]
-};
+/* dropdowns */
+const toggleDD = dd => dd.classList.toggle('open');
+[ddFile,ddLayout,ddTheme].forEach(dd=> dd.querySelector('button').onclick=()=>toggleDD(dd));
+document.addEventListener('click',e=>[ddFile,ddLayout,ddTheme].forEach(dd=>{if(!dd.contains(e.target)) dd.classList.remove('open')}));
 
-/* ---------- UI chrome: dropdowns ---------- */
-function toggleDD(dd){ dd.classList.toggle('open'); }
-ddFile.querySelector('button').onclick=()=>toggleDD(ddFile);
-ddLayout.querySelector('button').onclick=()=>toggleDD(ddLayout);
-ddTheme.querySelector('button').onclick=()=>toggleDD(ddTheme);
-document.addEventListener('click',e=>{
-  [ddFile,ddLayout,ddTheme].forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
-});
+/* theme controls */
+$$('.swatch',ddTheme).forEach(s=> s.onclick=()=>{ setTheme(s.dataset.k); s.dispatchEvent(new Event('spark')); });
+$('#darkToggle').onclick=()=>{ $('#darkToggle').classList.toggle('on'); S.dark=$('#darkToggle').classList.contains('on'); refreshTheme(); applyChipThemeAll(); };
+$('#matPaper').onclick=()=>{ S.mat='paper'; refreshTheme(); applyChipThemeAll(); };
+$('#matGlass').onclick=()=>{ S.mat='glass'; refreshTheme(); applyChipThemeAll(); };
+$('#applyGrad').onclick=()=>{ setCustomGradient($('#c1').value,$('#c2').value); };
 
-/* ---------- Theme pop ---------- */
-$$('.swatch',ddTheme).forEach(s=> s.addEventListener('click',()=>{
-  document.body.setAttribute('data-theme', s.dataset.k); S.theme=s.dataset.k; ddTheme.classList.remove('open'); refreshTheme();
-}));
-$('#darkToggle').onclick=()=>{ $('#darkToggle').classList.toggle('on'); S.dark=$('#darkToggle').classList.contains('on'); refreshTheme(); };
-$('#matPaper').onclick=()=>{ S.mat='paper'; refreshTheme(); };
-$('#matGlass').onclick=()=>{ S.mat='glass'; refreshTheme(); };
-$('#applyGrad').onclick=()=>{ document.documentElement.style.setProperty('--accent', $('#c1').value); document.documentElement.style.setProperty('--accent2', $('#c2').value); };
-
-/* ---------- Preview & Print ---------- */
+/* preview/print */
 togglePrev.onclick=()=>{ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); togglePrev.textContent=on?'Exit preview':'Preview'; }
 pdfBtn.onclick=()=>{ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(()=>{ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),180); },60); };
 
-/* ---------- Welcome ---------- */
-function openWizard(){ wizard.style.display='grid'; buildWizard(); }
-function finishWelcome(){ welcome.remove(); showAddIfNeeded(); }
+/* welcome */
+$('#startWizard').onclick=()=>{ wizard.style.display='grid'; buildWizard(); };
+$('#startBlank').onclick=()=>{ welcome.remove(); addWrap.style.display='flex'; };
 
-/* ---------- Layout creation ---------- */
-function headerNode(){ return stack.querySelector('.node [data-header]')?.closest('.node'); }
-function clearHeader(){ const h=headerNode(); if(h) h.remove(); }
-function ensurePlusAtEnd(){
-  stack.appendChild(addWrap);
-  addWrap.style.display='flex';
-}
+/* utils */
+function headerNode(){ return stack.querySelector('[data-header]')?.closest('.node'); }
+function ensurePlusAtEnd(){ stack.appendChild(addWrap); addWrap.style.display='flex'; }
 function showAddIfNeeded(){ ensurePlusAtEnd(); }
-function moveAddNear(el){
-  if(!el) return;
-  const r=el.getBoundingClientRect(); const m=addMenu;
-  const below=(window.innerHeight-r.bottom)>160;
-  m.style.left=(r.left+window.scrollX)+'px';
-  m.style.top=(below? (r.bottom+10):(r.top-10- m.offsetHeight || 120))+'px';
-}
 
-/* create headers per layout */
-function createHeader(kind){
-  clearHeader();
-  let node=document.createElement('div'); node.className='node'; node.setAttribute('data-locked','1');
-  if(kind==='header-side'){
-    node.innerHTML=`
-      <div class="sidebar-layout" data-header>
-        <div class="rail">
-          <div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div>
-          <div class="name" contenteditable>YOUR NAME</div>
-          <div class="chips" data-info></div>
-          <div class="sec-holder" data-rail-sections></div>
-        </div>
-        <div data-zone="main" class="main-zone">
-          <div class="add-squircle"><div class="add-dot" data-local-plus>+</div></div>
-        </div>
-      </div>`;
-  }
-  if(kind==='header-fancy'){
-    node.innerHTML=`
-      <div class="fancy" data-header>
-        <div class="hero">
-          <h1 class="name" contenteditable>YOUR NAME</h1>
-          <div class="chip-grid"><div class="chips" data-info-left></div><div class="chips" data-info-right></div></div>
-        </div>
-        <div class="avatar-float"><div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div></div>
-        <div class="below"></div>
-      </div>`;
-  }
-  if(kind==='header-top'){
-    node.innerHTML=`
-      <div class="topbar" data-header>
-        <div class="topbar-grid">
-          <div class="left">
-            <h1 class="name" contenteditable>YOUR NAME</h1>
-            <div class="chips" data-info></div>
-          </div>
-          <div class="right">
-            <div class="avatar" data-avatar data-empty="1"><canvas width="120" height="120"></canvas><input type="file" accept="image/*"></div>
-          </div>
-        </div>
-      </div>`;
-  }
-  stack.insertBefore(node, addWrap);
-  initAvatars(node);
-  ensurePlusAtEnd();
-  S.layout = (kind==='header-side')?'side': (kind==='header-fancy')?'fancy':'top';
-  refreshTheme();
-  updatePlusMenu();
-}
-
-/* ---------- Avatar simple loader ---------- */
+/* avatar loader */
 function initAvatars(root){
   $$('[data-avatar]',root).forEach(w=>{
-    const input=w.querySelector('input'), canvas=w.querySelector('canvas'); if(!canvas) return;
+    const input=w.querySelector('input'), canvas=document.createElement('canvas');
+    canvas.width=140; canvas.height=140; w.appendChild(canvas);
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     w.onclick=()=>input.click();
     input.onchange=()=>{ const f=input.files?.[0]; if(!f) return; const img=new Image(); img.onload=()=>{ const s=Math.max(canvas.width/img.width, canvas.height/img.height); const dw=img.width*s, dh=img.height*s; const dx=(canvas.width-dw)/2, dy=(canvas.height-dh)/2; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); ctx.imageSmoothingQuality='high'; ctx.drawImage(img,dx,dy,dw,dh); ctx.restore(); w.setAttribute('data-empty','0'); }; img.src=URL.createObjectURL(f); };
   });
 }
 
-/* ---------- Skills rendering ---------- */
-function renderSkills(){
-  // remove existing
-  $$('[data-section="skills"]').forEach(n=>n.closest('.node').remove());
+/* chips style logic (paper/glass + dark) */
+function chipMode(){ return (S.mat==='glass')?'glass': (S.dark?'dark':'light'); }
+function tintForTheme(){ // simple bright/dark decision for glass text
+  const darkThemes=['grayBlack','magentaPurple']; return darkThemes.includes(S.theme)?'lightText':'darkText';
+}
+function applyChipTheme(el){
+  const mode=chipMode(), tint=tintForTheme();
+  el.style.background=''; el.style.color='';
+  if(mode==='glass'){ el.style.background='rgba(255,255,255,.10)'; el.style.backdropFilter='blur(6px)'; el.style.border='1px solid #ffffff28'; el.style.color=(tint==='lightText')?'#fff':'#111'; }
+  else if(mode==='dark'){ el.style.background='#0c1324'; el.style.color='#e6ecff'; el.style.border='1px solid #1f2a44'; }
+  else { el.style.background='#fff'; el.style.color='#111'; el.style.border='1px solid rgba(0,0,0,.08)'; }
+  // icon tint
+  const ic=el.querySelector('i'); if(ic){ ic.style.color='var(--accent)'; }
+}
+function applyChipThemeAll(){ $$('.chip').forEach(applyChipTheme); }
 
-  if(!S.skills.length) return;
-  const host = (S.skillsInSidebar && S.layout==='side') ? document.querySelector('[data-rail-sections]') : stack;
+/* create header with morph */
+function createHeader(kind, prevRect){
+  const old=headerNode();
+  if(old) old.remove();
 
-  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='skills';
-  outer.innerHTML=`
-    <div class="sec">
-      <div class="stitle"><i class="fa-solid fa-layer-group"></i><div>Skills</div></div>
-      <div class="u"></div>
-      <div class="tip">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
-      <div class="grid-skills" data-sgrid></div>
-      <div class="center" style="margin-top:8px">
-        ${S.layout==='side' ? `<button class="btn" id="togglePlace">${S.skillsInSidebar?'Move to canvas':'Move to sidebar'}</button>`:''}
+  const node=document.createElement('div'); node.className='node'; node.setAttribute('data-locked','1');
+  if(kind==='header-side'){
+    node.innerHTML=`<div class="sidebar-layout" data-header>
+      <div class="rail">
+        <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
+        <div class="name" contenteditable>YOUR NAME</div>
+        <div class="chips" data-info></div>
+        <div class="sec-holder" data-rail-sections></div>
+      </div>
+      <div data-zone="main">
+        <div class="add-squircle"><div class="add-dot" data-local-plus>+</div></div>
       </div>
     </div>`;
-  const grid=outer.querySelector('[data-sgrid]');
-  // layout grid: 2 columns in canvas, 1 column in rail
-  if(!(S.skillsInSidebar && S.layout==='side')) grid.classList.add('cols-2');
+  }
+  if(kind==='header-fancy'){
+    node.innerHTML=`<div class="fancy" data-header>
+      <div class="hero">
+        <h1 class="name" contenteditable>YOUR NAME</h1>
+        <div class="chip-grid"><div class="chips" data-info-left></div><div class="chips" data-info-right></div></div>
+      </div>
+      <div class="avatar-float"><label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label></div>
+      <div class="below"></div>
+    </div>`;
+  }
+  if(kind==='header-top'){
+    node.innerHTML=`<div class="topbar" data-header>
+      <div class="topbar-grid">
+        <div class="left">
+          <h1 class="name" contenteditable>YOUR NAME</h1>
+          <div class="chips" data-info></div>
+        </div>
+        <div class="right">
+          <label class="avatar" data-avatar data-empty="1" style="width:120px;height:120px;border-width:4px"><input type="file" accept="image/*"></label>
+        </div>
+      </div>
+    </div>`;
+  }
+  stack.insertBefore(node, addWrap);
+  initAvatars(node);
+  S.layout = (kind==='header-side')?'side' : (kind==='header-fancy')?'fancy':'top';
+  refreshTheme(); applyChipThemeAll();
 
+  // morph (FLIP-ish)
+  if(prevRect){
+    const nh=node.getBoundingClientRect();
+    const dx=prevRect.left-nh.left, dy=prevRect.top-nh.top, sx=prevRect.width/nh.width, sy=prevRect.height/nh.height;
+    node.style.transform=`translate(${dx}px,${dy}px) scale(${sx},${sy})`; node.style.transformOrigin='top left'; node.style.transition='transform .35s ease, opacity .35s ease'; node.style.opacity='0.6';
+    requestAnimationFrame(()=>{ node.style.transform='translate(0,0) scale(1,1)'; node.style.opacity='1'; });
+    setTimeout(()=>{ node.style.transition=''; node.style.transform=''; },380);
+  }
+}
+
+/* contact chips & live update */
+function addChip(icon, text){
+  const chip=document.createElement('div'); chip.className='chip';
+  chip.innerHTML=`<i class="${icon}"></i><span>${text}</span>`;
+  applyChipTheme(chip);
+  return chip;
+}
+function saveContact(){
+  const h=headerNode(); if(!h) return;
+  const nameEl=h.querySelector('.name'); if(nameEl) nameEl.textContent=S.contact.name||'YOUR NAME';
+  const list=[];
+  if(S.contact.phone) list.push(addChip('fa-solid fa-phone', S.contact.phone));
+  if(S.contact.email) list.push(addChip('fa-solid fa-envelope', S.contact.email));
+  if(S.contact.address) list.push(addChip('fa-solid fa-location-dot', S.contact.address));
+  if(S.contact.linkedin) list.push(addChip('fa-brands fa-linkedin','linkedin.com/in/'+S.contact.linkedin));
+
+  const areas=[...h.querySelectorAll('[data-info],[data-info-left],[data-info-right]')];
+  areas.forEach(a=>a.innerHTML='');
+  if(h.querySelector('[data-info-left]')){
+    const L=h.querySelector('[data-info-left]'), R=h.querySelector('[data-info-right]');
+    list.forEach((c,i)=> (i%2?R:L).appendChild(c));
+  }else{
+    const box=h.querySelector('[data-info]'); list.forEach(c=>box.appendChild(c));
+  }
+}
+
+/* render sections */
+function renderSkills(){
+  $$('[data-section="skills"]').forEach(n=>n.closest('.node').remove());
+  if(!S.skills.length) return;
+  const host=(S.skillsInSidebar && S.layout==='side')? document.querySelector('[data-rail-sections]'): stack;
+
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='skills';
+  outer.innerHTML=`<div class="sec">
+    <div class="stitle"><i class="fa-solid fa-layer-group"></i><div>Skills</div></div>
+    <div class="u"></div>
+    <div class="tip">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
+    <div class="grid-skills" data-sgrid></div>
+    ${(S.layout==='side')?'<div class="center" style="margin-top:8px"><button class="mbtn" id="togglePlace">'+(S.skillsInSidebar?'Move to canvas':'Move to sidebar')+'</button></div>':''}
+  </div>`;
+  const grid=outer.querySelector('[data-sgrid]');
+  if(!(S.skillsInSidebar && S.layout==='side')) grid.classList.add('cols-2');
   S.skills.forEach(it=>{
     const row=document.createElement('div'); row.className='skill';
-    row.innerHTML=`<div class="label"><span>${it.label||'Skill'}</span></div>
-      <div class="right"></div>`;
+    row.innerHTML=`<div class="label"><span>${it.label||'Skill'}</span></div><div class="right"></div>`;
     const R=row.querySelector('.right');
     if(it.type==='star'){
       const s=document.createElement('div'); s.className='stars';
-      for(let i=1;i<=5;i++){
-        const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.classList.add('star'); if(i<=(+it.value||0)) svg.classList.add('active');
-        svg.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>';
-        svg.onclick=()=>{ it.value=i; svg.parentElement.querySelectorAll('.star').forEach((e,idx)=>e.classList.toggle('active',idx<i)); };
-        s.appendChild(svg);
-      }
+      for(let i=1;i<=5;i++){ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.classList.add('star'); if(i<=(+it.value||0)) svg.classList.add('active'); svg.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; svg.onclick=()=>{ it.value=i; svg.parentElement.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; s.appendChild(svg); }
       R.appendChild(s);
     }else{
-      const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50;
-      r.oninput=()=>{ it.value=r.value; };
-      R.appendChild(r);
+      const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50; r.oninput=()=>it.value=r.value; R.appendChild(r);
     }
     grid.appendChild(row);
   });
-
-  if(host===stack){ stack.insertBefore(outer, addWrap); }
+  if(host===stack) stack.insertBefore(outer, addWrap);
   else { const n=document.createElement('div'); n.className='node'; n.appendChild(outer.firstElementChild); host.appendChild(n); }
 
-  const t=outer.querySelector('#togglePlace');
-  if(t) t.onclick=()=>{ S.skillsInSidebar=!S.skillsInSidebar; renderSkills(); updatePlusMenu(); };
+  const t=outer.querySelector('#togglePlace'); if(t) t.onclick=()=>{ S.skillsInSidebar=!S.skillsInSidebar; renderSkills(); updatePlusMenu(); };
 }
 
-/* ---------- Education rendering ---------- */
 function renderEdu(){
   $$('[data-section="edu"]').forEach(n=>n.closest('.node').remove());
   if(!S.edu.length) return;
   const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='edu';
   outer.innerHTML=`<div class="sec">
     <div class="stitle"><i class="fa-solid fa-graduation-cap"></i><div>Education</div></div>
-    <div class="u"></div>
-    <div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div>
-  </div>`;
+    <div class="u"></div><div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div></div>`;
   const grid=outer.querySelector('[data-egrid]');
   S.edu.forEach(card=>{
     const c=document.createElement('div'); c.className='sec';
@@ -519,37 +514,32 @@ function renderEdu(){
   stack.insertBefore(outer, addWrap);
 }
 
-/* ---------- Experience rendering ---------- */
 function renderExp(){
   $$('[data-section="exp"]').forEach(n=>n.closest('.node').remove());
   if(!S.exp.length) return;
   const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='exp';
   outer.innerHTML=`<div class="sec">
     <div class="stitle"><i class="fa-solid fa-briefcase"></i><div>Work experience</div></div>
-    <div class="u"></div>
-    <div class="exp-list" style="display:grid;gap:12px" data-xgrid></div>
-  </div>`;
+    <div class="u"></div><div class="exp-list" style="display:grid;gap:12px" data-xgrid></div></div>`;
   const grid=outer.querySelector('[data-xgrid]');
   S.exp.forEach(x=>{
     const c=document.createElement('div'); c.className='sec'; c.style.background='color-mix(in srgb, var(--accent) 12%, #fff)';
-    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(x.dates||'Jan 2022').slice(0,16)}</span>
-    <div style="font-weight:800;margin-left:6px">${x.role||'Job title'}</div></div>
-    <div style="font-weight:700;color:#374151;margin-top:4px">${x.org||'@Company'}</div>
-    <div style="margin-top:6px">${x.desc||'Describe impact, scale and results.'}</div>`;
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(x.dates||'Jan 2022').slice(0,16)}</span><div style="font-weight:800;margin-left:6px">${x.role||'Job title'}</div></div>
+      <div style="font-weight:700;color:#374151;margin-top:4px">${x.org||'@Company'}</div>
+      <div style="margin-top:6px">${x.desc||'Describe impact, scale and results.'}</div>`;
     grid.appendChild(c);
   });
   stack.insertBefore(outer, addWrap);
 }
 
-/* ---------- Plus menu ---------- */
+/* plus menu */
 function updatePlusMenu(){
-  // hide plus if we have all three sections
   const haveSkills=!!$('[data-section="skills"]');
   const haveEdu=!!$('[data-section="edu"]');
   const haveExp=!!$('[data-section="exp"]');
-  if(haveSkills && haveEdu && haveExp){ addWrap.style.display='none'; return; }
-  addWrap.style.display='flex';
+  addWrap.style.display=(haveSkills&&haveEdu&&haveExp)?'none':'flex';
 }
+function moveAddNear(el){ const r=el.getBoundingClientRect(); const m=addMenu; const below=(window.innerHeight-r.bottom)>160; m.style.left=(r.left+window.scrollX)+'px'; m.style.top=(below? (r.bottom+10):(r.top-10- (m.offsetHeight||120)))+'px'; }
 function openAddMenuNear(btn){
   addTray.innerHTML='';
   const haveHeader=!!headerNode();
@@ -566,297 +556,188 @@ function openAddMenuNear(btn){
   addMenu.classList.add('open'); moveAddNear(btn);
 }
 addBtn.onclick=(e)=>openAddMenuNear(e.currentTarget);
-document.addEventListener('click',e=>{
-  if(addMenu.classList.contains('open') && !addMenu.contains(e.target) && e.target!==addBtn){ addMenu.classList.remove('open'); }
-});
+document.addEventListener('click',e=>{ if(addMenu.classList.contains('open') && !addMenu.contains(e.target) && e.target!==addBtn) addMenu.classList.remove('open'); });
 addTray.addEventListener('click',e=>{
   const k=e.target.closest('.sq')?.dataset.add; if(!k) return;
   addMenu.classList.remove('open');
-  if(k.startsWith('header')) createHeader(k);
+  if(k.startsWith('header')) morphTo(k);
   if(k==='skills'){ if(!S.skills.length) S.skills=[{type:'star',label:'Skill',value:3},{type:'slider',label:'Skill',value:50}]; renderSkills(); }
   if(k==='edu'){ if(!S.edu.length) S.edu=[{kind:'course',year:'2018–2022',academy:'Academy name (wraps to two lines if needed)',title:'Title'}]; renderEdu(); }
   if(k==='exp'){ if(!S.exp.length) S.exp=[{dates:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; renderExp(); }
   updatePlusMenu();
 });
 
-/* ---------- Wizard ---------- */
-const STEPS=[
-  {k:'layout',label:'Layout'},
-  {k:'theme',label:'Theme'},
-  {k:'contact',label:'Profile data'},
-  {k:'skills',label:'Skills'},
-  {k:'education',label:'Education'},
-  {k:'experience',label:'Experience'},
-  {k:'done',label:'Done'}
-];
+/* morph helper */
+function morphTo(kind){ const oldRect=headerNode()?.getBoundingClientRect(); createHeader(kind, oldRect); applyChipThemeAll(); }
+
+/* theme */
+function setTheme(k){ S.theme=k; refreshTheme(); applyChipThemeAll(); }
+function setCustomGradient(a,b){ document.documentElement.style.setProperty('--accent',a); document.documentElement.style.setProperty('--accent2',b); applyChipThemeAll(); }
+function refreshTheme(){ document.body.setAttribute('data-theme', S.theme||'magentaPurple'); document.body.setAttribute('data-dark', S.dark?'1':'0'); document.body.setAttribute('data-mat', S.mat||'paper'); }
+
+/* ===== Wizard ============================================================ */
+const STEPS=[{k:'layout',label:'Layout'},{k:'theme',label:'Theme'},{k:'contact',label:'Profile data'},{k:'skills',label:'Skills'},{k:'education',label:'Education'},{k:'experience',label:'Experience'},{k:'done',label:'Done'}];
 let stepIdx=0, backCount=0;
 
 function buildWizard(){
-  stepList.innerHTML='';
-  STEPS.forEach((s,i)=>{
-    const el=document.createElement('div'); el.className='step'; el.dataset.i=i;
-    el.innerHTML=`<div class="dot"></div><div>${s.label}</div>`;
-    stepList.appendChild(el);
-  });
+  stepList.innerHTML=''; STEPS.forEach((s,i)=>{ const el=document.createElement('div'); el.className='step'; el.dataset.i=i; el.innerHTML=`<div class="dot"></div><div>${s.label}</div>`; stepList.appendChild(el); });
   renderStep();
 }
-function markSteps(){
-  $$('.step',stepList).forEach((el,i)=>{
-    el.classList.toggle('on', i===stepIdx);
-    el.classList.toggle('done', i<stepIdx);
-  });
-}
+function markSteps(){ $$('.step',stepList).forEach((el,i)=>{ el.classList.toggle('on',i===stepIdx); el.classList.toggle('done',i<stepIdx); }); }
 function renderStep(){
   markSteps(); wizStartOver.style.display=(backCount>=2?'inline-flex':'none');
-
   const s=STEPS[stepIdx].k;
-  // layout
+
   if(s==='layout'){
-    wizBody.innerHTML=`
-      <div class="wtitle">Choose your layout</div>
-      <div class="wsub">Pick a starting header style.</div>
-      <div class="wrow">
-        <div class="mock sidebar ${S.layout==='side'?'sel':''}" data-layout="header-side">
-          <div class="hero"></div><div class="pp"></div>
-          <div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:48%"></div><div class="line" style="width:40%"></div></div>
-        </div>
-        <div class="mock fancy ${S.layout==='fancy'?'sel':''}" data-layout="header-fancy">
-          <div class="hero"></div><div class="pp"></div>
-          <div class="txt"><div class="line" style="width:64%"></div><div class="line" style="width:44%"></div></div>
-        </div>
-        <div class="mock topbar ${S.layout==='top'?'sel':''}" data-layout="header-top">
-          <div class="hero"></div><div class="pp"></div>
-          <div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div></div>
-        </div>
-      </div>`;
-    $$('.mock',wizBody).forEach(m=> m.onclick=()=>{ $$('.mock',wizBody).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); createHeader(m.dataset.layout); });
+    wizBody.innerHTML=`<div class="wtitle">Choose your layout</div><div class="wsub">Pick a starting header style.</div>
+    <div class="wrow" style="gap:14px;flex-wrap:wrap">
+      <div class="mock sidebar ${S.layout==='side'?'sel':''}" data-layout="header-side"><div class="hero"></div><div class="pp"></div><div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div><div class="line" style="width:56%"></div></div></div>
+      <div class="mock fancy ${S.layout==='fancy'?'sel':''}" data-layout="header-fancy"><div class="hero"></div><div class="pp"></div><div class="txt"><div class="line" style="width:70%"></div><div class="line" style="width:48%"></div></div></div>
+      <div class="mock topbar ${S.layout==='top'?'sel':''}" data-layout="header-top"><div class="hero"></div><div class="pp"></div><div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div></div></div>
+    </div>
+    <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>`;
+    $$('.mock',wizBody).forEach(m=> m.onclick=()=>{ $$('.mock',wizBody).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); morphTo(m.dataset.layout); });
+    $('#wizAddPhoto').onclick=()=>{ const a=headerNode()?.querySelector('[data-avatar] input'); if(a) a.click(); };
   }
 
-  // theme
   if(s==='theme'){
-    wizBody.innerHTML=`
-      <div class="wtitle">Choose a color theme</div>
-      <div class="theme-row" style="grid-template-columns:1fr 1fr 1fr">
-        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack'].map(k=>`<div class="swatch" data-k="${k}" style="height:54px"></div>`).join('')}
-      </div>
-      <div class="k-row" style="margin-top:14px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
-      <div class="k-row"><span>Material</span>
-        <button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button>
-      </div>
-      <div class="k-row"><span>Custom gradient</span>
-        <input type="color" id="w1" value="#8b5cf6"><input type="color" id="w2" value="#d946ef">
-        <button class="mbtn" id="wApply">Apply</button>
-      </div>`;
-    $$('.swatch',wizBody).forEach(s=> s.onclick=()=>{ document.body.setAttribute('data-theme', s.dataset.k); S.theme=s.dataset.k; });
-    $('#wizDark').onclick=()=>{ $('#wizDark').classList.toggle('on'); S.dark=$('#wizDark').classList.contains('on'); refreshTheme(); };
-    $('#wizPaper').onclick=()=>{ S.mat='paper'; refreshTheme(); };
-    $('#wizGlass').onclick=()=>{ S.mat='glass'; refreshTheme(); };
-    $('#wApply').onclick=()=>{ document.documentElement.style.setProperty('--accent',$('#w1').value); document.documentElement.style.setProperty('--accent2',$('#w2').value); };
+    wizBody.innerHTML=`<div class="wtitle">Choose a color theme</div>
+      <div class="theme-row">${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack'].map(k=>`<div class="swatch" data-k="${k}"></div>`).join('')}</div>
+      <div class="k-row"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
+      <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
+      <div class="k-row"><span>Custom gradient</span><input type="color" id="w1" value="#8b5cf6"><input type="color" id="w2" value="#d946ef"><button class="mbtn" id="wApply">Apply</button></div>`;
+    $$('.swatch',wizBody).forEach(s=> s.onclick=()=>{ setTheme(s.dataset.k); s.dispatchEvent(new Event('spark')); });
+    $('#wizDark').onclick=()=>{ $('#wizDark').classList.toggle('on'); S.dark=$('#wizDark').classList.contains('on'); refreshTheme(); applyChipThemeAll(); };
+    $('#wizPaper').onclick=()=>{ S.mat='paper'; refreshTheme(); applyChipThemeAll(); };
+    $('#wizGlass').onclick=()=>{ S.mat='glass'; refreshTheme(); applyChipThemeAll(); };
+    $('#wApply').onclick=()=>{ setCustomGradient($('#w1').value,$('#w2').value); };
   }
 
-  // contact
   if(s==='contact'){
-    wizBody.innerHTML=`
-      <div class="wtitle">Profile data</div>
-      <div class="wsub">Only filled fields will appear.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
-        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
-        <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
-        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
-        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center">
-          <span style="opacity:.7">linkedin.com/in/</span>
-          <input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}">
-        </div>
-      </div>`;
-    $$('.wipt',wizBody).forEach(i=> i.oninput=saveContact);
+    wizBody.innerHTML=`<div class="wtitle">Profile data</div><div class="wsub">Only filled fields will appear.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
+      <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
+      <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
+      <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
+      <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
+    </div>`;
+    ['nm','ph','em','ad','ln'].forEach(id=> $('#'+id).oninput=()=>{ S.contact={ name:$('#nm').value, phone:$('#ph').value, email:$('#em').value, address:$('#ad').value, linkedin:$('#ln').value }; saveContact(); }));
   }
+
   if(s==='skills'){
-    wizBody.innerHTML=`
-      <div class="wtitle">Add your skills</div>
-      <div class="wsub">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything</b>. The stars/slider reflect your confidence in that skill.</div>
+    wizBody.innerHTML=`<div class="wtitle">Add your skills</div>
+      <div class="wsub">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything</b>.</div>
       <div id="ws"></div>
-      <div class="center" style="margin:10px 0 0">
-        <button class="btn" id="addStar">+ ★</button>
-        <button class="btn" id="addSlider">+ <i class="fa-solid fa-sliders"></i></button>
-      </div>
-      ${(S.layout==='side')?'<div style="margin-top:10px"><label><input type="checkbox" id="inSide"> Display skills in the sidebar</label></div>':''}
-    `;
-    const ws=$("#ws");
+      <div class="k-row"><button class="mbtn" id="addStar">+ ★</button><button class="mbtn" id="addSlider">+ <i class="fa-solid fa-sliders"></i></button></div>
+      ${(S.layout==='side')?'<div class="k-row"><label><input type="checkbox" id="inSide"> Display skills in the sidebar</label></div>':''}`;
+    const wrap=$("#ws");
     function row(it,idx){
-      const d=document.createElement('div'); d.style.cssText='display:grid;grid-template-columns:1fr 180px;gap:10px;align-items:center;margin:6px 0';
-      d.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
-          <span class="handle" draggable="true" title="Drag"></span>
-          <button class="btn" data-rm style="padding:6px 10px">×</button>
-          <input class="wipt" data-lab value="${it.label||'Skill'}" style="max-width:240px">
-        </div>
-        <div class="right"></div>`;
+      const d=document.createElement('div'); d.className='ws-row';
+      d.innerHTML=`<div class="ws-head"><span class="handle" draggable="true" title="Drag"></span><button class="mbtn" data-rm style="padding:6px 10px">×</button><span class="ws-label" contenteditable>${it.label||'Skill'}</span></div><div class="right"></div>`;
       const R=d.querySelector('.right');
+      // stars or slider
       if(it.type==='star'){
-        const box=document.createElement('div'); box.className='stars';
-        for(let i=1;i<=5;i++){
-          const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('star'); if(i<=(+it.value||0)) s.classList.add('active');
-          s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>';
-          s.onclick=()=>{ it.value=i; box.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); };
-          box.appendChild(s);
-        }
-        R.appendChild(box);
+        const box=document.createElementNS('http://www.w3.org/2000/svg','svg'); box.setAttribute('viewBox','0 0 120 24'); box.style.width='100%';
+        // render 5 tiny stars we can click: simpler with HTML elements:
+        const holder=document.createElement('div'); holder.className='ws-stars';
+        for(let i=1;i<=5;i++){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('ws-star'); if(i<=(+it.value||0)) s.classList.add('active'); s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; s.onclick=()=>{ it.value=i; holder.querySelectorAll('.ws-star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; holder.appendChild(s); }
+        R.appendChild(holder);
       }else{
-        const r=document.createElement('input'); r.type='range'; r.min=0;r.max=100;r.value=+it.value||50; r.oninput=()=>it.value=r.value;
-        R.appendChild(r);
+        const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50; r.className='ws-range';
+        r.oninput=()=>it.value=r.value; R.appendChild(r);
       }
       d.querySelector('[data-rm]').onclick=()=>{ S.skills.splice(idx,1); paint(); };
-      d.querySelector('[data-lab]').oninput=e=>it.label=e.target.value;
-      d.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; });
-      d.addEventListener('dragover',ev=>ev.preventDefault());
+      d.querySelector('.ws-label').oninput=e=>it.label=e.target.textContent||'';
+      // drag with placeholder
+      d.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; d.classList.add('dragging'); });
+      d.addEventListener('dragend',()=>d.classList.remove('dragging'));
+      d.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wrap.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; wrap.insertBefore(ph,d.nextSibling); }});
+      d.addEventListener('dragleave',()=>{ const ph=wrap.querySelector('.ph'); if(ph) ph.remove(); });
       d.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); paint(); });
       return d;
     }
-    function paint(){ ws.innerHTML=''; S.skills.forEach((it,i)=>ws.appendChild(row(it,i))); }
+    function paint(){ wrap.innerHTML=''; S.skills.forEach((it,i)=>wrap.appendChild(row(it,i))); }
     paint();
     $('#addStar').onclick=()=>{ S.skills.push({type:'star',label:'Skill',value:3}); paint(); };
     $('#addSlider').onclick=()=>{ S.skills.push({type:'slider',label:'Skill',value:50}); paint(); };
     if($('#inSide')){ $('#inSide').checked=S.skillsInSidebar; $('#inSide').onchange=()=>{ S.skillsInSidebar=$('#inSide').checked; }; }
   }
+
   if(s==='education'){
-    wizBody.innerHTML=`
-      <div class="wtitle">Education</div>
-      <div class="wsub">Add courses and/or degrees.</div>
-      <div id="eduWrap"></div>
-      <div class="center" style="margin-top:10px">
-        <button class="btn" id="addCourse">+ Add course</button>
-        <button class="btn" id="addDegree">+ Add degree</button>
-      </div>`;
+    wizBody.innerHTML=`<div class="wtitle">Education</div><div class="wsub">Add courses and/or degrees.</div>
+      <div id="eduWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+      <div class="k-row"><button class="mbtn" id="addCourse">+ Add course</button><button class="mbtn" id="addDegree">+ Add degree</button></div>`;
     const wr=$("#eduWrap");
-    function row(it,idx){
-      const card=document.createElement('div'); card.className='sec'; card.style.margin='10px 0';
+    function card(it,idx){
+      const c=document.createElement('div'); c.className='sec'; c.style.paddingBottom='10px';
       const icon = it.kind==='degree' ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>' : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
-      card.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
-        <span class="handle" draggable="true"></span>
-        <button class="btn" data-rm style="padding:6px 10px">×</button>
-        <div style="font-weight:700">${icon} <input class="wipt" data-title placeholder="Title" value="${it.title||''}" style="max-width:280px"></div>
-      </div>
-      <div style="margin-top:6px"><input class="wipt" data-year placeholder="2018–2022" value="${it.year||''}" style="max-width:120px"></div>
-      <div style="margin-top:6px"><input class="wipt" data-ac placeholder="Academy name (wraps to two lines if needed)" value="${it.academy||''}" style="width:100%"></div>`;
-      card.querySelector('[data-title]').oninput=e=>it.title=e.target.value;
-      card.querySelector('[data-year]').oninput=e=>it.year=e.target.value.slice(0,9);
-      card.querySelector('[data-ac]').oninput=e=>it.academy=e.target.value;
-      card.querySelector('[data-rm]').onclick=()=>{ S.edu.splice(idx,1); paint(); };
-      card.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx);});
-      card.addEventListener('dragover',ev=>ev.preventDefault());
-      card.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.edu.splice(from,1); S.edu.splice(to,0,m); paint(); });
-      return card;
+      c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="handle" draggable="true"></span><button class="mbtn" data-rm style="padding:6px 10px">×</button><div style="font-weight:700">${icon} <span contenteditable class="ws-label">${it.title||'Title'}</span></div></div>
+        <div style="margin-top:6px"><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)" contenteditable>${(it.year||'2018–2022').slice(0,9)}</span></div>
+        <div style="margin-top:6px"><span contenteditable class="ws-label">${it.academy||'Academy name (wraps to two lines if needed)'}</span></div>`;
+      c.querySelector('[data-rm]').onclick=()=>{ S.edu.splice(idx,1); paint(); };
+      c.querySelectorAll('[contenteditable]').forEach((el,ix)=> el.oninput=()=>{ if(ix===0) it.title=el.textContent; else if(ix===1) it.year=el.textContent.slice(0,9); else it.academy=el.textContent; });
+      // drag placeholder
+      c.querySelector('.handle').addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',idx));
+      c.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wr.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; ph.style.height=c.offsetHeight+'px'; wr.insertBefore(ph,c.nextSibling);} });
+      c.addEventListener('dragleave',()=>{ const ph=wr.querySelector('.ph'); if(ph) ph.remove(); });
+      c.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.edu.splice(from,1); S.edu.splice(to,0,m); paint(); });
+      return c;
     }
-    function paint(){ wr.innerHTML=''; S.edu.forEach((it,i)=>wr.appendChild(row(it,i))); }
+    function paint(){ wr.innerHTML=''; S.edu.forEach((it,i)=>wr.appendChild(card(it,i))); }
     paint();
     $('#addCourse').onclick=()=>{ S.edu.push({kind:'course',year:'',academy:'',title:''}); paint(); };
     $('#addDegree').onclick=()=>{ S.edu.push({kind:'degree',year:'',academy:'',title:''}); paint(); };
   }
+
   if(s==='experience'){
-    wizBody.innerHTML=`
-      <div class="wtitle">Experience</div>
+    wizBody.innerHTML=`<div class="wtitle">Experience</div>
       <div id="xWrap"></div>
-      <div class="center" style="margin-top:10px"><button class="btn" id="addRole">+ Add role</button></div>
-    `;
+      <div class="k-row"><button class="mbtn" id="addRole">+ Add another</button></div>`;
     const wr=$("#xWrap");
-    function row(it,idx){
-      const c=document.createElement('div'); c.className='sec'; c.style.margin='10px 0';
-      c.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
-        <span class="handle" draggable="true"></span>
-        <button class="btn" data-rm style="padding:6px 10px">×</button>
-        <input class="wipt" data-d placeholder="Jan 2022 – Present" value="${it.dates||''}" style="max-width:160px">
-        <input class="wipt" data-r placeholder="Job title" value="${it.role||''}" style="max-width:220px">
-      </div>
-      <div style="margin-top:6px"><input class="wipt" data-o placeholder="@Company" value="${it.org||''}" style="max-width:220px"></div>
-      <div style="margin-top:6px"><textarea class="wipt" data-desc placeholder="Describe impact, scale and results." style="width:100%;min-height:60px">${it.desc||''}</textarea></div>`;
-      c.querySelector('[data-d]').oninput=e=>it.dates=e.target.value.slice(0,16);
-      c.querySelector('[data-r]').oninput=e=>it.role=e.target.value;
-      c.querySelector('[data-o]').oninput=e=>it.org=e.target.value;
-      c.querySelector('[data-desc]').oninput=e=>it.desc=e.target.value;
-      c.querySelector('[data-rm]').onclick=()=>{ S.exp.splice(idx,1); paint(); };
-      c.querySelector('.handle').addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',idx));
-      c.addEventListener('dragover',ev=>ev.preventDefault());
-      c.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.exp.splice(from,1); S.exp.splice(to,0,m); paint(); });
+    function card(it){
+      const c=document.createElement('div'); c.className='sec'; c.style.background='color-mix(in srgb, var(--accent) 12%, #fff)'; c.style.margin='10px 0';
+      c.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><span class="badge" contenteditable style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(it.dates||'Jan 2022').slice(0,16)}</span><span contenteditable style="font-weight:800">${it.role||'Job title'}</span></div>
+        <div style="font-weight:700;color:#374151;margin-top:4px" contenteditable>${it.org||'@Company'}</div>
+        <div style="margin-top:6px" contenteditable>${it.desc||'Describe impact, scale and results.'}</div>`;
+      const edits=c.querySelectorAll('[contenteditable]');
+      edits[0].oninput=e=>it.dates=e.target.textContent.slice(0,16);
+      edits[1].oninput=e=>it.role=e.target.textContent;
+      edits[2].oninput=e=>it.org=e.target.textContent;
+      edits[3]?.oninput && (edits[3].oninput=e=>it.desc=e.target.textContent);
       return c;
     }
-    function paint(){ wr.innerHTML=''; S.exp.forEach((it,i)=>wr.appendChild(row(it,i))); }
+    function paint(){ wr.innerHTML=''; S.exp.forEach(it=>wr.appendChild(card(it))); }
     paint();
-    $('#addRole').onclick=()=>{ S.exp.push({dates:'',role:'',org:'',desc:''}); paint(); };
+    $('#addRole').onclick=(ev)=>{ S.exp.push({dates:'',role:'',org:'',desc:''}); paint();
+      // sparkle/added toast near button
+      const b=ev.currentTarget, r=b.getBoundingClientRect(); const t=document.createElement('div'); t.className='toast'; t.textContent='Experience added'; document.body.appendChild(t); t.style.left=(r.left+window.scrollX)+'px'; t.style.top=(r.top+window.scrollY-40)+'px'; setTimeout(()=>t.remove(),900);
+    };
   }
+
   if(s==='done'){
-    wizBody.innerHTML=`<div class="wtitle" style="text-align:center">All set 🎉</div>
-      <div class="wsub" style="text-align:center">You can keep editing on the canvas. Change layout or theme any time.</div>`;
+    wizBody.innerHTML=`<div class="wtitle" style="text-align:center">All set ✨</div><div class="wsub" style="text-align:center">You can keep editing on the canvas.</div>`;
     wizNext.textContent='Finish';
-  }else{
-    wizNext.textContent='Next';
-  }
-}
-function saveContact(){
-  S.contact={ name:$('#nm').value, phone:$('#ph').value, email:$('#em').value, address:$('#ad').value, linkedin:$('#ln').value };
-  // live apply to header chips
-  const h=headerNode(); if(!h) return;
-  const nameEl=h.querySelector('.name'); if(nameEl) nameEl.textContent=S.contact.name||'YOUR NAME';
-  function addChip(icon,text){
-    const chip=document.createElement('div'); chip.className='chip';
-    chip.innerHTML=`<span>${icon}</span><span>${text}</span><button class="rm">×</button>`;
-    chip.querySelector('.rm').onclick=()=>chip.remove();
-    return chip;
-  }
-  // reset chips
-  const chipAreas=[...h.querySelectorAll('[data-info],[data-info-left],[data-info-right]')];
-  chipAreas.forEach(el=>el.innerHTML='');
-  const list=[];
-  if(S.contact.phone) list.push(addChip('<i class="fa-solid fa-phone"></i>',S.contact.phone));
-  if(S.contact.email) list.push(addChip('<i class="fa-solid fa-envelope"></i>',S.contact.email));
-  if(S.contact.address) list.push(addChip('<i class="fa-solid fa-location-dot"></i>',S.contact.address));
-  if(S.contact.linkedin) list.push(addChip('<i class="fa-brands fa-linkedin"></i>','linkedin.com/in/'+S.contact.linkedin));
-  if(h.querySelector('[data-info-left]')){
-    const L=h.querySelector('[data-info-left]'), R=h.querySelector('[data-info-right]');
-    list.forEach((c,i)=> (i%2?R:L).appendChild(c));
-  }else{
-    const box=h.querySelector('[data-info]'); list.forEach(c=>box.appendChild(c));
-  }
+  }else{ wizNext.textContent='Next'; }
 }
 
 wizBack.onclick=()=>{ if(stepIdx>0){ stepIdx--; backCount++; renderStep(); } };
-wizStartOver.onclick=()=>{ Object.assign(S,{contact:{name:'',phone:'',email:'',address:'',linkedin:''}, skills:[], edu:[], exp:[]}); stepIdx=0; backCount=0; buildWizard(); };
-
+wizStartOver.onclick=()=>{ Object.assign(S,{contact:{name:'',phone:'',email:'',address:'' ,linkedin:''},skills:[],edu:[],exp:[]}); stepIdx=0; backCount=0; buildWizard(); };
 wizNext.onclick=()=>{
   const cur=STEPS[stepIdx].k;
-  // apply changes to canvas on step transitions (without duplicating)
   if(cur==='skills'){ renderSkills(); updatePlusMenu(); }
   if(cur==='education'){ renderEdu(); }
   if(cur==='experience'){ renderExp(); }
-  if(cur==='done'){ wizard.style.display='none'; finishWelcome(); return; }
+  if(cur==='done'){ wizard.style.display='none'; welcome.remove(); ensurePlusAtEnd(); return; }
   if(stepIdx<STEPS.length-1){ stepIdx++; renderStep(); }
 };
 
-/* ---------- Theme apply ---------- */
-function refreshTheme(){
-  document.body.setAttribute('data-theme', S.theme || 'magentaPurple');
-  document.body.setAttribute('data-dark', S.dark?'1':'0');
-  document.body.setAttribute('data-mat', S.mat||'paper');
-}
+/* top menu layout quick */
+$('#layoutQuick').addEventListener('click',e=>{ const k=e.target.closest('.mock')?.dataset.layout; if(!k) return; morphTo(k); ddLayout.classList.remove('open'); });
 
-/* ---------- Start ---------- */
-$('#startWizard').onclick=()=>{ openWizard(); };
-$('#startBlank').onclick=()=>{ finishWelcome(); addWrap.style.display='flex'; };
-
-createHeader('header-fancy'); // prepare preview behind welcome but keep canvas clean (hidden under overlay)
-stack.querySelector('.node')?.remove(); // clean until user starts
+/* initial setup */
 refreshTheme();
-
-/* layout quick under top menu */
-$('#layoutQuick').addEventListener('click',e=>{
-  const k=e.target.closest('.mock')?.dataset.layout; if(!k) return; createHeader(k); ddLayout.classList.remove('open');
-});
-
-/* Add bubble actions (global clicks handled above) */
-
-/* initial plus hidden until welcome closed */
-function showAddOnReady(){ if(!document.getElementById('welcome')) addWrap.style.display='flex'; }
-setTimeout(showAddOnReady,50);
-
+stack.querySelector('.node')?.remove(); // keep canvas clean behind welcome
 })();
 </script>
 </body>
