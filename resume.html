@@ -2,244 +2,267 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Easy Resume — Builder</title>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
 :root{
-  --accent:#8b5cf6; --accent2:#ec4899;
-  --ink:#0e1117; --ink-weak:#475569;
-  --paper:#ffffff; --panel:#0f1420; --panel-2:#121a2a;
-  --bg:#0b0f19; --grid:#121826; --line:#23283b; --soft:#eef2f7;
-  --rail:#f1f5f9; --shadow:0 10px 30px rgba(0,0,0,.25);
-  --ring:0 0 0 3px color-mix(in srgb, var(--accent) 35%, #0000) inset;
-  --pad:14px;
-  --radius:16px;
-  --star-size:16px;
-  --stars-width:116px; /* <- slider bar matches this width */
+  /* core */
+  --bg:#0e1117;
+  --ink:#e6e8ef;
+  --panel:#0f1420;
+  --line:#22283a;
+  --card:#f7f9ff;
+  --muted:#9aa3ba;
+  --shadow:0 18px 60px rgba(0,0,0,.35);
+
+  /* theme gradient (editable) */
+  --g1:#ff7b54;
+  --g2:#ffd166;
+
+  /* accent extracted from gradient mid-tone */
+  --accent:#a052ff;
+  --accent2:#ff72c7;
+
+  /* material */
+  --paper:#ffffff;
+  --glass:rgba(255,255,255,.10);
+  --glass-stroke:rgba(255,255,255,.25);
+
+  /* sizing */
+  --rail:300px;
+  --stars-w:126px; /* width of 5 stars area */
+  --slider-h:4px;
 }
 
-/* themes */
-[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
-[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
-[data-theme="city"]{ --accent:#34d399; --accent2:#9ca3af }
-[data-theme="magentaPurple"]{ --accent:#c026d3; --accent2:#9333ea }
-[data-theme="magentaPink"]{ --accent:#ec4899; --accent2:#f97316 }
-[data-theme="blueGreen"]{ --accent:#22c1c3; --accent2:#2ecc71 }
-[data-theme="mono"]{ --accent:#111827; --accent2:#6b7280 }
+[data-dark="1"]{
+  --bg:#0a0e14;
+  --ink:#e9eefb;
+  --panel:#0b101a;
+  --line:#1c2332;
+  --card:#0f1420;
+  --paper:#111827;
+  --glass:rgba(17,24,39,.40);
+  --glass-stroke:rgba(255,255,255,.08);
+}
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;
+  margin:0;background:var(--bg);color:var(--ink);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
-  color:#e6e8ef;
-  background:var(--bg);
-  display:grid; grid-template-rows:auto 1fr;
+  display:grid;grid-template-rows:auto 1fr;overflow:hidden
 }
 
-/* dark mode toggle affects page colors */
-body:not([data-dark="1"]) { --paper:#fff; --ink:#0f172a; --ink-weak:#64748b; }
-body[data-dark="1"] { --paper:#0d1524; --ink:#e6e8ef; --ink-weak:#aab3c5; --rail:#0f1b31; --soft:#0e1a32; }
-
-/* top nav */
-.nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
+/* NAV */
+.nav{position:sticky;top:0;z-index:10000;display:flex;gap:10px;align-items:center;justify-content:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336}
 .brand{font-weight:800}
 .menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.mbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:7px 10px;border-radius:12px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
-.mbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.3) inset, 0 8px 24px rgba(0,0,0,.35)}
+.mbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:7px 10px;border-radius:12px;cursor:pointer}
+.mbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
 .dropdown{position:relative}
-.dropdown-menu{position:absolute;top:120%;left:0;background:#0f1420;border:1px solid var(--line);border-radius:12px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;padding:10px;z-index:9999}
+.dropdown-menu{position:absolute;left:0;top:120%;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px;display:none;min-width:260px}
 .dropdown.open .dropdown-menu{display:block}
-.dropdown-menu button{display:block;width:100%;text-align:left;background:transparent;color:#e6e8ef;border:0;padding:8px 10px;border-radius:10px;cursor:pointer}
-.dropdown-menu button:hover{background:#172038}
+.dropdown-menu .row{display:grid;grid-template-columns:1fr;gap:10px}
+.swatch-btn{height:44px;border-radius:10px;border:1px solid #2b324b;cursor:pointer}
+.toggle-row{display:flex;align-items:center;gap:12px;justify-content:space-between;border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
+.switch{width:54px;height:28px;border-radius:999px;background:#1b2334;border:1px solid #2b324b;position:relative;cursor:pointer}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s ease}
+.switch[data-on="1"]::after{transform:translateX(26px)}
+.small{font-size:12px;color:#aeb6cc}
 
-/* canvas */
-#canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
-#canvas.blurred{filter:blur(4px);transform:scale(.99)}
-.page{background:var(--paper);color:var(--ink);width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
+/* CANVAS */
+#canvas{overflow:auto;padding:24px;display:flex;justify-content:center}
+.page{background:#fff;color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
 .page::before{content:"";position:absolute;inset:16px;pointer-events:none;background:
   linear-gradient(90deg,transparent 15px,#eef2f7 16px),
-  linear-gradient(transparent 15px,#eef2f7 16px);background-size:16px 16px;opacity:.15;border-radius:14px}
-#sheet{padding:24px;min-height:1120px}
+  linear-gradient(transparent 15px,#eef2f7 16px);
+  background-size:16px 16px;opacity:.35;border-radius:14px}
+#sheet{padding:22px;min-height:1120px}
 .stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
-.placeholder{grid-column:1/-1;display:grid;place-items:center;color:#8c95b1}
-.placeholder svg{width:48px;height:48px;margin:0 auto 8px}
 
-/* nodes / section shells */
-.node{position:relative;background:#f8f9fb;border:1px solid #e9eef8;border-radius:16px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.08);grid-column:span 12;transition:transform .18s ease, box-shadow .18s ease}
-.node.sel{outline:2px solid #7c99ff; box-shadow:0 12px 30px rgba(124,153,255,.25)}
+/* layout headers */
+.hero-gradient{background:linear-gradient(135deg,var(--g2),var(--g1))}
+.header{border-radius:14px;position:relative;overflow:hidden;transition:all .35s ease}
+.topbar{min-height:170px;padding:16px}
+.fancy{min-height:190px;padding:18px}
+.name{font-weight:900;font-size:34px;margin:0;text-align:center}
+
+/* morph bits */
+.hero-rect{height:110px;border-radius:14px;transition:all .45s ease}
+.hero-rect.sidebar{height:100%;width:34%;position:absolute;left:0;top:0;bottom:0}
+.hero-rect.top{height:110px;width:100%}
+.float-ava{position:absolute;width:120px;height:120px;border-radius:999px;background:#d1d5db;border:6px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.25);transition:all .45s ease}
+.float-ava.sidebar{left:18px;top:20px}
+.float-ava.fancy{left:50%;transform:translateX(-50%);top:-40px}
+.float-ava.topbar{right:26px;top:26px}
+
+/* avatar cropper */
+.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:6px solid #fff}
+.avatar canvas{width:100%;height:100%;display:block}
+.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
+.avatar input{display:none}
+
+/* node/card frame + material */
+.node{grid-column:span 12;background:var(--paper);border:1px solid #eaeef7;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:12px;position:relative;transition:transform .2s ease, box-shadow .2s ease}
+[data-material="glass"] .node{background:var(--glass);backdrop-filter:blur(8px);border:1px solid var(--glass-stroke)}
+.node.sel{outline:2px solid #86a1ff}
 .node[data-locked="1"]{background:transparent;border:0;box-shadow:none;padding:0}
 
-/* controls — bubbly */
-.ui{position:absolute;right:10px;top:10px;display:flex;gap:8px}
-.uib{width:30px;height:30px;border-radius:999px;background:#0f1420;border:1px solid #27304d;color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.35)}
-.uib:hover{box-shadow:0 0 0 3px rgba(124,153,255,.3) inset, 0 14px 28px rgba(0,0,0,.4)}
-.uib.handle{cursor:grab}
-.preview .ui,.preview .add-dot,.preview .fmtbar,.preview .rail .rail-actions,.preview .chip .rm,.preview .ctrl-mini,.preview .move-where{display:none!important}
+/* helpers */
+.center{display:flex;justify-content:center;align-items:center}
+.badge{display:inline-block;background:color-mix(in srgb, var(--g1) 20%, #fff);color:color-mix(in srgb, var(--g1) 70%, #000);border:1px solid color-mix(in srgb, var(--g1) 40%, #0000);padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px}
 
-/* add anchor */
-.add-squircle{grid-column:1/-1;display:grid;place-items:center;padding:28px 0}
-.add-dot{width:80px;height:80px;border-radius:22px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:var(--paper);box-shadow:var(--shadow);font-size:28px;font-weight:900}
-.add-dot:hover{border-color:#7c99ff;color:#7c99ff}
+/* SECTION TITLES */
+.section{background:var(--paper);border:1px solid #e7ecfb;border-radius:14px;padding:12px}
+.title{font-weight:900;text-align:center;display:flex;gap:8px;align-items:center;justify-content:center}
+.title i{opacity:.9}
+.underline{height:4px;border-radius:999px;background:linear-gradient(90deg,var(--g2),var(--g1));width:160px;margin:6px auto 10px}
 
-/* skills block */
-.title-center{display:grid;place-items:center;margin-bottom:8px}
-.title-center .bar{width:160px;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
-.tip{color:var(--ink-weak);font-size:12px;line-height:1.3;margin:8px 0 12px}
-.preview .tip{display:none}
+/* toolbar bubbles */
+.bubble{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.ui{background:#0f1420;border:1px solid #2b324b;color:#e6e8ef;border-radius:999px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.ui:hover{box-shadow:0 0 0 6px rgba(124,153,255,.2), 0 10px 24px rgba(0,0,0,.35)}
 
-.grid-skills{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* CHIPS */
+.chips{display:flex;flex-direction:column;gap:8px}
+.chip{background:var(--paper);border:1px solid #e7ecfb;border-radius:999px;display:flex;align-items:center;gap:10px;padding:8px 10px}
+.chip i{min-width:14px}
+.chip .rm{margin-left:auto;background:#ef4444;border:0;color:#fff;border-radius:10px;width:22px;height:22px;display:grid;place-items:center;cursor:pointer}
+
+/* SKILLS */
+.section.skills .tip{font-size:12px;color:#76809d;margin:8px 0 14px}
+.grid-skills{display:grid;gap:10px}
 .grid-skills.cols-1{grid-template-columns:1fr}
-.sidebar .grid-skills{grid-template-columns:1fr!important}
+.grid-skills.cols-2{grid-template-columns:1fr 1fr}
+.grid-skills.cols-3{grid-template-columns:1fr 1fr 1fr}
 
-.skill-row{display:grid;grid-template-columns:auto 1fr var(--stars-width);align-items:center;gap:10px}
-.skill-row .lbl{min-width:0;max-width:260px}
-.skill-row .lbl[contenteditable]{padding:2px 6px;border-radius:8px;border:1px solid transparent}
-.skill-row .lbl[contenteditable]:focus{outline:0;border-color:#cbd5e1;background:#f1f5f9}
-.skill-row .stars{display:grid;grid-auto-flow:column;grid-auto-columns:calc(var(--star-size) + 2px);gap:6px;justify-content:end}
-.star{width:var(--star-size);height:var(--star-size);fill:#d1d5db;cursor:pointer;transition:transform .08s ease}
+.skill{display:grid;grid-template-columns:24px 1fr var(--stars-w);align-items:center;gap:10px;position:relative;padding:2px 4px;border-radius:10px}
+.skill .handle{width:24px;height:24px;border-radius:8px;border:1px dashed #aab1c9;color:#6b7280;cursor:grab;display:grid;place-items:center;font-weight:900}
+.skill .label[contenteditable]{outline:0;border:1px solid transparent;border-radius:8px;padding:2px 6px}
+.skill .label[contenteditable]:focus{border-color:#cbd5e1;background:#f4f7fd}
+.skill .stars{justify-self:end;width:var(--stars-w);display:flex;gap:6px}
+.star{width:18px;height:18px;fill:#d1d5db;cursor:pointer}
 .star.active{fill:#f59e0b}
-.star:active{transform:scale(.92)}
+.skill input[type=range]{-webkit-appearance:none;appearance:none;width:var(--stars-w);height:var(--slider-h);background:linear-gradient(90deg,var(--g2),var(--g1));border-radius:999px;outline:1px solid rgba(0,0,0,.15)}
+.skill input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #b26cff;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
 
-.skill-row input[type=range]{-webkit-appearance:none;appearance:none;width:var(--stars-width);height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
-.skill-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--paper);border:2px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
-
-/* section headings */
-.section{background:var(--soft);border:1px solid #e9eef8;border-radius:16px;padding:12px}
-.section-title{display:grid;place-items:center;gap:6px;margin:4px 0 10px}
-.section-title h2{margin:0;font-size:20px}
-.section-title .bar{width:160px;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
-
-/* Education cards */
-.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.edu-card{
-  background:color-mix(in srgb, var(--accent) 10%, var(--paper));
-  border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);
-  border-radius:14px;padding:12px 14px;display:grid;gap:8px;position:relative
-}
-.edu-line{display:flex;align-items:center;gap:8px;font-weight:700}
-.edu-chip{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, var(--paper));color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 10px;border-radius:999px;font-size:12px}
-.edu-acad{min-height:2lh}
-
-/* Experience */
+/* EXP */
 .exp-list{display:grid;gap:12px}
-.exp-card{
-  background:color-mix(in srgb, var(--accent) 12%, var(--paper));
-  border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);
-  border-radius:14px;padding:12px 14px;position:relative;display:grid;gap:6px
-}
-.exp-head{display:flex;align-items:center;gap:10px}
-.badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, var(--paper));color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px}
-.exp-card+.exp-card{margin-top:8px}
+.exp-card{background:color-mix(in srgb, var(--g1) 12%, #fff);border:1px solid color-mix(in srgb, var(--g1) 30%, #0000);border-radius:14px;padding:12px 14px;position:relative}
+.exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.exp-card .desc{margin-top:6px}
+.exp-card .desc[contenteditable]{outline:0;border:1px solid transparent;border-radius:8px;padding:4px}
+.exp-card .desc[contenteditable]:focus{border-color:#cbd5e1;background:#f8fafc}
+.add-under{display:flex;justify-content:center;margin-top:12px}
 
-/* Sidebar layout */
-.sidebar-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px}
-.rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px}
-.rail .name{font-weight:900;font-size:26px;text-align:center;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.3)}
-.rail .chip{background:#fff;border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-.rail .chip .rm{margin-left:auto;background:#111827;color:#fff;border-radius:8px;border:0;padding:2px 6px;cursor:pointer}
-.sidebar .section{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25)}
-.sidebar .section .section-title h2{color:#fff}
+/* EDU */
+.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.edu-card{background:color-mix(in srgb, var(--g2) 12%, #fff);border:1px solid color-mix(in srgb, var(--g2) 30%, #0000);border-radius:14px;padding:12px 14px;position:relative}
+.edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.edu-title{font-weight:700}
+.edu-year{display:inline-block}
+.edu-year .badge{white-space:nowrap}
 
-/* avatar */
-.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px;margin:0 auto}
-.avatar input{display:none}
-.avatar canvas{width:100%;height:100%;display:block}
-.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6);border-radius:999px}
+/* ADD button area */
+#canvasAdd{grid-column:1/-1;display:flex;justify-content:center;padding:28px 0}
+.add-dot{width:70px;height:70px;border-radius:18px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:26px;font-weight:900}
+.add-dot:hover{border-color:#7c99ff;color:#7c99ff}
+#addMenu{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:10px 12px;display:none;z-index:9999}
+#addMenu.open{display:block}
+#addMenu .tray{display:flex;gap:10px}
+#addMenu .opt{width:54px;height:54px;border-radius:12px;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+#addMenu .opt:hover{box-shadow:0 0 0 6px rgba(124,153,255,.2), 0 10px 24px rgba(0,0,0,.35)}
 
-/* wizard */
-#welcome{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:20000;opacity:1;transition:opacity .35s ease}
-#welcome.hide{opacity:0;pointer-events:none}
-.wcard{width:min(880px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:22px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
-.wtitle{font-size:22px;font-weight:800;margin:0 0 8px}
-.wsub{opacity:.8;margin-bottom:12px}
-.center{display:flex;justify-content:center;gap:12px;align-items:center}
-.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-.wbtn:hover{box-shadow:0 0 0 3px rgba(124,153,255,.3) inset, 0 14px 28px rgba(0,0,0,.4)}
-.wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
+/* PREVIEW */
+.preview .ui,.preview .bubble,.preview .add-dot,.preview #addMenu,.preview .chip .rm,.preview .section.skills .tip{display:none!important}
+.preview .page::before{opacity:.15}
 
-#wizard{display:none}
-#wizard.show{display:flex}
-.wiz{width:min(1020px,96vw);max-height:min(84vh,760px);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:10px;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;grid-template-columns:260px 1fr;gap:10px}
-.wiz-left{border-right:1px solid #1f2540;padding:8px 6px 8px 10px;overflow:auto}
-.step-li{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin:4px 0}
-.step-li .dot{width:10px;height:22px;border-radius:999px;background:#2a3559}
-.step-li.active .dot{background:linear-gradient(180deg,var(--accent2),var(--accent))}
-.step-li.done::after{content:"\f00c";font-family:"Font Awesome 6 Free";font-weight:900;margin-left:auto;color:#34d399}
-.wiz-right{padding:8px 10px;overflow:auto}
-.wiz-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:16px}
-.wiz-actions .left{margin-right:auto}
-.inp{width:70%;padding:10px 12px;border-radius:12px;border:1px solid #2b324b;background:#0b1222;color:#e6e8ef}
-.swatch{width:120px;height:44px;border-radius:14px;border:1px solid #2b324b;margin:6px;display:inline-block;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.25)}
-.swatch:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset, 0 12px 26px rgba(0,0,0,.35)}
-.toggle{width:56px;height:28px;border-radius:999px;background:#1f2a45;border:1px solid #2f3b62;display:inline-flex;align-items:center;padding:2px;cursor:pointer}
-.toggle .knob{width:24px;height:24px;border-radius:999px;background:#cbd5e1;transform:translateX(0);transition:transform .18s ease}
-.toggle.on .knob{transform:translateX(28px);background:var(--accent)}
+/* WELCOME + WIZARD */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;z-index:20000;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.welcome{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);width:min(880px,92vw);padding:22px}
+.wtitle{font-size:22px;font-weight:900;margin:0 0 6px}
+.wdesc{opacity:.8;margin-bottom:14px}
+.btn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
+.btn.primary{background:linear-gradient(135deg,var(--g2),var(--g1));color:#111;border:none}
+.btn:hover{box-shadow:0 0 0 6px rgba(124,153,255,.2)}
+.actions{display:flex;gap:12px;align-items:center}
+.wizard{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);width:min(1100px,96vw);max-height:86vh;display:grid;grid-template-columns:260px 1fr;overflow:hidden}
+.steps{background:#0c1322;border-right:1px solid var(--line);padding:14px 10px;overflow:auto}
+.step{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:#c9d3ee}
+.step .dot{width:10px;height:10px;border-radius:999px;background:#2d3550}
+.step.active{background:rgba(124,153,255,.12);color:#fff}
+.step.active .dot{background:#9fb1ff}
+.step.done .dot{background:#34d399}
+.body{padding:22px;overflow:auto}
+.body h3{margin:0 0 6px;font-size:22px}
+.navline{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.mockrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.mock{border-radius:14px;border:2px solid transparent;background:#0b1220;cursor:pointer;padding:14px;position:relative}
+.mock:hover{box-shadow:0 0 0 6px rgba(124,153,255,.12)}
+.mock.sel{border-color:#ffb86c}
+.mock .rect{height:70px;border-radius:12px;background:linear-gradient(135deg,#5667b7,#2e3a77)}
+.mock .side{position:absolute;left:14px;top:14px;bottom:14px;width:30%;border-radius:12px;background:linear-gradient(135deg,#5667b7,#2e3a77)}
+.mock .lines{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.mock .line{height:8px;border-radius:999px;background:#2a365f;width:64%}
+.mock .line.s{width:44%}
+.mock .circle{width:44px;height:44px;border-radius:999px;background:#cfd6ff;border:3px solid #fff;position:absolute}
+.mock.sidebar .circle{left:30px;top:36px}
+.mock.fancy .circle{left:50%;transform:translateX(-50%);top:8px}
+.mock.topbar .circle{right:26px;top:28px}
 
-/* layout mockups */
-.mock{width:220px;height:150px;background:#0b1222;border:1px solid #27304d;border-radius:16px;padding:12px;display:inline-block;margin:6px;cursor:pointer;position:relative;box-shadow:0 8px 18px rgba(0,0,0,.25)}
-.mock:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset, 0 12px 26px rgba(0,0,0,.35)}
-.mock.sel{outline:2px solid #ffb86c}
-.mk-rail{position:absolute;left:12px;top:12px;bottom:12px;width:28%;border-radius:12px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
-.mk-rail .mk-av{width:42px;height:42px;border-radius:999px;background:#cfd6ff;border:3px solid #fff;margin:8px auto}
-.mk-lines{position:absolute;right:12px;left:calc(12px + 32%);top:22px;display:grid;gap:8px}
-.mk-line{height:10px;border-radius:999px;background:#2b375f}
-.mk-hero{position:absolute;left:12px;right:12px;top:12px;height:52px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
-.mk-hero .mk-av{position:absolute;left:50%;top:38px;transform:translateX(-50%);width:48px;height:48px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
-.mk-hero-right .mk-av{position:absolute;right:18px;top:26px;width:52px;height:52px;border-radius:999px;background:#cfd6ff;border:3px solid #fff}
+/* tiny confetti for "added" feedback */
+@keyframes poof{0%{transform:scale(.98);opacity:1}100%{transform:scale(.9);opacity:0}}
+.poof{position:absolute;inset:0;pointer-events:none}
+.poof::before,.poof::after{content:"✨";position:absolute;animation:poof .6s ease forwards}
+.poof::before{left:20%;top:30%}
+.poof::after{right:18%;bottom:20%}
 
-/* formatting bar (kept simple) */
-.fmtbar{position:absolute;display:none;gap:6px;background:#0f1420;border:1px solid #1f2540;padding:6px 8px;border-radius:10px;z-index:12000}
-.fmtbar button{background:#12182a;border:1px solid #2b324b;color:#e6e8ef;border-radius:8px;padding:4px 6px;cursor:pointer}
-
-/* preview */
-.preview .ui,.preview .mbtn[data-role="add-skill"],.preview .move-where{display:none!important}
-.preview .page::before{opacity:0}
-
-/* print */
-@media print{ .nav,#welcome,.fmtbar{display:none!important} #canvas{filter:none} .page{box-shadow:none} .page::before{opacity:0} }
+/* layout menu under canvas '+' */
+#layoutPop{position:absolute;display:none;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:8px}
+#layoutPop.open{display:flex}
+#layoutPop button{display:flex;gap:10px;align-items:center;justify-content:flex-start}
 </style>
 </head>
-<body data-theme="magentaPurple">
+<body data-dark="0" data-material="paper">
   <div class="nav">
     <span class="brand">Easy Resume</span>
     <div class="menu">
       <div class="dropdown" id="ddFile">
         <button class="mbtn">File ▾</button>
         <div class="dropdown-menu">
-          <button id="saveJSON"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
-          <button id="loadJSON"><i class="fa-solid fa-folder-open"></i> Load project</button>
-          <button id="startScratch"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
+          <div class="row">
+            <button class="mbtn" id="saveJSON"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
+            <button class="mbtn" id="loadJSON"><i class="fa-solid fa-folder-open"></i> Load project</button>
+            <button class="mbtn" id="startScratch"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
+          </div>
         </div>
       </div>
 
       <div class="dropdown" id="ddLayout">
         <button class="mbtn">Layout options ▾</button>
-        <div class="dropdown-menu" style="width:720px">
-          <div id="layoutPickerMenu">
-            <div class="mock sel" data-layout="header-side" title="Sidebar">
-              <div class="mk-rail"><div class="mk-av"></div></div>
-              <div class="mk-lines">
-                <div class="mk-line" style="width:70%"></div>
-                <div class="mk-line" style="width:56%"></div>
-                <div class="mk-line" style="width:64%"></div>
+        <div class="dropdown-menu" style="width:420px">
+          <div class="mockrow" id="layoutPickerMenu">
+            <div class="mock sidebar sel" data-layout="sidebar">
+              <div class="side"></div>
+              <div class="circle"></div>
+              <div class="lines" style="margin-left:36%">
+                <div class="line"></div><div class="line s"></div><div class="line"></div><div class="line s"></div>
               </div>
             </div>
-            <div class="mock" data-layout="header-fancy" title="Top Fancy">
-              <div class="mk-hero"><div class="mk-av"></div></div>
-              <div class="mk-lines" style="left:18px;right:18px;top:82px">
-                <div class="mk-line" style="width:66%"></div>
-                <div class="mk-line" style="width:46%"></div>
-                <div class="mk-line" style="width:54%"></div>
+            <div class="mock fancy" data-layout="fancy">
+              <div class="rect"></div>
+              <div class="circle"></div>
+              <div class="lines" style="margin-top:56px">
+                <div class="line"></div><div class="line s"></div><div class="line"></div>
               </div>
             </div>
-            <div class="mock" data-layout="header-top" title="Top Bar">
-              <div class="mk-hero mk-hero-right"><div class="mk-av"></div></div>
-              <div class="mk-lines" style="left:18px;right:18px;top:82px">
-                <div class="mk-line" style="width:66%"></div>
-                <div class="mk-line" style="width:46%"></div>
-              </div>
+            <div class="mock topbar" data-layout="topbar">
+              <div class="rect"></div>
+              <div class="circle"></div>
+              <div class="lines" style="margin-top:68px"><div class="line"></div><div class="line s"></div></div>
             </div>
           </div>
         </div>
@@ -248,28 +271,25 @@ body[data-dark="1"] { --paper:#0d1524; --ink:#e6e8ef; --ink-weak:#aab3c5; --rail
       <div class="dropdown" id="ddTheme">
         <button class="mbtn">Theme ▾</button>
         <div class="dropdown-menu">
-          <div style="padding:8px 8px 6px;font-weight:700">Presets</div>
-          <div id="themeSwatches" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 8px 8px">
-            <div class="swatch" data-k="coral" style="background:linear-gradient(90deg,#ff7b54,#ffd166)"></div>
-            <div class="swatch" data-k="sea" style="background:linear-gradient(90deg,#4facfe,#38d2ff)"></div>
-            <div class="swatch" data-k="city" style="background:linear-gradient(90deg,#34d399,#9ca3af)"></div>
-            <div class="swatch" data-k="magentaPurple" style="background:linear-gradient(90deg,#c026d3,#9333ea)"></div>
-            <div class="swatch" data-k="magentaPink" style="background:linear-gradient(90deg,#ec4899,#f97316)"></div>
-            <div class="swatch" data-k="blueGreen" style="background:linear-gradient(90deg,#22c1c3,#2ecc71)"></div>
-            <div class="swatch" data-k="mono" style="background:linear-gradient(90deg,#0f172a,#6b7280)"></div>
+          <div class="row" id="presetRow">
+            <!-- presets injected -->
           </div>
-          <div style="border-top:1px solid #23283b;margin:8px 0"></div>
-          <div style="display:flex;align-items:center;gap:10px;padding:8px">
-            <span style="opacity:.8">Dark mode</span>
-            <div id="darkToggle" class="toggle"><div class="knob"></div></div>
+          <div class="toggle-row">
+            <span>Dark mode</span><div class="switch" id="darkSwitch" data-on="0"></div>
           </div>
-          <div style="border-top:1px solid #23283b;margin:8px 0"></div>
-          <div style="padding:8px 8px 14px;display:grid;gap:8px">
-            <div style="font-weight:700">Custom gradient</div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="color" id="c1" value="#8b5cf6" style="width:42px;height:28px;border:0;border-radius:6px">
-              <input type="color" id="c2" value="#ec4899" style="width:42px;height:28px;border:0;border-radius:6px">
-              <button id="applyCustom" class="mbtn">Apply</button>
+          <div class="toggle-row">
+            <span>Material: <b id="matLabel">Paper</b></span>
+            <div class="actions">
+              <button class="mbtn" id="paperBtn">Paper</button>
+              <button class="mbtn" id="glassBtn">Glass</button>
+            </div>
+          </div>
+          <div style="border-top:1px dashed var(--line);padding-top:10px;margin-top:10px">
+            <div class="small" style="margin-bottom:6px">Custom gradient</div>
+            <div class="actions">
+              <input type="color" id="c1" value="#ff7b54"/>
+              <input type="color" id="c2" value="#ffd166"/>
+              <button class="mbtn" id="applyGrad">Apply</button>
             </div>
           </div>
         </div>
@@ -280,608 +300,693 @@ body[data-dark="1"] { --paper:#0d1524; --ink:#e6e8ef; --ink-weak:#aab3c5; --rail
     </div>
   </div>
 
-  <div id="canvas" class="blurred">
+  <div id="canvas">
     <div class="page" id="page">
       <div id="sheet">
         <div class="stack" id="stack">
-          <div class="placeholder" id="ph">
-            <div>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              Drag an item to begin building your resume
-            </div>
-          </div>
-          <div class="add-squircle" id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
+          <div id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- layout popup under '+' (vertical) -->
+  <div id="layoutPop">
+    <button class="mbtn" data-layout="sidebar"><i class="fa-solid fa-rectangle-vertical"></i> Sidebar</button>
+    <button class="mbtn" data-layout="fancy"><i class="fa-solid fa-image"></i> Top fancy</button>
+    <button class="mbtn" data-layout="topbar"><i class="fa-solid fa-grip-lines"></i> Top bar</button>
   </div>
 
   <!-- Add menu -->
-  <div class="pop" id="addMenu" style="position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:9999">
-    <div class="tray" style="display:flex;gap:10px;align-items:center">
-      <button class="mbtn" data-add="section-skills" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center"><i class="fa-solid fa-layer-group"></i></button>
-      <button class="mbtn" data-add="section-edu" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center"><i class="fa-solid fa-user-graduate"></i></button>
-      <button class="mbtn" data-add="section-exp" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center"><i class="fa-solid fa-briefcase"></i></button>
+  <div id="addMenu">
+    <div class="tray" id="addTray">
+      <!-- options injected -->
     </div>
   </div>
 
-  <!-- Welcome (intro only) -->
-  <div id="welcome">
-    <div class="wcard" id="welcomeCard">
+  <!-- OVERLAYS -->
+  <div class="overlay" id="welcome">
+    <div class="welcome">
       <div class="wtitle">Welcome to the Easy Resume Builder</div>
-      <div class="wsub">Choose how to begin.</div>
-      <div class="center" style="flex-direction:column;gap:10px">
-        <div class="center" style="gap:12px;flex-wrap:wrap">
-          <button class="wbtn primary" id="startWizard">Wizard</button>
-          <button class="wbtn" id="startBlank">Manual mode</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;opacity:.85">
-          <div style="text-align:center">Guided step-by-step set-up.</div>
-          <div style="text-align:center">Start from scratch, arrange freely.</div>
-        </div>
+      <div class="wdesc">Choose how to begin.</div>
+      <div class="actions" style="gap:12px;flex-wrap:wrap">
+        <button class="btn primary" id="startWizard">Wizard</button>
+        <button class="btn" id="startBlank">Manual mode</button>
       </div>
-    </div>
-
-    <!-- Wizard modal -->
-    <div class="wiz" id="wizard" role="dialog" aria-modal="true" aria-label="Resume wizard">
-      <div class="wiz-left" id="wizList"></div>
-      <div class="wiz-right">
-        <div id="wizBody"></div>
-        <div class="wiz-actions">
-          <div class="left"><button id="wizReset" class="mbtn" style="display:none">Start over</button></div>
-          <button id="wizBack" class="mbtn" style="display:none">Back</button>
-          <button id="wizNext" class="mbtn primary">Next</button>
-        </div>
+      <div class="actions small" style="justify-content:space-between;margin-top:8px">
+        <div>Guided step-by-step set-up.</div>
+        <div>Start from scratch, arrange freely.</div>
       </div>
     </div>
   </div>
 
-  <!-- formatting bar -->
-  <div class="fmtbar" id="fmtbar">
-    <button data-cmd="bold"><b>B</b></button>
-    <button data-cmd="italic"><i>I</i></button>
-    <button data-cmd="underline"><u>U</u></button>
-    <button data-insert="• ">•</button>
-    <button data-insert="✓ ">✓</button>
-    <button data-insert="🏆 ">🏆</button>
+  <div class="overlay" id="wizWrap">
+    <div class="wizard" role="dialog" aria-modal="true">
+      <div class="steps" id="stepList"></div>
+      <div class="body" id="wizBody"></div>
+    </div>
   </div>
 
 <script>
 (function(){
 'use strict';
 
-/* tiny helpers */
-const $=(s,r)=> (r||document).querySelector(s);
-const $$=(s,r)=> Array.from((r||document).querySelectorAll(s));
+/* utilities */
+const $ = (s, r=document)=>r.querySelector(s);
+const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
+const make = (t, cls, html)=>{const e=document.createElement(t); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e;};
+const uid = ()=>Math.random().toString(36).slice(2,9);
 
-/* state */
-const STATE={
-  layout:'header-side',
-  theme:'magentaPurple',
-  dark:false,
-  name:'',
-  chips:{phone:'',email:'',address:'',linkedin:''},
-  skills:[],         // {type:'stars'|'slider', label, value(0..5 or 0..100)}
-  skillsWhere:'sidebar', // 'sidebar' or 'canvas'
-  edu:[],            // {title:'', year:'', academy:''}
-  exp:[]             // {when:'', role:'', org:'', desc:''}
-};
-
-const canvas=$('#canvas'), stack=$('#stack'), addAnchor=$('#canvasAdd'), ph=$('#ph');
-function updatePH(){ ph.style.display = stack.querySelector('.node:not([data-locked="1"])') ? 'none':'grid'; }
-function moveAddAnchor(){
-  // keep centered under last content
-  const last=[...stack.children].reverse().find(n=>n.classList&&n.classList.contains('node'));
-  if(last && addAnchor.parentElement!==stack) stack.appendChild(addAnchor);
-  addAnchor.style.gridColumn='1/-1';
-}
-
-/* HEADER BUILDERS (minimal, solid) */
-function headerTopBar(){
-  const n=document.createElement('div'); n.className='node'; n.setAttribute('data-locked','1');
-  n.innerHTML=`
-  <div class="section" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:0">
-    <div style="display:grid;grid-template-columns:1fr 160px;gap:18px;align-items:center">
-      <h1 class="name" contenteditable style="margin:0;text-align:center;color:#111;text-shadow:0 1px 0 #fff">YOUR NAME</h1>
-      <div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div>
-    </div>
-  </div>`;
-  return n;
-}
-function headerFancy(){
-  const n=document.createElement('div'); n.className='node'; n.setAttribute('data-locked','1');
-  n.innerHTML=`
-  <div class="section" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:0">
-    <div class="title-center"><h2 style="color:#111">YOUR NAME</h2><div class="bar"></div></div>
-    <div class="avatar" data-avatar data-empty="1" style="margin-top:-40px"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div>
-  </div>`;
-  return n;
-}
-function headerSidebar(){
-  const n=document.createElement('div'); n.className='node'; n.setAttribute('data-locked','1');
-  n.innerHTML=`
-  <div class="sidebar-layout">
-    <div class="rail sidebar">
-      <div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div>
-      <div class="name" contenteditable>YOUR NAME</div>
-      <div id="railChips"></div>
-      <div class="section" id="railSkills" style="display:none">
-        <div class="section-title"><h2>Skills</h2><div class="bar"></div></div>
-        <div class="tip">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
-        <div class="grid-skills cols-1"></div>
-      </div>
-    </div>
-    <div data-zone="main" id="mainZone"></div>
-  </div>`;
-  return n;
-}
-function isSidebar(){ return !!stack.querySelector('.sidebar-layout'); }
-function mainZone(){ return $('#mainZone',stack) || stack; }
-
-/* AVATAR (light) */
-function initAvatar(w){
-  const input=w.querySelector('input'), cv=w.querySelector('canvas');
-  const ctx=cv.getContext('2d',{willReadFrequently:true});
-  let img=null, s=1, minS=1, x=0, y=0, drag=0, sx=0, sy=0;
-  function draw(){
-    ctx.clearRect(0,0,cv.width,cv.height); ctx.save();
-    ctx.beginPath(); ctx.arc(cv.width/2,cv.height/2,cv.width/2,0,Math.PI*2); ctx.clip();
-    if(img){ ctx.imageSmoothingQuality='high'; ctx.drawImage(img,x,y,img.width*s,img.height*s); w.setAttribute('data-empty','0'); }
-    ctx.restore();
-  }
-  if(input) input.addEventListener('change',e=>{
-    const f=input.files&&input.files[0]; if(!f) return;
-    const i=new Image(); i.onload=()=>{ img=i; minS=Math.max(cv.width/i.width,cv.height/i.height); s=minS; x=(cv.width-i.width*s)/2; y=(cv.height-i.height*s)/2; draw(); };
-    i.src=URL.createObjectURL(f); setTimeout(()=>URL.revokeObjectURL(i.src),6000);
-  });
-  cv.addEventListener('mousedown',e=>{ drag=1; sx=e.clientX; sy=e.clientY; });
-  window.addEventListener('mouseup',()=>drag=0);
-  window.addEventListener('mousemove',e=>{ if(!drag) return; x+=e.clientX-sx; y+=e.clientY-sy; sx=e.clientX; sy=e.clientY; draw(); });
-  cv.addEventListener('wheel',e=>{ e.preventDefault(); if(!img) return; const d=e.deltaY<0?1.06:0.94; let ns=s*d; if(ns<minS) ns=minS; if(ns>5) ns=5; const r=cv.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; const dx=(mx-x)/s, dy=(my-y)/s; x=mx-dx*ns; y=my-dy*ns; s=ns; draw(); },{passive:false});
-}
-
-/* SKILLS helpers */
-function starSvg(i){ return `<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"/></svg>`;}
-function makeSkillRow(type='stars',label='Skill',val= type==='stars'?0:50){
-  const row=document.createElement('div'); row.className='skill-row'; row.setAttribute('draggable','true');
-  row.innerHTML=`
-    <button class="uib handle" title="Drag"><i class="fa-solid fa-grip-vertical"></i></button>
-    <div class="lbl" contenteditable>${label||'Skill'}</div>
-    <div class="where">
-      ${type==='stars' ? `<div class="stars">${[1,2,3,4,5].map(starSvg).join('')}</div>` :
-        `<input type="range" min="0" max="100" value="${val}">`}
-    </div>`;
-  if(type==='stars') $$('.star',row).forEach((s,idx)=>{ s.addEventListener('click',()=>{ const n=idx+1; $$('.star',row).forEach((x,i)=>x.classList.toggle('active',i<n)); }); });
-  return row;
-}
-
-/* Sections */
-function skillsSection(sidebar=false){
-  const node=document.createElement('div'); node.className='node';
-  node.innerHTML=`
-  <div class="ui">
-    <button class="uib handle" title="Drag section"><i class="fa-solid fa-grip-vertical"></i></button>
-    <button class="uib move-where" title="Move ${sidebar?'to canvas':'to sidebar'}"><i class="fa-solid fa-up-down-left-right"></i></button>
-    <button class="uib del" title="Delete"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <div class="section ${sidebar?'sidebar':''}">
-    <div class="section-title"><h2>Skills</h2><div class="bar"></div></div>
-    <div class="tip">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
-    <div class="grid-skills ${sidebar?'cols-1':'cols-2'}"></div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
-      <button class="mbtn" data-add-star title="Add stars"><i class="fa-solid fa-plus"></i> ★</button>
-      <button class="mbtn" data-add-slider title="Add slider"><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i></button>
-    </div>
-  </div>`;
-  // events
-  $('.del',node).onclick=()=>{ node.remove(); updatePH(); };
-  $('.move-where',node).onclick=()=>{
-    STATE.skillsWhere = sidebar? 'canvas' : 'sidebar';
-    applyStateToCanvas();
-  };
-  attachSectionDnd(node);
-  return node;
-}
-function educationSection(){
-  const node=document.createElement('div'); node.className='node';
-  node.innerHTML=`
-  <div class="ui">
-    <button class="uib handle" title="Drag section"><i class="fa-solid fa-grip-vertical"></i></button>
-    <button class="uib del" title="Delete"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <div class="section">
-    <div class="section-title"><h2>Education</h2><div class="bar"></div></div>
-    <div class="edu-grid"></div>
-    <div style="display:flex;justify-content:center;gap:10px;margin-top:10px">
-      <button class="mbtn" data-add="course"><i class="fa-solid fa-plus"></i> Add course</button>
-      <button class="mbtn" data-add="degree"><i class="fa-solid fa-plus"></i> Add degree</button>
-    </div>
-  </div>`;
-  $('.del',node).onclick=()=>node.remove();
-  attachSectionDnd(node);
-  return node;
-}
-function eduCard(kind='course',title='Title',year='2018–2022',acad='Academy name (wraps to two lines if needed)'){
-  const card=document.createElement('div'); card.className='edu-card'; card.setAttribute('draggable','true');
-  const icon = kind==='degree' ? 'fa-graduation-cap' : 'fa-scroll';
-  const color = kind==='degree' ? 'var(--accent)' : 'var(--accent2)';
-  card.innerHTML=`
-    <div class="ui" style="top:6px;right:6px">
-      <button class="uib handle" title="Drag"><i class="fa-solid fa-grip-vertical"></i></button>
-      <button class="uib del" title="Delete"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="edu-line"><i class="fa-solid ${icon}" style="color:${color}"></i><div class="editable" contenteditable>${title}</div></div>
-    <div class="edu-chip" contenteditable data-limit="9">${year}</div>
-    <div class="edu-acad editable" contenteditable>${acad}</div>`;
-  $('.del',card).onclick=()=>card.remove();
-  return card;
-}
-
-function experienceSection(){
-  const node=document.createElement('div'); node.className='node';
-  node.innerHTML=`
-  <div class="ui">
-    <button class="uib handle" title="Drag section"><i class="fa-solid fa-grip-vertical"></i></button>
-    <button class="uib del" title="Delete"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <div class="section">
-    <div class="section-title"><h2>Work experience</h2><div class="bar"></div></div>
-    <div class="exp-list"></div>
-    <div style="display:flex;justify-content:center;margin-top:10px">
-      <button class="mbtn" data-add-role><i class="fa-solid fa-plus"></i> Add role</button>
-    </div>
-  </div>`;
-  $('.del',node).onclick=()=>node.remove();
-  attachSectionDnd(node);
-  return node;
-}
-function expCard(dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.'){
-  const c=document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
-  c.innerHTML=`
-    <div class="ui" style="top:6px;right:6px">
-      <button class="uib handle" title="Drag"><i class="fa-solid fa-grip-vertical"></i></button>
-      <button class="uib del" title="Delete"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="exp-head"><span class="badge" contenteditable data-limit="9">${dates}</span><div style="font-weight:800" contenteditable>${role}</div></div>
-    <div style="font-weight:700;color:#374151" contenteditable>${org}</div>
-    <div class="editable desc" contenteditable>${desc}</div>`;
-  $('.del',c).onclick=()=>c.remove();
-  return c;
-}
-
-/* DND — sections only by handle */
-function attachSectionDnd(node){
-  node.addEventListener('dragstart',e=>{
-    if(!e.target.closest('.handle')){ e.preventDefault(); return; }
-    e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','');
-    node.style.opacity='.4';
-  });
-  node.addEventListener('dragend',()=> node.style.opacity='');
-  stack.addEventListener('dragover',e=>{
-    const dragging=$('.node[style*="opacity"]',stack); if(!dragging) return;
-    e.preventDefault();
-    const after=getAfter(e.clientY);
-    if(after) stack.insertBefore(dragging, after); else stack.insertBefore(dragging, addAnchor);
-  });
-  function getAfter(y){
-    const els=$$('.node',stack).filter(n=>n!==node && n!==addAnchor);
-    let cand=null, off=-Infinity;
-    els.forEach(ch=>{
-      const r=ch.getBoundingClientRect(), o=y-r.top-r.height/2;
-      if(o<0 && o>off){ off=o; cand=ch; }
-    });
-    return cand;
-  }
-}
-
-/* Canvas add menu */
-const dotAdd=$('#dotAdd'), addMenu=$('#addMenu');
-dotAdd.onclick=()=>{
-  filterAddMenu();
-  addMenu.style.display='block';
-  const rect=dotAdd.getBoundingClientRect();
-  addMenu.style.left = (rect.left + rect.width/2)+'px';
-};
-document.addEventListener('click',e=>{
-  if(addMenu.style.display==='block' && !addMenu.contains(e.target) && e.target!==dotAdd) addMenu.style.display='none';
-});
-$('#addMenu').addEventListener('click',e=>{
-  const b=e.target.closest('button[data-add]'); if(!b) return;
-  addMenu.style.display='none';
-  const k=b.dataset.add;
-  if(k==='section-skills'){ STATE.skillsWhere='canvas'; if(!STATE.skills.length) STATE.skills=[{type:'stars',label:'Skill',value:3}]; }
-  if(k==='section-edu' && !STATE.edu.length){ STATE.edu=[{title:'Title',year:'2018–2022',acad:'Academy name (wraps to two lines if needed)',kind:'course'}]; }
-  if(k==='section-exp' && !STATE.exp.length){ STATE.exp=[{when:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; }
-  applyStateToCanvas();
-});
-function filterAddMenu(){
-  const hasSkills = !!stack.querySelector('.section h2') && $$('.section h2',stack).some(h=>h.textContent==='Skills');
-  const hasEdu = $$('.section h2',stack).some(h=>h.textContent==='Education');
-  const hasExp = $$('.section h2',stack).some(h=>h.textContent==='Work experience');
-  $('[data-add="section-skills"]',addMenu).style.display = hasSkills ? 'none':'inline-flex';
-  $('[data-add="section-edu"]',addMenu).style.display = hasEdu ? 'none':'inline-flex';
-  $('[data-add="section-exp"]',addMenu).style.display = hasExp ? 'none':'inline-flex';
-}
-
-/* THEME + DARK */
-$$('#themeSwatches .swatch').forEach(s=> s.addEventListener('click',()=>{ document.body.setAttribute('data-theme', s.dataset.k); STATE.theme=s.dataset.k; } ));
-$('#applyCustom').onclick=()=>{ const a=$('#c1').value, b=$('#c2').value; document.body.style.setProperty('--accent', a); document.body.style.setProperty('--accent2', b); };
-$('#darkToggle').onclick=()=>{ STATE.dark=!STATE.dark; document.body.setAttribute('data-dark', STATE.dark? '1':'0'); $('#darkToggle').classList.toggle('on',STATE.dark); };
-
-/* FILES */
-function getProject(){
-  const data=JSON.stringify(STATE,null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resume_project.json'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
-}
-$('#saveJSON').onclick=getProject;
-$('#loadJSON').onclick=()=>{
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
-  inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return;
-    const r=new FileReader(); r.onload=()=>{ try{ Object.assign(STATE, JSON.parse(String(r.result))); applyStateToCanvas(); }catch(_){ alert('Invalid JSON'); } };
-    r.readAsText(f);
-  };
-  inp.click();
-};
-$('#startScratch').onclick=()=>{ Object.assign(STATE,{
-  layout:'header-side', name:'', chips:{phone:'',email:'',address:'',linkedin:''},
-  skills:[], skillsWhere:'sidebar', edu:[], exp:[]
-}); applyStateToCanvas(); };
-
-/* PRINT / PREVIEW */
-$('#pdfBtn').onclick=()=>{ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(()=>{ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),140); },60); };
-$('#togglePreview').onclick=()=>{ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); $('#togglePreview').textContent=on?'Exit preview':'Preview'; };
-
-/* WELCOME + WIZARD */
-const welcome=$('#welcome'), welcomeCard=$('#welcomeCard'), wizard=$('#wizard');
-$('#startBlank').onclick=()=>{ finishWelcome(); };
-$('#startWizard').onclick=()=>{ welcomeCard.style.display='none'; wizard.classList.add('show'); renderWizard(); };
-
-function finishWelcome(){ canvas.classList.remove('blurred'); welcome.classList.add('hide'); setTimeout(()=> welcome.remove(),420); }
-
-/* Wizard steps */
-const STEPS=[
-  {k:'layout', label:'Layout', render:renderStepLayout, commit:commitLayout},
-  {k:'theme', label:'Theme', render:renderStepTheme, commit:()=>{}},
-  {k:'name', label:'Name', render:(b)=>renderAsk('What’s your name?','inpName','Your full name',STATE.name), commit:()=>{ STATE.name=$('#inpName').value.trim(); }},
-  {k:'phone', label:'Phone', render:(b)=>renderAsk('What’s your phone number?','inpPhone','+34 600 123 456',STATE.chips.phone), commit:()=>{ STATE.chips.phone=$('#inpPhone').value.trim(); }},
-  {k:'email', label:'Email', render:(b)=>renderAsk('Your email address?','inpEmail','you@example.com',STATE.chips.email), commit:()=>{ STATE.chips.email=$('#inpEmail').value.trim(); }},
-  {k:'address', label:'Address', render:(b)=>renderAsk('What’s your address?','inpAddr','City, Country',STATE.chips.address), commit:()=>{ STATE.chips.address=$('#inpAddr').value.trim(); }},
-  {k:'linkedin', label:'LinkedIn', render:renderLinked, commit:()=>{ const u=$('#inpLinked').value.trim(); STATE.chips.linkedin = u? `linkedin.com/in/${u}`:''; }},
-  {k:'skills', label:'Skills', render:renderSkillsStep, commit:commitSkills},
-  {k:'education', label:'Education', render:renderEduStep, commit:commitEdu},
-  {k:'experience', label:'Experience', render:renderExpStep, commit:commitExp},
-  {k:'done', label:'Done', render:renderDone, commit:()=>{}}
+/* theme presets */
+const PRESETS=[
+  ['#ff7b54','#ffd166'], ['#4facfe','#38d2ff'], ['#9faec8','#34d399'],
+  ['#c026d3','#9333ea'], ['#ec4899','#f97316'], ['#22c1c3','#2ecc71'],
 ];
-let stepIndex=0, backCount=0;
-
-function renderWizard(){
-  $('#wizList').innerHTML = STEPS.map((s,i)=>`
-    <div class="step-li ${i===stepIndex?'active':''} ${i<stepIndex?'done':''}">
-      <div class="dot"></div><div>${s.label}</div>
-    </div>`).join('');
-  const body=$('#wizBody'); body.innerHTML='';
-  STEPS[stepIndex].render(body);
-  // actions
-  $('#wizBack').style.display = stepIndex>0 ? 'inline-flex':'none';
-  $('#wizNext').textContent = stepIndex===STEPS.length-1? 'Close':'Next';
-  $('#wizReset').style.display = backCount>=2 ? 'inline-flex':'none';
-  $('#wizReset').onclick=()=>{ backCount=0; Object.assign(STATE,{name:'',chips:{phone:'',email:'',address:'',linkedin:''},skills:[],edu:[],exp:[]}); stepIndex=0; renderWizard(); };
-  $('#wizBack').onclick=()=>{ backCount++; stepIndex=Math.max(0,stepIndex-1); renderWizard(); };
-  $('#wizNext').onclick=()=>{
-    if(stepIndex<STEPS.length){ STEPS[stepIndex].commit(); applyStateToCanvas(); }
-    if(stepIndex===STEPS.length-1){ finishWelcome(); return; }
-    backCount=0; stepIndex++; renderWizard();
-  };
+const presetRow = $('#presetRow');
+PRESETS.forEach(p=>{
+  const b=make('button','swatch-btn'); b.style.background=`linear-gradient(90deg,${p[1]},${p[0]})`;
+  b.onclick=()=>applyGradient(p[0],p[1]);
+  presetRow.appendChild(b);
+});
+function applyGradient(g1,g2){
+  document.documentElement.style.setProperty('--g1',g1);
+  document.documentElement.style.setProperty('--g2',g2);
 }
 
-/* step UIs */
-function renderStepLayout(body){
-  body.innerHTML=`<div class="wtitle">Choose your layout</div>
-    <div class="wsub">Pick a starting header style.</div>
-    <div>
-      <div class="mock ${STATE.layout==='header-side'?'sel':''}" data-layout="header-side">
-        <div class="mk-rail"><div class="mk-av"></div></div>
-        <div class="mk-lines"><div class="mk-line" style="width:70%"></div><div class="mk-line" style="width:56%"></div><div class="mk-line" style="width:64%"></div></div>
-      </div>
-      <div class="mock ${STATE.layout==='header-fancy'?'sel':''}" data-layout="header-fancy">
-        <div class="mk-hero"><div class="mk-av"></div></div>
-        <div class="mk-lines" style="left:18px;right:18px;top:82px"><div class="mk-line" style="width:66%"></div><div class="mk-line" style="width:46%"></div><div class="mk-line" style="width:54%"></div></div>
-      </div>
-      <div class="mock ${STATE.layout==='header-top'?'sel':''}" data-layout="header-top">
-        <div class="mk-hero mk-hero-right"><div class="mk-av"></div></div>
-        <div class="mk-lines" style="left:18px;right:18px;top:82px"><div class="mk-line" style="width:66%"></div><div class="mk-line" style="width:46%"></div></div>
-      </div>
-    </div>`;
-  $$('.mock',body).forEach(m=> m.addEventListener('click',()=>{ $$('.mock',body).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); STATE.layout=m.dataset.layout; applyStateToCanvas(true); }));
-}
-function commitLayout(){ /* nothing extra */ }
+/* dark/material switches */
+$('#darkSwitch').onclick=function(){ const on= this.getAttribute('data-on')==='1'?0:1; this.setAttribute('data-on',on); document.body.setAttribute('data-dark',on); };
+$('#paperBtn').onclick=()=>{ document.body.setAttribute('data-material','paper'); $('#matLabel').textContent='Paper'; };
+$('#glassBtn').onclick=()=>{ document.body.setAttribute('data-material','glass'); $('#matLabel').textContent='Glass'; };
+$('#applyGrad').onclick=()=>applyGradient($('#c1').value,$('#c2').value);
 
-function renderStepTheme(body){
-  body.innerHTML=`<div class="wtitle">Choose a color theme</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:520px">
-    ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','mono'].map(k=>`<div class="swatch" data-k="${k}" style="background:linear-gradient(90deg,var(--accent2),var(--accent));" data-real="${k}"></div>`).join('')}
-  </div>
-  <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-    <span>Dark mode</span> <div id="wizDark" class="toggle ${STATE.dark?'on':''}"><div class="knob"></div></div>
-  </div>`;
-  $$('.swatch',body).forEach(s=> s.onclick=()=>{ document.body.setAttribute('data-theme', s.dataset.real); STATE.theme=s.dataset.real; });
-  $('#wizDark').onclick=()=>{ STATE.dark=!STATE.dark; document.body.setAttribute('data-dark', STATE.dark?'1':'0'); $('#wizDark').classList.toggle('on',STATE.dark); };
-}
-
-function renderAsk(title,id,ph,val){
-  $('#wizBody').innerHTML=`<div class="wtitle">${title}</div>
-  <div style="margin:10px 0"><input id="${id}" class="inp" placeholder="${ph}" value="${val||''}"></div>`;
-  setTimeout(()=>$('#'+id).focus(),40);
-}
-
-function renderLinked(body){
-  body.innerHTML=`<div class="wtitle">LinkedIn username</div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <div style="opacity:.85">linkedin.com/in/</div>
-    <input id="inpLinked" class="inp" style="width:340px" placeholder="your-handle" value="${(STATE.chips.linkedin||'').replace('linkedin.com/in/','')}">
-  </div>`;
-}
-
-function renderSkillsStep(body){
-  body.innerHTML=`<div class="wtitle">Add your skills</div>
-  <div class="wsub">Use stars or a slider. This block can represent <b>languages</b>, <b>tools</b>, <b>abilities</b>—<b>anything</b>. The stars/slider reflect your confidence.</div>
-  <div id="wizSkills" style="display:grid;gap:10px;max-width:660px;margin-top:8px"></div>
-  <div style="display:flex;gap:8px;margin-top:10px">
-    <button class="mbtn" id="wizAddStar"><i class="fa-solid fa-plus"></i> ★</button>
-    <button class="mbtn" id="wizAddSlider"><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-sliders"></i></button>
-  </div>
-  <div style="margin-top:10px"><label><input type="checkbox" id="wizInSidebar" ${STATE.skillsWhere==='sidebar'?'checked':''}> Display skills in the sidebar</label></div>`;
-  const wrap=$('#wizSkills');
-  if(!STATE.skills.length){ STATE.skills=[{type:'stars',label:'Skill',value:3},{type:'slider',label:'Skill',value:60}]; }
-  STATE.skills.forEach(s=> wrap.appendChild(makeSkillRow(s.type,s.label,s.value)));
-  $('#wizAddStar').onclick=()=> wrap.appendChild(makeSkillRow('stars'));
-  $('#wizAddSlider').onclick=()=> wrap.appendChild(makeSkillRow('slider'));
-}
-function commitSkills(){
-  // read from step UI (if present)
-  const wrap=$('#wizSkills'); if(!wrap) return;
-  STATE.skills=[...wrap.children].map(r=>{
-    const lbl=$('.lbl',r).textContent.trim()||'Skill';
-    if($('.stars',r)) return {type:'stars',label:lbl,value:$$('.star.active',r).length};
-    return {type:'slider',label:lbl,value:parseInt($('input[type=range]',r).value,10)};
-  });
-  STATE.skillsWhere = $('#wizInSidebar')?.checked ? 'sidebar':'canvas';
-}
-
-function renderEduStep(body){
-  body.innerHTML=`<div class="wtitle">Education</div>
-  <div class="wsub">Add courses and/or degrees.</div>
-  <div class="edu-grid" id="wizEdu" style="max-width:720px"></div>
-  <div style="display:flex;gap:10px;margin-top:10px">
-    <button class="mbtn" id="wizAddCourse"><i class="fa-solid fa-plus"></i> Add course</button>
-    <button class="mbtn" id="wizAddDegree"><i class="fa-solid fa-plus"></i> Add degree</button>
-  </div>`;
-  const g=$('#wizEdu');
-  if(!STATE.edu.length){ STATE.edu=[{kind:'course',title:'Title',year:'2018–2022',acad:'Academy name (wraps to two lines if needed)'}]; }
-  STATE.edu.forEach(e=> g.appendChild(eduCard(e.kind,e.title,e.year,e.acad)));
-  $('#wizAddCourse').onclick=()=> g.appendChild(eduCard('course'));
-  $('#wizAddDegree').onclick=()=> g.appendChild(eduCard('degree'));
-}
-function commitEdu(){
-  const g=$('#wizEdu'); if(!g) return;
-  STATE.edu=[...g.children].map(c=>{
-    return {
-      kind: $('.fa-graduation-cap',c)?'degree':'course',
-      title: $('.editable',c).textContent.trim()||'Title',
-      year: $('.edu-chip',c).textContent.trim().slice(0,9),
-      acad: $('.edu-acad',c).textContent.trim()
-    };
-  });
-}
-
-function renderExpStep(body){
-  body.innerHTML=`<div class="wtitle">Experience</div>
-  <div class="exp-list" id="wizExp" style="max-width:760px"></div>
-  <div style="display:flex;justify-content:center;margin-top:10px">
-    <button class="mbtn" id="wizAddRole"><i class="fa-solid fa-plus"></i> Add role</button>
-  </div>`;
-  const g=$('#wizExp');
-  if(!STATE.exp.length){ STATE.exp=[{when:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; }
-  STATE.exp.forEach(e=> g.appendChild(expCard(e.when,e.role,e.org,e.desc)));
-  $('#wizAddRole').onclick=()=> g.appendChild(expCard());
-}
-function commitExp(){
-  const g=$('#wizExp'); if(!g) return;
-  STATE.exp=[...g.children].map(c=>{
-    const when=$('.badge',c).textContent.trim().slice(0,9);
-    const role=$('.exp-head [contenteditable]',c).textContent.trim()||'Job title';
-    const org=$('div[contenteditable]',c).textContent.trim()||'@Company';
-    const desc=$('.desc',c).textContent.trim()||'Describe impact, scale and results.';
-    return {when,role,org,desc};
-  });
-}
-function renderDone(body){
-  body.innerHTML=`<div class="wtitle">All set!</div><div class="wsub">You can keep editing on the page or download a PDF.</div>`;
-}
-
-/* APPLY STATE TO CANVAS (idempotent) */
-function applyStateToCanvas(skipFade){
-  // clear everything
-  $$('.node',stack).forEach(n=>n.remove());
-  // header
-  let header=null;
-  if(STATE.layout==='header-top') header=headerTopBar();
-  if(STATE.layout==='header-fancy') header=headerFancy();
-  if(STATE.layout==='header-side') header=headerSidebar();
-  stack.insertBefore(header, addAnchor);
-  // avatar init
-  $$('[data-avatar]',header).forEach(initAvatar);
-
-  // name
-  const nm=header.querySelector('.name'); if(nm) nm.textContent = STATE.name || 'YOUR NAME';
-
-  // chips
-  const chipsHost = isSidebar() ? $('#railChips',header) : null;
-  if(chipsHost){
-    chipsHost.innerHTML='';
-    const entries=[['phone','fa-phone'],['email','fa-envelope'],['address','fa-location-dot'],['linkedin','fa-linkedin']];
-    entries.forEach(([k,ico])=>{
-      const v=STATE.chips[k]; if(!v) return;
-      const d=document.createElement('div'); d.className='chip'; d.innerHTML=`<i class="fa-solid ${ico}"></i><span>${v}</span>`;
-      chipsHost.appendChild(d);
-    });
-  }
-
-  // skills
-  const wantSkills = STATE.skills.length>0;
-  if(wantSkills){
-    if(STATE.skillsWhere==='sidebar' && isSidebar()){
-      $('#railSkills',header).style.display='block';
-      const g=$('#railSkills .grid-skills',header); g.innerHTML='';
-      STATE.skills.forEach(s=> g.appendChild(makeSkillRow(s.type,s.label,s.value)));
-    }else{
-      const sNode=skillsSection(false);
-      mainZone().appendChild(sNode);
-      const g=$('.grid-skills',sNode);
-      STATE.skills.forEach(s=> g.appendChild(makeSkillRow(s.type,s.label,s.value)));
-      // move button should send to sidebar
-      $('.move-where',sNode).title='Move to sidebar';
-      $('.move-where',sNode).onclick=()=>{ STATE.skillsWhere='sidebar'; applyStateToCanvas(); };
-    }
-  }
-
-  // education
-  if(STATE.edu.length){
-    const eNode=educationSection();
-    mainZone().appendChild(eNode);
-    const g=$('.edu-grid',eNode); STATE.edu.forEach(e=> g.appendChild(eduCard(e.kind,e.title,e.year,e.acad)));
-  }
-
-  // experience
-  if(STATE.exp.length){
-    const xNode=experienceSection();
-    mainZone().appendChild(xNode);
-    const g=$('.exp-list',xNode); STATE.exp.forEach(e=> g.appendChild(expCard(e.when,e.role,e.org,e.desc)));
-  }
-
-  // filter add menu options
-  filterAddMenu();
-  updatePH();
-  moveAddAnchor();
-
-  if(!skipFade){
-    canvas.classList.add('blurred'); setTimeout(()=>canvas.classList.remove('blurred'),180);
-  }
-}
-
-/* MENU toggles */
+/* menu toggles */
 function toggleDD(dd){ dd.classList.toggle('open'); }
 $('#ddFile > button').onclick=()=>toggleDD($('#ddFile'));
 $('#ddLayout > button').onclick=()=>toggleDD($('#ddLayout'));
 $('#ddTheme > button').onclick=()=>toggleDD($('#ddTheme'));
-document.addEventListener('click',e=> [$('#ddFile'),$('#ddLayout'),$('#ddTheme')].forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); }));
+document.addEventListener('click',e=>{
+  [$('#ddFile'),$('#ddLayout'),$('#ddTheme')].forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
+});
 
-/* START */
-applyStateToCanvas(true);
+/* canvas & layout */
+const stack=$('#stack');
+const addAnchor=$('#canvasAdd');
+const addMenu=$('#addMenu');
+const addTray=$('#addTray');
+const dotAdd=$('#dotAdd');
+const layoutPop=$('#layoutPop');
 
-/* Welcome stays until user chooses */
+function ensureHeader(kind){ // sidebar | fancy | topbar
+  let header=$('.node[data-locked="1"]',stack);
+  if(header) return header;
+  header=make('div','node'); header.setAttribute('data-locked','1');
+  header.appendChild(buildHeader(kind||'fancy'));
+  stack.insertBefore(header, addAnchor);
+  return header;
+}
+function buildHeader(kind){
+  const wrap=make('div','header');
+  const hero=make('div','hero-rect hero-gradient '+(kind==='sidebar'?'sidebar':'top'));
+  const ava=make('div','float-ava '+(kind==='sidebar'?'sidebar':kind==='fancy'?'fancy':'topbar'));
+  const img=make('div','avatar'); img.setAttribute('data-empty','1'); img.style.width='120px'; img.style.height='120px';
+  img.innerHTML='<canvas width="120" height="120"></canvas><input type="file" accept="image/*">';
+  ava.appendChild(img);
+  const nm=make('h1','name','YOUR NAME');
+  wrap.append(hero, ava, nm);
+  initAvatar(img);
+  wrap.setAttribute('data-kind',kind);
+  setTimeout(()=>morphHeader(kind),12);
+  return wrap;
+}
+function morphHeader(kind){
+  const h=$('.header'); if(!h) return;
+  const hero=$('.hero-rect',h), ava=$('.float-ava',h), nm=$('.name',h);
+  if(kind==='sidebar'){
+    hero.classList.add('sidebar'); hero.classList.remove('top');
+    ava.className='float-ava sidebar';
+    nm.style.marginTop='160px'; nm.style.textAlign='left'; nm.style.paddingLeft='20px';
+    ensureSidebarScaffold();
+  }else if(kind==='fancy'){
+    hero.classList.remove('sidebar'); hero.classList.add('top');
+    ava.className='float-ava fancy';
+    nm.style.marginTop='90px'; nm.style.textAlign='center'; nm.style.paddingLeft='0';
+    removeSidebarScaffold();
+  }else{
+    hero.classList.remove('sidebar'); hero.classList.add('top');
+    ava.className='float-ava topbar';
+    nm.style.marginTop='120px'; nm.style.textAlign='center'; nm.style.paddingLeft='0';
+    removeSidebarScaffold();
+  }
+}
+
+/* sidebar scaffold (column + main zone) */
+function ensureSidebarScaffold(){
+  if($('.sidebar-layout',stack)) return;
+  const col=make('div','node'); col.setAttribute('data-locked','1');
+  col.innerHTML=`<div class="sidebar-layout" style="display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px">
+    <div class="rail hero-gradient" style="border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:560px">
+      <div class="chips" data-rail-chips></div>
+      <div id="railSlot"></div>
+    </div>
+    <div data-zone="main"></div>
+  </div>`;
+  stack.insertBefore(col, addAnchor);
+  moveAddAnchor();
+}
+function removeSidebarScaffold(){
+  const sc=$('.sidebar-layout',stack); if(!sc) return;
+  const main=$('[data-zone="main"]',sc);
+  $$('.node',main).forEach(n=>stack.insertBefore(n, addAnchor));
+  sc.closest('.node').remove();
+  moveAddAnchor();
+}
+function isSidebar(){ return !!$('.sidebar-layout',stack); }
+function mainZone(){ return isSidebar()? $('[data-zone="main"]',stack) : stack; }
+function railZone(){ return isSidebar()? $('#railSlot') : null; }
+function moveAddAnchor(){
+  const dest=isSidebar()? mainZone():stack;
+  if(addAnchor.parentElement!==dest) dest.appendChild(addAnchor);
+}
+
+/* Avatar crop */
+function initAvatar(wrapper){
+  const canvas=$('canvas',wrapper), input=$('input',wrapper);
+  const ctx=canvas.getContext('2d',{willReadFrequently:true}); let img=null, scale=1,minScale=1,x=0,y=0,drag=false,sx=0,sy=0;
+  function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); if(img){ ctx.imageSmoothingQuality='high'; ctx.drawImage(img,x,y,img.width*scale,img.height*scale); wrapper.setAttribute('data-empty','0'); } ctx.restore(); }
+  wrapper.addEventListener('click',()=>input.click());
+  input.addEventListener('change',()=>{
+    const f=input.files&&input.files[0]; if(!f) return;
+    const u=URL.createObjectURL(f); const im=new Image();
+    im.onload=()=>{ img=im; const sx=canvas.width/im.width, sy=canvas.height/im.height; minScale=Math.max(sx,sy); scale=minScale; x=(canvas.width-im.width*scale)/2; y=(canvas.height-im.height*scale)/2; draw(); };
+    im.src=u; setTimeout(()=>URL.revokeObjectURL(u),4000);
+  });
+  canvas.addEventListener('mousedown',e=>{drag=true; sx=e.clientX; sy=e.clientY;});
+  window.addEventListener('mouseup',()=>drag=false);
+  window.addEventListener('mousemove',e=>{if(!drag) return; x+=e.clientX-sx; y+=e.clientY-sy; sx=e.clientX; sy=e.clientY; draw();});
+  canvas.addEventListener('wheel',e=>{e.preventDefault(); if(!img) return; const d=e.deltaY<0?1.05:.95; let ns=scale*d; if(ns<minScale) ns=minScale; if(ns>5) ns=5; const r=canvas.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; const dx=(mx-x)/scale, dy=(my-y)/scale; x=mx-dx*ns; y=my-dy*ns; scale=ns; draw();},{passive:false});
+}
+
+/* SKILL helpers */
+function starRow(label='Skill', value=0){
+  const d=make('div','skill'); d.setAttribute('data-type','stars'); d.setAttribute('draggable','false');
+  d.innerHTML=`<div class="handle">⋮⋮</div>
+    <div class="label" contenteditable>${label}</div>
+    <div class="stars">${[1,2,3,4,5].map(i=>`<svg class="star ${i<=value?'active':''}" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</div>`;
+  d.querySelectorAll('.star').forEach(s=>s.onclick=e=>{
+    const n=+e.currentTarget.getAttribute('data-i'); d.querySelectorAll('.star').forEach((s2,i)=>s2.classList.toggle('active',i<n));
+  });
+  addDragByHandle(d);
+  return d;
+}
+function sliderRow(label='Skill', value=50){
+  const d=make('div','skill'); d.setAttribute('data-type','slider'); d.setAttribute('draggable','false');
+  d.innerHTML=`<div class="handle">⋮⋮</div>
+    <div class="label" contenteditable>${label}</div>
+    <input type="range" min="0" max="100" value="${value}">`;
+  addDragByHandle(d);
+  return d;
+}
+function addDragByHandle(row){
+  const handle=row.querySelector('.handle');
+  handle.addEventListener('mousedown',()=>{ row.setAttribute('draggable','true'); });
+  handle.addEventListener('mouseup',()=>{ row.setAttribute('draggable','false'); });
+}
+
+/* sections */
+function sectionSkills(where){ // where: 'sidebar'|'canvas'
+  const node=make('div','node');
+  node.innerHTML=`<div class="section skills">
+    <div class="title"><i class="fa-solid fa-layer-group"></i> <div>Skills</div></div>
+    <div class="underline"></div>
+    <div class="tip">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
+    <div class="grid-skills" data-grid></div>
+    <div class="add-under"><button class="btn" data-add-star>+ ★</button> <button class="btn" data-add-slider style="margin-left:8px">+ <i class="fa-solid fa-sliders"></i></button></div>
+    <div class="bubble"><button class="ui" data-move title="Move between canvas/side"><i class="fa-solid fa-arrow-up-long"></i></button><button class="ui" data-del title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
+  </div>`;
+  const grid=$('[data-grid]',node);
+  const addStar=$('[data-add-star]',node), addSl=$('[data-add-slider]',node);
+  addStar.onclick=()=>{ grid.appendChild(starRow()); attachDnd(grid,'.skill'); };
+  addSl.onclick=()=>{ grid.appendChild(sliderRow()); attachDnd(grid,'.skill'); };
+  $('[data-del]',node).onclick=()=>node.remove();
+  $('[data-move]',node).onclick=()=>{
+    if(isSidebar()){
+      stack.insertBefore(node, addAnchor);
+    }else{
+      (railZone()||stack).prepend(node);
+    }
+    cleanAddOptions();
+  };
+  if(where==='sidebar' && railZone()) railZone().prepend(node); else stack.insertBefore(node, addAnchor);
+  attachDnd(grid,'.skill');
+  cleanAddOptions();
+  return node;
+}
+function sectionExp(){
+  const node=make('div','node');
+  node.innerHTML=`<div class="section">
+    <div class="title"><i class="fa-solid fa-briefcase"></i> <div>Work experience</div></div>
+    <div class="underline"></div>
+    <div class="exp-list" data-list></div>
+    <div class="add-under"><button class="btn" data-add>+ Add role</button></div>
+    <div class="bubble"><button class="ui" data-del title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
+  </div>`;
+  const list=$('[data-list]',node);
+  function add(dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.'){
+    const c=make('div','exp-card'); c.setAttribute('draggable','false');
+    c.innerHTML=`<div class="exp-tools"><div class="ui handle" title="Drag">⋮⋮</div><button class="ui" data-rm title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
+      <span class="badge" contenteditable>${dates}</span>
+      <span style="font-weight:800;margin-left:8px" contenteditable>${role}</span>
+      <div style="font-weight:700;color:#374151" contenteditable>${org}</div>
+      <div class="desc" contenteditable>${desc}</div>`;
+    c.querySelector('[data-rm]').onclick=()=>c.remove();
+    addDragByHandle(c);
+    list.appendChild(c);
+  }
+  $('[data-add]',node).onclick=()=>{ add(); spark(node); };
+  add(); // start with one
+  stack.insertBefore(node, addAnchor);
+  attachDnd(list,'.exp-card');
+  cleanAddOptions();
+  return node;
+}
+function sectionEdu(){
+  const node=make('div','node');
+  node.innerHTML=`<div class="section">
+    <div class="title"><i class="fa-solid fa-graduation-cap"></i> <div>Education</div></div>
+    <div class="underline"></div>
+    <div class="edu-grid" data-grid></div>
+    <div class="add-under"><button class="btn" data-course>+ Add course</button><button class="btn" data-degree style="margin-left:8px">+ Add degree</button></div>
+    <div class="bubble"><button class="ui" data-del title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
+  </div>`;
+  const grid=$('[data-grid]',node);
+  function card(kind='course'){
+    const accent = kind==='course' ? 'var(--g2)' : 'var(--g1)';
+    const c=make('div','edu-card'); c.setAttribute('draggable','false');
+    c.innerHTML=`<div class="edu-tools"><div class="ui handle" title="Drag">⋮⋮</div><button class="ui" data-rm title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="edu-title"><i class="fa-solid ${kind==='course'?'fa-scroll':'fa-graduation-cap'}" style="color:${accent}"></i> <span contenteditable>Title</span></div>
+      <div class="edu-year"><span class="badge" contenteditable>2018–2022</span></div>
+      <div class="academy" contenteditable>Academy name (wraps to two lines if needed)</div>`;
+    c.querySelector('[data-rm]').onclick=()=>c.remove();
+    addDragByHandle(c);
+    grid.appendChild(c);
+  }
+  $('[data-course]',node).onclick=()=>{ card('course'); spark(node); attachDnd(grid,'.edu-card'); };
+  $('[data-degree]',node).onclick=()=>{ card('degree'); spark(node); attachDnd(grid,'.edu-card'); };
+  // start with two
+  card('course'); card('degree');
+  stack.insertBefore(node, addAnchor);
+  attachDnd(grid,'.edu-card');
+  cleanAddOptions();
+  return node;
+}
+function spark(host){
+  const p=make('div','poof'); host.appendChild(p); setTimeout(()=>p.remove(),600);
+}
+
+/* drag n drop */
+function attachDnd(container, sel){
+  if(container._dnd) return; container._dnd=true;
+  let dragEl=null, ph=null;
+  container.addEventListener('dragstart',e=>{
+    const it=e.target.closest(sel); if(!it) return;
+    if(it.getAttribute('draggable')!=='true') { e.preventDefault(); return; }
+    dragEl=it; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','');
+    ph=make('div'); ph.style.height=it.offsetHeight+'px'; ph.style.border='2px dashed #94a3b8'; ph.style.borderRadius='12px';
+    try{const img=document.createElement('canvas');img.width=1;img.height=1;e.dataTransfer.setDragImage(img,0,0);}catch(_){}
+    setTimeout(()=>{ it.style.opacity='.35'; },0);
+  });
+  container.addEventListener('dragend',()=>{ if(dragEl){ dragEl.style.opacity=''; ph&&ph.remove(); dragEl=null; ph=null; } });
+  container.addEventListener('dragover',e=>{
+    if(!dragEl) return; e.preventDefault();
+    const after=Array.from(container.querySelectorAll(sel)).filter(el=>el!==dragEl)
+      .reduce((closest,child)=>{
+        const box=child.getBoundingClientRect();
+        const offset=e.clientY-box.top - box.height/2;
+        return (offset<0 && offset>closest.offset)?{offset,element:child}:closest;
+      },{offset:-Infinity}).element;
+    if(after==null) container.appendChild(ph); else container.insertBefore(ph,after);
+  });
+  container.addEventListener('drop',e=>{
+    e.preventDefault(); if(!dragEl||!ph) return; container.insertBefore(dragEl,ph); ph.remove(); dragEl.style.opacity=''; dragEl=null; ph=null;
+  });
+}
+
+/* add menu and plus */
+function cleanAddOptions(){
+  const hasSkills=!!$('.section.skills',stack) || !!$('.section.skills',railZone()||document);
+  const hasEdu=!!$('.edu-grid',stack);
+  const hasExp=!!$('.exp-list',stack);
+  addTray.innerHTML='';
+  const map=[ ['section-skills','fa-layer-group','Skills',!hasSkills],
+              ['section-edu','fa-user-graduate','Education',!hasEdu],
+              ['section-exp','fa-briefcase','Experience',!hasExp] ];
+  map.filter(m=>m[3]).forEach(m=>{
+    const b=make('button','opt'); b.dataset.add=m[0]; b.innerHTML=`<i class="fa-solid ${m[1]}"></i>`;
+    addTray.appendChild(b);
+  });
+  // hide big plus if all exist
+  addAnchor.style.display = (map.filter(m=>m[3]).length===0)?'none':'flex';
+}
+cleanAddOptions();
+
+dotAdd.addEventListener('click',()=>{
+  addMenu.classList.add('open');
+  function close(e){ if(!addMenu.contains(e.target) && e.target!==dotAdd){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } }
+  setTimeout(()=>document.addEventListener('click',close),0);
+});
+addMenu.addEventListener('click',e=>{
+  const b=e.target.closest('.opt'); if(!b) return;
+  addMenu.classList.remove('open');
+  if(b.dataset.add==='section-skills') sectionSkills(isSidebar()?'sidebar':'canvas');
+  if(b.dataset.add==='section-edu') sectionEdu();
+  if(b.dataset.add==='section-exp') sectionExp();
+});
+
+addAnchor.addEventListener('click',e=>{
+  const r=addAnchor.getBoundingClientRect();
+  layoutPop.style.left=(r.left+window.scrollX)+'px';
+  layoutPop.style.top=(r.bottom+8+window.scrollY)+'px';
+  layoutPop.classList.add('open');
+  const close=ev=>{ if(!layoutPop.contains(ev.target) && ev.target!==addAnchor) { layoutPop.classList.remove('open'); document.removeEventListener('click',close);} };
+  setTimeout(()=>document.addEventListener('click',close),0);
+});
+layoutPop.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  layoutPop.classList.remove('open');
+  migrateLayout(b.dataset.layout);
+});
+
+/* layout picker (top menu) */
+function setupLP(id){ const box=document.getElementById(id); if(!box) return; $$('.mock',box).forEach(m=>{
+  m.addEventListener('click',()=>{ $$('.mock',box).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); migrateLayout(m.dataset.layout,true); });
+});}
+setupLP('layoutPickerMenu');
+
+function migrateLayout(kind,closeMenu){
+  const h=$('.header'); if(!h){ stack.insertBefore(buildHeader(kind),addAnchor); ensureHeader(kind); return; }
+  h.setAttribute('data-kind',kind); morphHeader(kind);
+  if(closeMenu) $('#ddLayout').classList.remove('open');
+}
+
+/* SAVE / LOAD / PRINT / PREVIEW */
+function toJSON(){
+  // capture avatar snapshots
+  $$('[data-empty="0"] canvas').forEach(cv=>{
+    try{cv.parentElement.setAttribute('data-snap',cv.toDataURL('image/png'));}catch(_){}
+  });
+  const header=$('.node[data-locked="1"]')?.innerHTML || null;
+  const content=(isSidebar()? mainZone():stack);
+  const nodes=$$('.node',content).filter(n=>!n.hasAttribute('data-locked')).map(n=>({html:n.outerHTML}));
+  return {dark:document.body.getAttribute('data-dark'), material:document.body.getAttribute('data-material'),
+          g1:getComputedStyle(document.documentElement).getPropertyValue('--g1').trim(),
+          g2:getComputedStyle(document.documentElement).getPropertyValue('--g2').trim(),
+          header, nodes};
+}
+function restore(data){
+  document.body.setAttribute('data-dark',data.dark||'0'); document.body.setAttribute('data-material',data.material||'paper');
+  applyGradient(data.g1||'#ff7b54', data.g2||'#ffd166');
+  $$('.node',stack).forEach(n=>n.remove());
+  if(data.header){ const H=make('div','node'); H.setAttribute('data-locked','1'); H.innerHTML=data.header; stack.insertBefore(H,addAnchor); $$('.avatar',H).forEach(initAvatar); }
+  (data.nodes||[]).forEach(o=>{ const p=document.createElement('div'); p.innerHTML=o.html; const n=p.firstElementChild; stack.insertBefore(n,addAnchor); $$('.avatar',n).forEach(initAvatar); });
+  moveAddAnchor(); cleanAddOptions();
+}
+$('#saveJSON').onclick=function(){ const blob=new Blob([JSON.stringify(toJSON(),null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resume_project.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); };
+$('#loadJSON').onclick=function(){ const i=document.createElement('input'); i.type='file'; i.accept='.json'; i.onchange=()=>{ const f=i.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ restore(JSON.parse(String(r.result))); }catch(_){ alert('Invalid JSON'); } }; r.readAsText(f); }; i.click(); };
+$('#startScratch').onclick=function(){ $$('.node',stack).forEach(n=>n.remove()); stack.appendChild(addAnchor); cleanAddOptions(); };
+
+$('#pdfBtn').onclick=function(){ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(()=>{ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),200); },60); };
+const prevBtn=$('#togglePreview'); prevBtn.onclick=function(){ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); prevBtn.textContent=on?'Exit preview':'Preview'; };
+
+/* WELCOME + WIZARD */
+const welcome=$('#welcome'), wizWrap=$('#wizWrap'), stepList=$('#stepList'), wizBody=$('#wizBody');
+const STEPS=['layout','theme','contact','skills','education','experience','done'];
+const STATE={ step:0, layout:'sidebar', dark:0, material:'paper', g1:'#ff7b54', g2:'#ffd166',
+  contact:{name:'',phone:'',email:'',address:'',linkedin:''},
+  skills:{place:'sidebar', list:[]}, edu:[], exp:[]
+};
+
+function openWizard(){ renderSteps(); renderStep(); welcome.classList.remove('open'); wizWrap.classList.add('open'); }
+function closeWizard(){ wizWrap.classList.remove('open'); }
+
+function renderSteps(){
+  stepList.innerHTML='';
+  STEPS.forEach((k,i)=>{
+    const st=make('div','step'+(i===STATE.step?' active':'')+(i<STATE.step?' done':'')); st.dataset.i=i;
+    st.innerHTML=`<div class="dot"></div><div style="text-transform:capitalize">${k}</div>`;
+    st.onclick=()=>{ if(i<=STATE.step) { STATE.step=i; renderSteps(); renderStep(); } };
+    stepList.appendChild(st);
+  });
+}
+
+function nextStep(){ if(STATE.step<STEPS.length-1){ STATE.step++; renderSteps(); renderStep(); } else { closeWizard(); } }
+function backStep(){ if(STATE.step>0){ STATE.step--; renderSteps(); renderStep(); } }
+
+function renderStep(){
+  const k=STEPS[STATE.step]; wizBody.innerHTML='';
+  if(k==='layout'){
+    wizBody.innerHTML=`<h3>Choose your layout</h3><div class="small">Pick a starting header style.</div>
+      <div class="mockrow" id="wizardLayout"></div>
+      <div class="navline"><button class="btn primary" id="n1">Next</button></div>`;
+    const box=$('#wizardLayout',wizBody);
+    const opts=[
+      ['sidebar','Sidebar'],
+      ['fancy','Top fancy'],
+      ['topbar','Top bar']
+    ];
+    opts.forEach(o=>{
+      const m=make('div','mock '+o[0]); m.dataset.layout=o[0];
+      if(o[0]===STATE.layout) m.classList.add('sel');
+      m.innerHTML=(o[0]==='sidebar'
+        ? `<div class="side"></div><div class="circle"></div><div class="lines" style="margin-left:36%"><div class="line"></div><div class="line s"></div><div class="line"></div></div>`
+        : o[0]==='fancy'
+          ? `<div class="rect"></div><div class="circle"></div><div class="lines" style="margin-top:56px"><div class="line"></div><div class="line s"></div><div class="line"></div></div>`
+          : `<div class="rect"></div><div class="circle"></div><div class="lines" style="margin-top:68px"><div class="line"></div><div class="line s"></div></div>`);
+      m.onclick=()=>{ $$('.mock',box).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); STATE.layout=o[0]; ensureHeader(o[0]); migrateLayout(o[0]); };
+      box.appendChild(m);
+    });
+    $('#n1',wizBody).onclick=nextStep;
+  }
+  else if(k==='theme'){
+    wizBody.innerHTML=`<h3>Choose a color theme</h3>
+      <div class="mockrow" id="wPresets"></div>
+      <div style="margin:14px 0;display:flex;gap:10px;align-items:center">
+        <span>Dark mode</span><div class="switch" id="wDark" data-on="${STATE.dark}"></div>
+      </div>
+      <div style="border-top:1px dashed var(--line);padding-top:10px;margin-top:10px">
+        <div class="small" style="margin-bottom:6px">Custom gradient</div>
+        <div class="actions"><input type="color" id="wC1" value="${STATE.g1}"><input type="color" id="wC2" value="${STATE.g2}">
+        <button class="btn" id="wApply">Apply</button></div>
+      </div>
+      <div class="navline"><button class="btn" id="b2">Back</button><button class="btn primary" id="n2">Next</button></div>`;
+    const wp=$('#wPresets',wizBody);
+    PRESETS.forEach(p=>{ const b=make('button','swatch-btn'); b.style.background=`linear-gradient(90deg,${p[1]},${p[0]})`; b.onclick=()=>{applyGradient(p[0],p[1]); STATE.g1=p[0]; STATE.g2=p[1];}; wp.appendChild(b); });
+    $('#wDark',wizBody).onclick=function(){ const on=this.getAttribute('data-on')==='1'?0:1; this.setAttribute('data-on',on); document.body.setAttribute('data-dark',on); STATE.dark=on; };
+    $('#wApply',wizBody).onclick=()=>{ const c1=$('#wC1').value, c2=$('#wC2').value; applyGradient(c1,c2); STATE.g1=c1; STATE.g2=c2; };
+    $('#b2',wizBody).onclick=backStep; $('#n2',wizBody).onclick=nextStep;
+  }
+  else if(k==='contact'){
+    wizBody.innerHTML=`<h3>Contact details</h3>
+      <div class="small">Only filled fields will be added.</div>
+      <div style="display:grid;gap:10px;max-width:600px;margin-top:10px">
+        <input class="btn" id="wn" placeholder="Full name" value="${STATE.contact.name||''}">
+        <input class="btn" id="wp" placeholder="+34 600 123 456" value="${STATE.contact.phone||''}">
+        <input class="btn" id="we" placeholder="you@example.com" value="${STATE.contact.email||''}">
+        <input class="btn" id="wa" placeholder="City, Country" value="${STATE.contact.address||''}">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="small">linkedin.com/in/</span><input class="btn" id="wl" placeholder="username" value="${STATE.contact.linkedin||''}">
+        </div>
+      </div>
+      <div class="navline"><button class="btn" id="b3">Back</button><button class="btn primary" id="n3">Next</button></div>`;
+    $('#b3',wizBody).onclick=()=>{saveContact(); backStep();};
+    $('#n3',wizBody).onclick=()=>{ saveContact(); addContactChips(); nextStep(); };
+    function saveContact(){
+      STATE.contact={ name:$('#wn').value.trim(), phone:$('#wp').value.trim(), email:$('#we').value.trim(),
+        address:$('#wa').value.trim(), linkedin:$('#wl').value.trim() };
+    }
+  }
+  else if(k==='skills'){
+    wizBody.innerHTML=`<h3>Add your skills</h3>
+      <div class="small">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything.</b></div>
+      <div id="skillsWrap" style="margin-top:10px"></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="addStar">+ ★</button><button class="btn" id="addSl">+ <i class="fa-solid fa-sliders"></i></button></div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="placeSide"> Display skills in the sidebar</label>
+      <div class="navline"><button class="btn" id="b4">Back</button><button class="btn primary" id="n4">Next</button></div>`;
+    const wrap=$('#skillsWrap',wizBody);
+    const restore=()=>{ wrap.innerHTML=''; (STATE.skills.list||[]).forEach(it=>wrap.appendChild(it.type==='stars'?starRow(it.label,it.value):sliderRow(it.label,it.value))); attachDnd(wrap,'.skill'); };
+    restore();
+    $('#placeSide').checked=STATE.skills.place==='sidebar';
+    $('#addStar').onclick=()=>{ const r=starRow(); wrap.appendChild(r); attachDnd(wrap,'.skill'); };
+    $('#addSl').onclick=()=>{ const r=sliderRow(); wrap.appendChild(r); attachDnd(wrap,'.skill'); };
+    $('#b4').onclick=()=>{ save(); backStep(); };
+    $('#n4').onclick=()=>{ save(); // push to canvas if any
+      if(STATE.skills.list.length){
+        // remove existing skills section to avoid duplicates
+        $$('.section.skills',document).forEach(s=>s.closest('.node').remove());
+        sectionSkills($('#placeSide').checked?'sidebar':'canvas');
+        // populate
+        const grid=$('.section.skills [data-grid]',document);
+        grid.innerHTML='';
+        STATE.skills.list.forEach(it=>grid.appendChild(it.type==='stars'?starRow(it.label,it.value):sliderRow(it.label,it.value)));
+        attachDnd(grid,'.skill');
+      }
+      nextStep();
+    };
+    function save(){
+      const list=[];
+      $$('.skill',wrap).forEach(s=>{
+        if(s.dataset.type==='stars'){
+          const label=s.querySelector('.label').textContent.trim()||'Skill';
+          const v=s.querySelectorAll('.star.active').length;
+          list.push({type:'stars',label:label,value:v});
+        }else{
+          const label=s.querySelector('.label').textContent.trim()||'Skill';
+          const v=+s.querySelector('input').value;
+          list.push({type:'slider',label:label,value:v});
+        }
+      });
+      STATE.skills.list=list; STATE.skills.place=$('#placeSide').checked?'sidebar':'canvas';
+    }
+  }
+  else if(k==='education'){
+    wizBody.innerHTML=`<h3>Education</h3><div class="small">Add courses and/or degrees.</div>
+      <div id="eduWrap" style="margin-top:10px;display:grid;gap:10px;max-width:640px"></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="addCourse">+ Add course</button><button class="btn" id="addDegree">+ Add degree</button></div>
+      <div class="navline"><button class="btn" id="b5">Back</button><button class="btn primary" id="n5">Next</button></div>`;
+    const wrap=$('#eduWrap',wizBody);
+    function row(kind='course',data){ const id=uid();
+      const r=make('div','node'); r.innerHTML=`<div class="edu-card">
+        <div class="edu-tools"><div class="ui handle">⋮⋮</div><button class="ui" data-rm><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="edu-title"><i class="fa-solid ${kind==='course'?'fa-scroll':'fa-graduation-cap'}" style="color:${kind==='course'?'var(--g2)':'var(--g1)'}"></i>
+          <span contenteditable>${data?.title||'Title'}</span></div>
+        <div class="edu-year"><span class="badge" contenteditable>${data?.year||'2018–2022'}</span></div>
+        <div class="academy" contenteditable>${data?.academy||'Academy name (wraps to two lines if needed)'}</div>
+      </div>`;
+      r.querySelector('[data-rm]').onclick=()=>r.remove();
+      addDragByHandle(r); return r;
+    }
+    function restore(){ wrap.innerHTML=''; if(!STATE.edu.length) STATE.edu=[{kind:'course'},{kind:'degree'}]; STATE.edu.forEach(it=>wrap.appendChild(row(it.kind,it))); attachDnd(wrap,'.node'); }
+    restore();
+    $('#addCourse').onclick=()=>{ wrap.appendChild(row('course')); attachDnd(wrap,'.node'); };
+    $('#addDegree').onclick=()=>{ wrap.appendChild(row('degree')); attachDnd(wrap,'.node'); };
+    $('#b5').onclick=()=>{ save(); backStep(); };
+    $('#n5').onclick=()=>{ save(); // populate canvas
+      const host=$$('.section',stack).find(s=>$('.title',s)?.innerText.includes('Education'))?.closest('.node');
+      if(host) host.remove();
+      const sec=sectionEdu(); const grid=$('.edu-grid',sec); grid.innerHTML='';
+      STATE.edu.forEach(it=>{
+        const card=make('div','edu-card'); card.innerHTML=`<div class="edu-tools" style="display:none"></div>
+          <div class="edu-title"><i class="fa-solid ${it.kind==='course'?'fa-scroll':'fa-graduation-cap'}" style="color:${it.kind==='course'?'var(--g2)':'var(--g1)'}"></i> <span>${it.title||'Title'}</span></div>
+          <div class="edu-year"><span class="badge">${it.year||'2018–2022'}</span></div>
+          <div class="academy">${it.academy||'Academy name'}</div>`;
+        grid.appendChild(card);
+      });
+      nextStep();
+    };
+    function save(){
+      STATE.edu = $$('.node',wrap).map(n=>{
+        const ic=n.querySelector('.fa-scroll')?'course':'degree';
+        return {kind:ic,title:n.querySelector('.edu-title span').textContent.trim()||'Title',
+          year:n.querySelector('.badge').textContent.trim(),academy:n.querySelector('.academy').textContent.trim()};
+      });
+    }
+  }
+  else if(k==='experience'){
+    wizBody.innerHTML=`<h3>Experience</h3>
+      <div id="expWrap" style="display:grid;gap:10px;max-width:700px"></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="addRole">+ Add role</button></div>
+      <div class="navline"><button class="btn" id="b6">Back</button><button class="btn primary" id="n6">Next</button></div>`;
+    const wrap=$('#expWrap',wizBody);
+    function row(data){
+      const r=make('div','node'); r.innerHTML=`<div class="exp-card">
+        <div class="exp-tools"><div class="ui handle">⋮⋮</div><button class="ui" data-rm><i class="fa-solid fa-xmark"></i></button></div>
+        <span class="badge" contenteditable>${data?.dates||'Jan 2022'}</span>
+        <span style="font-weight:800;margin-left:8px" contenteditable>${data?.role||'Job title'}</span>
+        <div style="font-weight:700;color:#374151" contenteditable>${data?.org||'@Company'}</div>
+        <div class="desc" contenteditable>${data?.desc||'Describe impact, scale and results.'}</div>
+      </div>`;
+      r.querySelector('[data-rm]').onclick=()=>r.remove();
+      addDragByHandle(r); return r;
+    }
+    function restore(){ wrap.innerHTML=''; if(!STATE.exp.length) STATE.exp=[{}]; STATE.exp.forEach(it=>wrap.appendChild(row(it))); attachDnd(wrap,'.node'); }
+    restore();
+    $('#addRole').onclick=()=>{ const r=row({}); wrap.appendChild(r); attachDnd(wrap,'.node'); };
+    $('#b6').onclick=()=>{ save(); backStep(); };
+    $('#n6').onclick=()=>{ save();
+      const host=$$('.section',stack).find(s=>$('.title',s)?.innerText.includes('Work experience'))?.closest('.node'); if(host) host.remove();
+      const sec=sectionExp(); const list=$('.exp-list',sec); list.innerHTML='';
+      STATE.exp.forEach(it=>{
+        const c=make('div','exp-card'); c.innerHTML=`<div class="exp-tools" style="display:none"></div>
+          <span class="badge">${it.dates||'Jan 2022'}</span>
+          <span style="font-weight:800;margin-left:8px">${it.role||'Job title'}</span>
+          <div style="font-weight:700;color:#374151">${it.org||'@Company'}</div>
+          <div class="desc">${it.desc||'Describe impact, scale and results.'}</div>`;
+        list.appendChild(c);
+      });
+      nextStep();
+    };
+    function save(){ STATE.exp=$$('.node',wrap).map(n=>({
+      dates:n.querySelector('.badge').textContent.trim(),
+      role:n.querySelector('.exp-card span[contenteditable]').textContent.trim(),
+      org:n.querySelector('.exp-card div[contenteditable]').textContent.trim(),
+      desc:n.querySelector('.desc').textContent.trim()
+    })); }
+  }
+  else if(k==='done'){
+    wizBody.innerHTML=`<div class="center" style="height:100%;flex-direction:column;gap:10px">
+      <div style="font-size:26px;font-weight:900">All set ✨</div>
+      <div class="small">You can continue editing directly on the canvas.</div>
+      <div class="navline" style="justify-content:center"><button class="btn primary" id="finish">Finish</button></div>
+    </div>`;
+    $('#finish',wizBody).onclick=closeWizard;
+  }
+}
+
+/* contact chips placement */
+function addContactChips(){
+  const h=$('.header'); if(!h) ensureHeader(STATE.layout);
+  // simple chip stack under name on sidebar: put into rail chips; otherwise add a transient node under header
+  const list=[];
+  if(STATE.contact.phone) list.push(['fa-phone',STATE.contact.phone]);
+  if(STATE.contact.email) list.push(['fa-envelope',STATE.contact.email]);
+  if(STATE.contact.address) list.push(['fa-location-dot',STATE.contact.address]);
+  if(STATE.contact.linkedin) list.push(['fa-linkedin','linkedin.com/in/'+STATE.contact.linkedin]);
+
+  // name
+  if(STATE.contact.name) $('.name',h).textContent=STATE.contact.name;
+
+  if(isSidebar()){
+    const rail=$('[data-rail-chips]',stack); rail.innerHTML='';
+    list.forEach(it=>{
+      const chip=make('div','chip'); chip.innerHTML=`<i class="fa-solid ${it[0]}"></i><span>${it[1]}</span><button class="rm">×</button>`;
+      chip.querySelector('.rm').onclick=()=>chip.remove();
+      rail.appendChild(chip);
+    });
+  }else{
+    // create a simple chips node section (unlocked)
+    let holder=$('#contactHolder'); if(!holder){ holder=make('div','node'); holder.id='contactHolder'; holder.innerHTML=`<div class="chips" data-hold></div>`; stack.insertBefore(holder, addAnchor); }
+    const wrap=$('[data-hold]',holder); wrap.innerHTML='';
+    list.forEach(it=>{
+      const chip=make('div','chip'); chip.innerHTML=`<i class="fa-solid ${it[0]}"></i><span>${it[1]}</span><button class="rm">×</button>`;
+      chip.querySelector('.rm').onclick=()=>chip.remove();
+      wrap.appendChild(chip);
+    });
+  }
+}
+
+/* WELCOME open */
+welcome.classList.add('open');
+$('#startWizard').onclick=openWizard;
+$('#startBlank').onclick=()=>{ welcome.classList.remove('open'); ensureHeader('sidebar'); };
+
+/* LAYOUT inside canvas popup */
+layoutPop.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+});
+
+/* initial */
+ensureHeader('sidebar'); morphHeader('sidebar'); cleanAddOptions();
+
+/* END IIFE */
 })();
 </script>
 </body>
