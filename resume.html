@@ -1,268 +1,235 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Easy Resume — Builder</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Easy Resume Builder — Wizard • Sections • Mockups</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
 <style>
 :root{
-  /* core */
-  --bg:#0e1117;
-  --ink:#e6e8ef;
-  --panel:#0f1420;
-  --line:#22283a;
-  --card:#f7f9ff;
-  --muted:#9aa3ba;
-  --shadow:0 18px 60px rgba(0,0,0,.35);
-
-  /* theme gradient (editable) */
-  --g1:#ff7b54;
-  --g2:#ffd166;
-
-  /* accent extracted from gradient mid-tone */
-  --accent:#a052ff;
-  --accent2:#ff72c7;
-
-  /* material */
-  --paper:#ffffff;
-  --glass:rgba(255,255,255,.10);
-  --glass-stroke:rgba(255,255,255,.25);
-
-  /* sizing */
-  --rail:300px;
-  --stars-w:126px; /* width of 5 stars area */
-  --slider-h:4px;
+  --accent:#8b5cf6; --accent2:#d946ef; --ink:#e6e8ef;
+  --bg:#0e1117; --panel:#0f1420; --line:#23283b; --card:#ffffff;
+  --glass:#0f1420cc;
+  --shadow:0 10px 30px rgba(0,0,0,.25);
+  --rail-width:300px;
+  --star-gap:6px;            /* tighter stars */
+  --skill-right:128px;       /* fixed right column width for stars/sliders */
 }
-
-[data-dark="1"]{
-  --bg:#0a0e14;
-  --ink:#e9eefb;
-  --panel:#0b101a;
-  --line:#1c2332;
-  --card:#0f1420;
-  --paper:#111827;
-  --glass:rgba(17,24,39,.40);
-  --glass-stroke:rgba(255,255,255,.08);
-}
+body[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
+body[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
+body[data-theme="city"]{ --accent:#34d399; --accent2:#9ca3af }
+body[data-theme="magentaPurple"]{ --accent:#c026d3; --accent2:#9333ea }
+body[data-theme="magentaPink"]{ --accent:#ec4899; --accent2:#f97316 }
+body[data-theme="blueGreen"]{ --accent:#22c1c3; --accent2:#2ecc71 }
+body[data-theme="grayBlack"]{ --accent:#8892a6; --accent2:#414b57 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0;background:var(--bg);color:var(--ink);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
-  display:grid;grid-template-rows:auto 1fr;overflow:hidden
+  margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);
+  display:grid;grid-template-rows:auto 1fr;
 }
+a{color:inherit}
 
-/* NAV */
-.nav{position:sticky;top:0;z-index:10000;display:flex;gap:10px;align-items:center;justify-content:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336}
+/* ───────── NAV ───────── */
+.nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
 .brand{font-weight:800}
 .menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .mbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:7px 10px;border-radius:12px;cursor:pointer}
 .mbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
 .dropdown{position:relative}
-.dropdown-menu{position:absolute;left:0;top:120%;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px;display:none;min-width:260px}
+.dropdown-menu{position:absolute;top:120%;left:0;background:#0f1420;border:1px solid var(--line);border-radius:12px;min-width:260px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:none;padding:10px;z-index:9999}
 .dropdown.open .dropdown-menu{display:block}
-.dropdown-menu .row{display:grid;grid-template-columns:1fr;gap:10px}
-.swatch-btn{height:44px;border-radius:10px;border:1px solid #2b324b;cursor:pointer}
-.toggle-row{display:flex;align-items:center;gap:12px;justify-content:space-between;border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
-.switch{width:54px;height:28px;border-radius:999px;background:#1b2334;border:1px solid #2b324b;position:relative;cursor:pointer}
-.switch::after{content:"";position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s ease}
-.switch[data-on="1"]::after{transform:translateX(26px)}
-.small{font-size:12px;color:#aeb6cc}
+.dropdown-menu button{display:block;width:100%;text-align:left;background:transparent;color:#e6e8ef;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+.dropdown-menu button:hover{background:#172038}
 
-/* CANVAS */
-#canvas{overflow:auto;padding:24px;display:flex;justify-content:center}
-.page{background:#fff;color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
-.page::before{content:"";position:absolute;inset:16px;pointer-events:none;background:
-  linear-gradient(90deg,transparent 15px,#eef2f7 16px),
-  linear-gradient(transparent 15px,#eef2f7 16px);
-  background-size:16px 16px;opacity:.35;border-radius:14px}
-#sheet{padding:22px;min-height:1120px}
+/* Theme pop */
+.theme-pop{min-width:320px}
+.theme-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.swatch{height:38px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))}
+.swatch[data-k="coral"]{--a1:#ff7b54;--a2:#ffd166}
+.swatch[data-k="sea"]{--a1:#4facfe;--a2:#38d2ff}
+.swatch[data-k="city"]{--a1:#34d399;--a2:#9ca3af}
+.swatch[data-k="magentaPurple"]{--a1:#c026d3;--a2:#9333ea}
+.swatch[data-k="magentaPink"]{--a1:#ec4899;--a2:#f97316}
+.swatch[data-k="blueGreen"]{--a1:#22c1c3;--a2:#2ecc71}
+.swatch[data-k="grayBlack"]{--a1:#8892a6;--a2:#414b57}
+.k-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+.k-row input[type=color]{width:28px;height:28px;border:0;border-radius:8px;cursor:pointer}
+.toggle{display:inline-flex;align-items:center;gap:10px}
+.switch{width:46px;height:26px;border-radius:999px;background:#2a314a;border:1px solid #3b4569;position:relative;cursor:pointer}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#cfd6ff;transition:left .18s ease}
+.switch.on{background:#3b82f6}
+.switch.on::after{left:23px}
+
+/* ───────── CANVAS ───────── */
+#canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
+.page{background:var(--card);color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative;transition:background .25s ease, color .25s ease}
+[data-dark="1"] .page{background:#0d1220;color:#e6e8ef}
+#sheet{padding:24px;min-height:1120px}
 .stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
+.placeholder{grid-column:1/-1;display:none}
 
-/* layout headers */
-.hero-gradient{background:linear-gradient(135deg,var(--g2),var(--g1))}
-.header{border-radius:14px;position:relative;overflow:hidden;transition:all .35s ease}
-.topbar{min-height:170px;padding:16px}
-.fancy{min-height:190px;padding:18px}
-.name{font-weight:900;font-size:34px;margin:0;text-align:center}
+/* nodes */
+.node{position:relative;background:var(--card);border-radius:14px;padding:10px 10px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);grid-column:span 12;transition:transform .18s ease, box-shadow .18s ease}
+.node.sel{outline:2px solid #7c99ff; box-shadow:0 12px 30px rgba(124,153,255,.25)}
+.node[data-locked="1"]{background:transparent;box-shadow:none;padding:0}
 
-/* morph bits */
-.hero-rect{height:110px;border-radius:14px;transition:all .45s ease}
-.hero-rect.sidebar{height:100%;width:34%;position:absolute;left:0;top:0;bottom:0}
-.hero-rect.top{height:110px;width:100%}
-.float-ava{position:absolute;width:120px;height:120px;border-radius:999px;background:#d1d5db;border:6px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.25);transition:all .45s ease}
-.float-ava.sidebar{left:18px;top:20px}
-.float-ava.fancy{left:50%;transform:translateX(-50%);top:-40px}
-.float-ava.topbar{right:26px;top:26px}
+/* toolbar */
+.floatbar{position:sticky;top:8px;z-index:5000;display:none;justify-content:center;gap:6px}
+.fbtn{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;padding:8px 10px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.fbtn:hover{box-shadow:0 0 0 3px rgba(99,102,241,.25) inset}
 
-/* avatar cropper */
-.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:6px solid #fff}
-.avatar canvas{width:100%;height:100%;display:block}
-.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
-.avatar input{display:none}
-
-/* node/card frame + material */
-.node{grid-column:span 12;background:var(--paper);border:1px solid #eaeef7;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:12px;position:relative;transition:transform .2s ease, box-shadow .2s ease}
-[data-material="glass"] .node{background:var(--glass);backdrop-filter:blur(8px);border:1px solid var(--glass-stroke)}
-.node.sel{outline:2px solid #86a1ff}
-.node[data-locked="1"]{background:transparent;border:0;box-shadow:none;padding:0}
-
-/* helpers */
-.center{display:flex;justify-content:center;align-items:center}
-.badge{display:inline-block;background:color-mix(in srgb, var(--g1) 20%, #fff);color:color-mix(in srgb, var(--g1) 70%, #000);border:1px solid color-mix(in srgb, var(--g1) 40%, #0000);padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px}
-
-/* SECTION TITLES */
-.section{background:var(--paper);border:1px solid #e7ecfb;border-radius:14px;padding:12px}
-.title{font-weight:900;text-align:center;display:flex;gap:8px;align-items:center;justify-content:center}
-.title i{opacity:.9}
-.underline{height:4px;border-radius:999px;background:linear-gradient(90deg,var(--g2),var(--g1));width:160px;margin:6px auto 10px}
-
-/* toolbar bubbles */
-.bubble{position:absolute;top:10px;right:10px;display:flex;gap:6px}
-.ui{background:#0f1420;border:1px solid #2b324b;color:#e6e8ef;border-radius:999px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-.ui:hover{box-shadow:0 0 0 6px rgba(124,153,255,.2), 0 10px 24px rgba(0,0,0,.35)}
-
-/* CHIPS */
-.chips{display:flex;flex-direction:column;gap:8px}
-.chip{background:var(--paper);border:1px solid #e7ecfb;border-radius:999px;display:flex;align-items:center;gap:10px;padding:8px 10px}
-.chip i{min-width:14px}
-.chip .rm{margin-left:auto;background:#ef4444;border:0;color:#fff;border-radius:10px;width:22px;height:22px;display:grid;place-items:center;cursor:pointer}
-
-/* SKILLS */
-.section.skills .tip{font-size:12px;color:#76809d;margin:8px 0 14px}
-.grid-skills{display:grid;gap:10px}
-.grid-skills.cols-1{grid-template-columns:1fr}
-.grid-skills.cols-2{grid-template-columns:1fr 1fr}
-.grid-skills.cols-3{grid-template-columns:1fr 1fr 1fr}
-
-.skill{display:grid;grid-template-columns:24px 1fr var(--stars-w);align-items:center;gap:10px;position:relative;padding:2px 4px;border-radius:10px}
-.skill .handle{width:24px;height:24px;border-radius:8px;border:1px dashed #aab1c9;color:#6b7280;cursor:grab;display:grid;place-items:center;font-weight:900}
-.skill .label[contenteditable]{outline:0;border:1px solid transparent;border-radius:8px;padding:2px 6px}
-.skill .label[contenteditable]:focus{border-color:#cbd5e1;background:#f4f7fd}
-.skill .stars{justify-self:end;width:var(--stars-w);display:flex;gap:6px}
-.star{width:18px;height:18px;fill:#d1d5db;cursor:pointer}
-.star.active{fill:#f59e0b}
-.skill input[type=range]{-webkit-appearance:none;appearance:none;width:var(--stars-w);height:var(--slider-h);background:linear-gradient(90deg,var(--g2),var(--g1));border-radius:999px;outline:1px solid rgba(0,0,0,.15)}
-.skill input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #b26cff;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer}
-
-/* EXP */
-.exp-list{display:grid;gap:12px}
-.exp-card{background:color-mix(in srgb, var(--g1) 12%, #fff);border:1px solid color-mix(in srgb, var(--g1) 30%, #0000);border-radius:14px;padding:12px 14px;position:relative}
-.exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-.exp-card .desc{margin-top:6px}
-.exp-card .desc[contenteditable]{outline:0;border:1px solid transparent;border-radius:8px;padding:4px}
-.exp-card .desc[contenteditable]:focus{border-color:#cbd5e1;background:#f8fafc}
-.add-under{display:flex;justify-content:center;margin-top:12px}
-
-/* EDU */
-.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.edu-card{background:color-mix(in srgb, var(--g2) 12%, #fff);border:1px solid color-mix(in srgb, var(--g2) 30%, #0000);border-radius:14px;padding:12px 14px;position:relative}
-.edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
-.edu-title{font-weight:700}
-.edu-year{display:inline-block}
-.edu-year .badge{white-space:nowrap}
-
-/* ADD button area */
-#canvasAdd{grid-column:1/-1;display:flex;justify-content:center;padding:28px 0}
-.add-dot{width:70px;height:70px;border-radius:18px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:26px;font-weight:900}
+/* big Add */
+.add-squircle{grid-column:1/-1;display:flex;justify-content:center;padding:28px 0}
+.add-dot{width:86px;height:86px;border-radius:22px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:28px;font-weight:900}
 .add-dot:hover{border-color:#7c99ff;color:#7c99ff}
-#addMenu{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:10px 12px;display:none;z-index:9999}
-#addMenu.open{display:block}
-#addMenu .tray{display:flex;gap:10px}
-#addMenu .opt{width:54px;height:54px;border-radius:12px;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-#addMenu .opt:hover{box-shadow:0 0 0 6px rgba(124,153,255,.2), 0 10px 24px rgba(0,0,0,.35)}
 
-/* PREVIEW */
-.preview .ui,.preview .bubble,.preview .add-dot,.preview #addMenu,.preview .chip .rm,.preview .section.skills .tip{display:none!important}
-.preview .page::before{opacity:.15}
+/* chips */
+.chip{background:#fff;border:1px solid rgba(0,0,0,.08);padding:6px 10px;border-radius:999px;display:flex;gap:8px;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08);justify-content:space-between}
+.chip .rm{background:#ef4444;border:0;color:#fff;border-radius:8px;padding:2px 6px;cursor:pointer;margin-left:8px}
 
-/* WELCOME + WIZARD */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;z-index:20000;align-items:center;justify-content:center}
-.overlay.open{display:flex}
-.welcome{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);width:min(880px,92vw);padding:22px}
-.wtitle{font-size:22px;font-weight:900;margin:0 0 6px}
-.wdesc{opacity:.8;margin-bottom:14px}
-.btn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
-.btn.primary{background:linear-gradient(135deg,var(--g2),var(--g1));color:#111;border:none}
-.btn:hover{box-shadow:0 0 0 6px rgba(124,153,255,.2)}
-.actions{display:flex;gap:12px;align-items:center}
-.wizard{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);width:min(1100px,96vw);max-height:86vh;display:grid;grid-template-columns:260px 1fr;overflow:hidden}
-.steps{background:#0c1322;border-right:1px solid var(--line);padding:14px 10px;overflow:auto}
-.step{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:#c9d3ee}
-.step .dot{width:10px;height:10px;border-radius:999px;background:#2d3550}
-.step.active{background:rgba(124,153,255,.12);color:#fff}
-.step.active .dot{background:#9fb1ff}
-.step.done .dot{background:#34d399}
-.body{padding:22px;overflow:auto}
-.body h3{margin:0 0 6px;font-size:22px}
-.navline{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
-.mockrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-.mock{border-radius:14px;border:2px solid transparent;background:#0b1220;cursor:pointer;padding:14px;position:relative}
-.mock:hover{box-shadow:0 0 0 6px rgba(124,153,255,.12)}
-.mock.sel{border-color:#ffb86c}
-.mock .rect{height:70px;border-radius:12px;background:linear-gradient(135deg,#5667b7,#2e3a77)}
-.mock .side{position:absolute;left:14px;top:14px;bottom:14px;width:30%;border-radius:12px;background:linear-gradient(135deg,#5667b7,#2e3a77)}
-.mock .lines{margin-top:10px;display:flex;flex-direction:column;gap:8px}
-.mock .line{height:8px;border-radius:999px;background:#2a365f;width:64%}
-.mock .line.s{width:44%}
-.mock .circle{width:44px;height:44px;border-radius:999px;background:#cfd6ff;border:3px solid #fff;position:absolute}
-.mock.sidebar .circle{left:30px;top:36px}
-.mock.fancy .circle{left:50%;transform:translateX(-50%);top:8px}
-.mock.topbar .circle{right:26px;top:28px}
+/* drag handle */
+.handle{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:10px;background:#0f1420;color:#fff;border:1px solid #27314f;cursor:grab;user-select:none;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.handle::before{content:"⋮";font-weight:900;}
 
-/* tiny confetti for "added" feedback */
-@keyframes poof{0%{transform:scale(.98);opacity:1}100%{transform:scale(.9);opacity:0}}
-.poof{position:absolute;inset:0;pointer-events:none}
-.poof::before,.poof::after{content:"✨";position:absolute;animation:poof .6s ease forwards}
-.poof::before{left:20%;top:30%}
-.poof::after{right:18%;bottom:20%}
+/* sidebar layout + rails */
+.sidebar-layout{display:grid;grid-template-columns:var(--rail-width) minmax(0,1fr);gap:16px;min-height:320px}
+.sidebar-layout .rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;min-height:1060px}
+.sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
+.sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
+.sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-/* layout menu under canvas '+' */
-#layoutPop{position:absolute;display:none;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:8px}
-#layoutPop.open{display:flex}
-#layoutPop button{display:flex;gap:10px;align-items:center;justify-content:flex-start}
+/* headers */
+.topbar{position:relative;border-radius:14px;overflow:visible;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
+.topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
+.topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
+.topbar .right{display:flex;justify-content:flex-end}
+
+.fancy{position:relative;border-radius:14px;overflow:visible}
+.fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
+.fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
+.fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:10px auto 0;max-width:740px}
+.fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
+.fancy .below{height:88px}
+
+/* avatar */
+.avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
+.avatar canvas{width:100%;height:100%;display:block}
+.avatar input{display:none}
+.avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
+
+/* section titles */
+.sec{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative}
+[data-dark="1"] .sec{background:#0f1420;border-color:#1f2a44}
+.stitle{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800}
+.stitle .u{height:4px;border-radius:999px;margin:8px auto 0;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px}
+
+/* skills block */
+.tip{opacity:.7;font-size:12px;margin-bottom:8px}
+.grid-skills{display:grid;gap:10px}
+.grid-skills.cols-2{grid-template-columns:1fr 1fr}
+.skill{display:grid;grid-template-columns:1fr var(--skill-right);align-items:center;gap:10px;padding:4px 0}
+.skill .label{display:flex;align-items:center;gap:8px}
+.skill .label [contenteditable]{min-width:36px;display:inline-block}
+.stars{display:inline-flex;gap:var(--star-gap);justify-content:flex-end}
+.star{cursor:pointer;width:18px;height:18px;fill:#d1d5db;transition:transform .08s ease}
+.star.active{fill:#f59e0b}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));outline:1px solid rgba(0,0,0,.18)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+
+/* card chrome (glass vs paper) */
+body[data-mat="glass"] .sec,
+body[data-mat="glass"] .node:not([data-locked="1"]) { background:rgba(255,255,255,.06); backdrop-filter:blur(8px); border-color:#ffffff22 }
+[data-dark="1"][data-mat="glass"] .sec{background:#ffffff12}
+
+/* wizard shell */
+#welcome{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);z-index:20000}
+.wcard{width:min(980px,94vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:22px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6)}
+.welcome-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:end}
+.welcome-col{display:grid;justify-items:center;gap:8px}
+.wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
+.center{display:flex;justify-content:center;gap:12px;align-items:center}
+#wizard{display:none}
+
+/* wizard modal */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:21000}
+.wiz{width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;gap:0;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden}
+.wiz-left{background:#0c111f;border-right:1px solid #1b2340;padding:16px}
+.step-list{display:grid;gap:8px}
+.step{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;color:#c9d1ff80}
+.step.on{color:#e8ecff;background:#131a31}
+.step .dot{width:8px;height:8px;border-radius:50%;background:#2e3b66}
+.step.done .dot{background:#26d07c}
+.wiz-right{padding:20px 22px}
+.wtitle{font-size:22px;font-weight:800;margin:0 0 8px}
+.wsub{opacity:.75;margin-bottom:10px}
+.wrow{display:flex;gap:14px;flex-wrap:wrap}
+.navline{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.btn{border:1px solid #2b324b;background:#12182a;color:#e6e8ef;border-radius:12px;padding:9px 14px;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
+.btn:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset}
+
+/* layout mocks */
+.mock{flex:1;min-width:260px;min-height:160px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative;transition:transform .15s ease}
+.mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.mock.sel{outline:2px solid #ffb86c}
+.mock .hero{border-radius:12px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
+.mock .line{height:8px;border-radius:999px;background:#2b375f}
+.mock.sidebar .hero{position:absolute;inset:14px auto 14px 14px;width:30%}
+.mock.sidebar .pp{position:absolute;left:34px;top:34px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.mock.sidebar .txt{position:absolute;left:38%;right:20px;top:26px;display:grid;gap:10px}
+.mock.fancy .hero{height:64px;margin:8px}
+.mock.fancy .pp{position:absolute;left:50%;transform:translateX(-50%);top:58px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.mock.fancy .txt{position:absolute;left:26px;right:26px;top:120px;display:grid;gap:10px}
+.mock.topbar .hero{height:64px;margin:8px}
+.mock.topbar .pp{position:absolute;right:28px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.mock.topbar .txt{position:absolute;left:26px;right:120px;top:28px;display:grid;gap:10px}
+
+/* add menu bubble */
+.pop{position:fixed;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:18000}
+.pop.open{display:block}
+.pop .tray{display:flex;gap:10px}
+.pop .sq{width:48px;height:48px;border-radius:12px;border:1px solid #293255;background:#12182a;color:#e6e8ef;display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.pop .sq:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset}
+
+/* preview hides */
+.preview .handle,.preview .chip .rm,.preview .ctrl-mini,.preview .add-dot,.preview .header-actions .mbtn,.preview .fmtbar,.preview .tip{display:none!important}
+@media print{ .nav,#welcome,.modal{display:none!important} .page{box-shadow:none} }
 </style>
 </head>
-<body data-dark="0" data-material="paper">
+<body data-theme="magentaPurple" data-mat="paper">
   <div class="nav">
     <span class="brand">Easy Resume</span>
     <div class="menu">
       <div class="dropdown" id="ddFile">
         <button class="mbtn">File ▾</button>
         <div class="dropdown-menu">
-          <div class="row">
-            <button class="mbtn" id="saveJSON"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
-            <button class="mbtn" id="loadJSON"><i class="fa-solid fa-folder-open"></i> Load project</button>
-            <button class="mbtn" id="startScratch"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
-          </div>
+          <button id="saveJSON"><i class="fa-solid fa-floppy-disk"></i> Save project</button>
+          <button id="loadJSON"><i class="fa-solid fa-folder-open"></i> Load project</button>
+          <button id="startScratch"><i class="fa-solid fa-eraser"></i> Start from scratch</button>
         </div>
       </div>
 
       <div class="dropdown" id="ddLayout">
         <button class="mbtn">Layout options ▾</button>
-        <div class="dropdown-menu" style="width:420px">
-          <div class="mockrow" id="layoutPickerMenu">
-            <div class="mock sidebar sel" data-layout="sidebar">
-              <div class="side"></div>
-              <div class="circle"></div>
-              <div class="lines" style="margin-left:36%">
-                <div class="line"></div><div class="line s"></div><div class="line"></div><div class="line s"></div>
-              </div>
+        <div class="dropdown-menu" style="width:340px">
+          <div id="layoutQuick" class="wrow" style="flex-direction:column">
+            <div class="mock sidebar" data-layout="header-side">
+              <div class="hero"></div><div class="pp"></div>
+              <div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div><div class="line" style="width:56%"></div></div>
             </div>
-            <div class="mock fancy" data-layout="fancy">
-              <div class="rect"></div>
-              <div class="circle"></div>
-              <div class="lines" style="margin-top:56px">
-                <div class="line"></div><div class="line s"></div><div class="line"></div>
-              </div>
+            <div class="mock fancy" data-layout="header-fancy">
+              <div class="hero"></div><div class="pp"></div>
+              <div class="txt"><div class="line" style="width:70%"></div><div class="line" style="width:48%"></div></div>
             </div>
-            <div class="mock topbar" data-layout="topbar">
-              <div class="rect"></div>
-              <div class="circle"></div>
-              <div class="lines" style="margin-top:68px"><div class="line"></div><div class="line s"></div></div>
+            <div class="mock topbar" data-layout="header-top">
+              <div class="hero"></div><div class="pp"></div>
+              <div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div></div>
             </div>
           </div>
         </div>
@@ -270,27 +237,22 @@ body{
 
       <div class="dropdown" id="ddTheme">
         <button class="mbtn">Theme ▾</button>
-        <div class="dropdown-menu">
-          <div class="row" id="presetRow">
-            <!-- presets injected -->
+        <div class="dropdown-menu theme-pop">
+          <div class="theme-row" id="themeRow">
+            <div class="swatch" data-k="coral"></div><div class="swatch" data-k="sea"></div>
+            <div class="swatch" data-k="city"></div><div class="swatch" data-k="magentaPurple"></div>
+            <div class="swatch" data-k="magentaPink"></div><div class="swatch" data-k="blueGreen"></div>
+            <div class="swatch" data-k="grayBlack"></div>
           </div>
-          <div class="toggle-row">
-            <span>Dark mode</span><div class="switch" id="darkSwitch" data-on="0"></div>
+          <div class="k-row"><span>Dark mode</span><div id="darkToggle" class="switch"></div></div>
+          <div class="k-row"><span>Material</span>
+            <button class="mbtn" id="matPaper">Paper</button>
+            <button class="mbtn" id="matGlass">Glass</button>
           </div>
-          <div class="toggle-row">
-            <span>Material: <b id="matLabel">Paper</b></span>
-            <div class="actions">
-              <button class="mbtn" id="paperBtn">Paper</button>
-              <button class="mbtn" id="glassBtn">Glass</button>
-            </div>
-          </div>
-          <div style="border-top:1px dashed var(--line);padding-top:10px;margin-top:10px">
-            <div class="small" style="margin-bottom:6px">Custom gradient</div>
-            <div class="actions">
-              <input type="color" id="c1" value="#ff7b54"/>
-              <input type="color" id="c2" value="#ffd166"/>
-              <button class="mbtn" id="applyGrad">Apply</button>
-            </div>
+          <div style="border-top:1px solid #23283b;margin:10px 0"></div>
+          <div class="k-row"><span>Custom gradient</span>
+            <input type="color" id="c1" value="#8b5cf6"><input type="color" id="c2" value="#d946ef">
+            <button class="mbtn" id="applyGrad">Apply</button>
           </div>
         </div>
       </div>
@@ -303,47 +265,52 @@ body{
   <div id="canvas">
     <div class="page" id="page">
       <div id="sheet">
+        <div class="floatbar" id="floatbar"></div>
         <div class="stack" id="stack">
-          <div id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
+          <!-- clean canvas; plus appears when needed -->
+          <div class="add-squircle" id="canvasAdd" style="display:none">
+            <div class="add-dot" id="dotAdd">+</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- layout popup under '+' (vertical) -->
-  <div id="layoutPop">
-    <button class="mbtn" data-layout="sidebar"><i class="fa-solid fa-rectangle-vertical"></i> Sidebar</button>
-    <button class="mbtn" data-layout="fancy"><i class="fa-solid fa-image"></i> Top fancy</button>
-    <button class="mbtn" data-layout="topbar"><i class="fa-solid fa-grip-lines"></i> Top bar</button>
+  <!-- Add bubble -->
+  <div class="pop" id="addMenu">
+    <div class="tray" id="addTray"></div>
   </div>
 
-  <!-- Add menu -->
-  <div id="addMenu">
-    <div class="tray" id="addTray">
-      <!-- options injected -->
-    </div>
-  </div>
-
-  <!-- OVERLAYS -->
-  <div class="overlay" id="welcome">
-    <div class="welcome">
-      <div class="wtitle">Welcome to the Easy Resume Builder</div>
-      <div class="wdesc">Choose how to begin.</div>
-      <div class="actions" style="gap:12px;flex-wrap:wrap">
-        <button class="btn primary" id="startWizard">Wizard</button>
-        <button class="btn" id="startBlank">Manual mode</button>
-      </div>
-      <div class="actions small" style="justify-content:space-between;margin-top:8px">
-        <div>Guided step-by-step set-up.</div>
-        <div>Start from scratch, arrange freely.</div>
+  <!-- Welcome -->
+  <div id="welcome">
+    <div class="wcard">
+      <div class="welcome-grid">
+        <div class="welcome-col">
+          <button class="wbtn primary" id="startWizard">Wizard</button>
+          <div style="opacity:.8">Guided step-by-step set-up.</div>
+        </div>
+        <div class="welcome-col">
+          <button class="wbtn" id="startBlank">Manual mode</button>
+          <div style="opacity:.8">Start from scratch, arrange freely.</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="overlay" id="wizWrap">
-    <div class="wizard" role="dialog" aria-modal="true">
-      <div class="steps" id="stepList"></div>
-      <div class="body" id="wizBody"></div>
+  <!-- Wizard -->
+  <div id="wizard" class="modal">
+    <div class="wiz">
+      <div class="wiz-left">
+        <div class="step-list" id="stepList"></div>
+      </div>
+      <div class="wiz-right">
+        <div id="wizBody"></div>
+        <div class="navline">
+          <button class="btn" id="wizStartOver" style="margin-right:auto;display:none">Start over</button>
+          <button class="btn" id="wizBack">Back</button>
+          <button class="btn primary" id="wizNext">Next</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -351,642 +318,545 @@ body{
 (function(){
 'use strict';
 
-/* utilities */
-const $ = (s, r=document)=>r.querySelector(s);
-const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
-const make = (t, cls, html)=>{const e=document.createElement(t); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e;};
-const uid = ()=>Math.random().toString(36).slice(2,9);
+/* tiny helpers */
+const $=(s,r)=> (r||document).querySelector(s);
+const $$=(s,r)=> Array.from((r||document).querySelectorAll(s));
 
-/* theme presets */
-const PRESETS=[
-  ['#ff7b54','#ffd166'], ['#4facfe','#38d2ff'], ['#9faec8','#34d399'],
-  ['#c026d3','#9333ea'], ['#ec4899','#f97316'], ['#22c1c3','#2ecc71'],
-];
-const presetRow = $('#presetRow');
-PRESETS.forEach(p=>{
-  const b=make('button','swatch-btn'); b.style.background=`linear-gradient(90deg,${p[1]},${p[0]})`;
-  b.onclick=()=>applyGradient(p[0],p[1]);
-  presetRow.appendChild(b);
-});
-function applyGradient(g1,g2){
-  document.documentElement.style.setProperty('--g1',g1);
-  document.documentElement.style.setProperty('--g2',g2);
-}
+/* elements */
+const stack=$("#stack"), addWrap=$("#canvasAdd"), addBtn=$("#dotAdd"), addMenu=$("#addMenu"), addTray=$("#addTray");
+const ddFile=$("#ddFile"), ddLayout=$("#ddLayout"), ddTheme=$("#ddTheme");
+const pdfBtn=$("#pdfBtn"), togglePrev=$("#togglePreview");
+const welcome=$("#welcome"), wizard=$("#wizard");
+const stepList=$("#stepList"), wizBody=$("#wizBody"), wizBack=$("#wizBack"), wizNext=$("#wizNext"), wizStartOver=$("#wizStartOver");
 
-/* dark/material switches */
-$('#darkSwitch').onclick=function(){ const on= this.getAttribute('data-on')==='1'?0:1; this.setAttribute('data-on',on); document.body.setAttribute('data-dark',on); };
-$('#paperBtn').onclick=()=>{ document.body.setAttribute('data-material','paper'); $('#matLabel').textContent='Paper'; };
-$('#glassBtn').onclick=()=>{ document.body.setAttribute('data-material','glass'); $('#matLabel').textContent='Glass'; };
-$('#applyGrad').onclick=()=>applyGradient($('#c1').value,$('#c2').value);
-
-/* menu toggles */
-function toggleDD(dd){ dd.classList.toggle('open'); }
-$('#ddFile > button').onclick=()=>toggleDD($('#ddFile'));
-$('#ddLayout > button').onclick=()=>toggleDD($('#ddLayout'));
-$('#ddTheme > button').onclick=()=>toggleDD($('#ddTheme'));
-document.addEventListener('click',e=>{
-  [$('#ddFile'),$('#ddLayout'),$('#ddTheme')].forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
-});
-
-/* canvas & layout */
-const stack=$('#stack');
-const addAnchor=$('#canvasAdd');
-const addMenu=$('#addMenu');
-const addTray=$('#addTray');
-const dotAdd=$('#dotAdd');
-const layoutPop=$('#layoutPop');
-
-function ensureHeader(kind){ // sidebar | fancy | topbar
-  let header=$('.node[data-locked="1"]',stack);
-  if(header) return header;
-  header=make('div','node'); header.setAttribute('data-locked','1');
-  header.appendChild(buildHeader(kind||'fancy'));
-  stack.insertBefore(header, addAnchor);
-  return header;
-}
-function buildHeader(kind){
-  const wrap=make('div','header');
-  const hero=make('div','hero-rect hero-gradient '+(kind==='sidebar'?'sidebar':'top'));
-  const ava=make('div','float-ava '+(kind==='sidebar'?'sidebar':kind==='fancy'?'fancy':'topbar'));
-  const img=make('div','avatar'); img.setAttribute('data-empty','1'); img.style.width='120px'; img.style.height='120px';
-  img.innerHTML='<canvas width="120" height="120"></canvas><input type="file" accept="image/*">';
-  ava.appendChild(img);
-  const nm=make('h1','name','YOUR NAME');
-  wrap.append(hero, ava, nm);
-  initAvatar(img);
-  wrap.setAttribute('data-kind',kind);
-  setTimeout(()=>morphHeader(kind),12);
-  return wrap;
-}
-function morphHeader(kind){
-  const h=$('.header'); if(!h) return;
-  const hero=$('.hero-rect',h), ava=$('.float-ava',h), nm=$('.name',h);
-  if(kind==='sidebar'){
-    hero.classList.add('sidebar'); hero.classList.remove('top');
-    ava.className='float-ava sidebar';
-    nm.style.marginTop='160px'; nm.style.textAlign='left'; nm.style.paddingLeft='20px';
-    ensureSidebarScaffold();
-  }else if(kind==='fancy'){
-    hero.classList.remove('sidebar'); hero.classList.add('top');
-    ava.className='float-ava fancy';
-    nm.style.marginTop='90px'; nm.style.textAlign='center'; nm.style.paddingLeft='0';
-    removeSidebarScaffold();
-  }else{
-    hero.classList.remove('sidebar'); hero.classList.add('top');
-    ava.className='float-ava topbar';
-    nm.style.marginTop='120px'; nm.style.textAlign='center'; nm.style.paddingLeft='0';
-    removeSidebarScaffold();
-  }
-}
-
-/* sidebar scaffold (column + main zone) */
-function ensureSidebarScaffold(){
-  if($('.sidebar-layout',stack)) return;
-  const col=make('div','node'); col.setAttribute('data-locked','1');
-  col.innerHTML=`<div class="sidebar-layout" style="display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px">
-    <div class="rail hero-gradient" style="border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:560px">
-      <div class="chips" data-rail-chips></div>
-      <div id="railSlot"></div>
-    </div>
-    <div data-zone="main"></div>
-  </div>`;
-  stack.insertBefore(col, addAnchor);
-  moveAddAnchor();
-}
-function removeSidebarScaffold(){
-  const sc=$('.sidebar-layout',stack); if(!sc) return;
-  const main=$('[data-zone="main"]',sc);
-  $$('.node',main).forEach(n=>stack.insertBefore(n, addAnchor));
-  sc.closest('.node').remove();
-  moveAddAnchor();
-}
-function isSidebar(){ return !!$('.sidebar-layout',stack); }
-function mainZone(){ return isSidebar()? $('[data-zone="main"]',stack) : stack; }
-function railZone(){ return isSidebar()? $('#railSlot') : null; }
-function moveAddAnchor(){
-  const dest=isSidebar()? mainZone():stack;
-  if(addAnchor.parentElement!==dest) dest.appendChild(addAnchor);
-}
-
-/* Avatar crop */
-function initAvatar(wrapper){
-  const canvas=$('canvas',wrapper), input=$('input',wrapper);
-  const ctx=canvas.getContext('2d',{willReadFrequently:true}); let img=null, scale=1,minScale=1,x=0,y=0,drag=false,sx=0,sy=0;
-  function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); if(img){ ctx.imageSmoothingQuality='high'; ctx.drawImage(img,x,y,img.width*scale,img.height*scale); wrapper.setAttribute('data-empty','0'); } ctx.restore(); }
-  wrapper.addEventListener('click',()=>input.click());
-  input.addEventListener('change',()=>{
-    const f=input.files&&input.files[0]; if(!f) return;
-    const u=URL.createObjectURL(f); const im=new Image();
-    im.onload=()=>{ img=im; const sx=canvas.width/im.width, sy=canvas.height/im.height; minScale=Math.max(sx,sy); scale=minScale; x=(canvas.width-im.width*scale)/2; y=(canvas.height-im.height*scale)/2; draw(); };
-    im.src=u; setTimeout(()=>URL.revokeObjectURL(u),4000);
-  });
-  canvas.addEventListener('mousedown',e=>{drag=true; sx=e.clientX; sy=e.clientY;});
-  window.addEventListener('mouseup',()=>drag=false);
-  window.addEventListener('mousemove',e=>{if(!drag) return; x+=e.clientX-sx; y+=e.clientY-sy; sx=e.clientX; sy=e.clientY; draw();});
-  canvas.addEventListener('wheel',e=>{e.preventDefault(); if(!img) return; const d=e.deltaY<0?1.05:.95; let ns=scale*d; if(ns<minScale) ns=minScale; if(ns>5) ns=5; const r=canvas.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; const dx=(mx-x)/scale, dy=(my-y)/scale; x=mx-dx*ns; y=my-dy*ns; scale=ns; draw();},{passive:false});
-}
-
-/* SKILL helpers */
-function starRow(label='Skill', value=0){
-  const d=make('div','skill'); d.setAttribute('data-type','stars'); d.setAttribute('draggable','false');
-  d.innerHTML=`<div class="handle">⋮⋮</div>
-    <div class="label" contenteditable>${label}</div>
-    <div class="stars">${[1,2,3,4,5].map(i=>`<svg class="star ${i<=value?'active':''}" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</div>`;
-  d.querySelectorAll('.star').forEach(s=>s.onclick=e=>{
-    const n=+e.currentTarget.getAttribute('data-i'); d.querySelectorAll('.star').forEach((s2,i)=>s2.classList.toggle('active',i<n));
-  });
-  addDragByHandle(d);
-  return d;
-}
-function sliderRow(label='Skill', value=50){
-  const d=make('div','skill'); d.setAttribute('data-type','slider'); d.setAttribute('draggable','false');
-  d.innerHTML=`<div class="handle">⋮⋮</div>
-    <div class="label" contenteditable>${label}</div>
-    <input type="range" min="0" max="100" value="${value}">`;
-  addDragByHandle(d);
-  return d;
-}
-function addDragByHandle(row){
-  const handle=row.querySelector('.handle');
-  handle.addEventListener('mousedown',()=>{ row.setAttribute('draggable','true'); });
-  handle.addEventListener('mouseup',()=>{ row.setAttribute('draggable','false'); });
-}
-
-/* sections */
-function sectionSkills(where){ // where: 'sidebar'|'canvas'
-  const node=make('div','node');
-  node.innerHTML=`<div class="section skills">
-    <div class="title"><i class="fa-solid fa-layer-group"></i> <div>Skills</div></div>
-    <div class="underline"></div>
-    <div class="tip">Tip: Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
-    <div class="grid-skills" data-grid></div>
-    <div class="add-under"><button class="btn" data-add-star>+ ★</button> <button class="btn" data-add-slider style="margin-left:8px">+ <i class="fa-solid fa-sliders"></i></button></div>
-    <div class="bubble"><button class="ui" data-move title="Move between canvas/side"><i class="fa-solid fa-arrow-up-long"></i></button><button class="ui" data-del title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
-  </div>`;
-  const grid=$('[data-grid]',node);
-  const addStar=$('[data-add-star]',node), addSl=$('[data-add-slider]',node);
-  addStar.onclick=()=>{ grid.appendChild(starRow()); attachDnd(grid,'.skill'); };
-  addSl.onclick=()=>{ grid.appendChild(sliderRow()); attachDnd(grid,'.skill'); };
-  $('[data-del]',node).onclick=()=>node.remove();
-  $('[data-move]',node).onclick=()=>{
-    if(isSidebar()){
-      stack.insertBefore(node, addAnchor);
-    }else{
-      (railZone()||stack).prepend(node);
-    }
-    cleanAddOptions();
-  };
-  if(where==='sidebar' && railZone()) railZone().prepend(node); else stack.insertBefore(node, addAnchor);
-  attachDnd(grid,'.skill');
-  cleanAddOptions();
-  return node;
-}
-function sectionExp(){
-  const node=make('div','node');
-  node.innerHTML=`<div class="section">
-    <div class="title"><i class="fa-solid fa-briefcase"></i> <div>Work experience</div></div>
-    <div class="underline"></div>
-    <div class="exp-list" data-list></div>
-    <div class="add-under"><button class="btn" data-add>+ Add role</button></div>
-    <div class="bubble"><button class="ui" data-del title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
-  </div>`;
-  const list=$('[data-list]',node);
-  function add(dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.'){
-    const c=make('div','exp-card'); c.setAttribute('draggable','false');
-    c.innerHTML=`<div class="exp-tools"><div class="ui handle" title="Drag">⋮⋮</div><button class="ui" data-rm title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
-      <span class="badge" contenteditable>${dates}</span>
-      <span style="font-weight:800;margin-left:8px" contenteditable>${role}</span>
-      <div style="font-weight:700;color:#374151" contenteditable>${org}</div>
-      <div class="desc" contenteditable>${desc}</div>`;
-    c.querySelector('[data-rm]').onclick=()=>c.remove();
-    addDragByHandle(c);
-    list.appendChild(c);
-  }
-  $('[data-add]',node).onclick=()=>{ add(); spark(node); };
-  add(); // start with one
-  stack.insertBefore(node, addAnchor);
-  attachDnd(list,'.exp-card');
-  cleanAddOptions();
-  return node;
-}
-function sectionEdu(){
-  const node=make('div','node');
-  node.innerHTML=`<div class="section">
-    <div class="title"><i class="fa-solid fa-graduation-cap"></i> <div>Education</div></div>
-    <div class="underline"></div>
-    <div class="edu-grid" data-grid></div>
-    <div class="add-under"><button class="btn" data-course>+ Add course</button><button class="btn" data-degree style="margin-left:8px">+ Add degree</button></div>
-    <div class="bubble"><button class="ui" data-del title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
-  </div>`;
-  const grid=$('[data-grid]',node);
-  function card(kind='course'){
-    const accent = kind==='course' ? 'var(--g2)' : 'var(--g1)';
-    const c=make('div','edu-card'); c.setAttribute('draggable','false');
-    c.innerHTML=`<div class="edu-tools"><div class="ui handle" title="Drag">⋮⋮</div><button class="ui" data-rm title="Delete"><i class="fa-solid fa-xmark"></i></button></div>
-      <div class="edu-title"><i class="fa-solid ${kind==='course'?'fa-scroll':'fa-graduation-cap'}" style="color:${accent}"></i> <span contenteditable>Title</span></div>
-      <div class="edu-year"><span class="badge" contenteditable>2018–2022</span></div>
-      <div class="academy" contenteditable>Academy name (wraps to two lines if needed)</div>`;
-    c.querySelector('[data-rm]').onclick=()=>c.remove();
-    addDragByHandle(c);
-    grid.appendChild(c);
-  }
-  $('[data-course]',node).onclick=()=>{ card('course'); spark(node); attachDnd(grid,'.edu-card'); };
-  $('[data-degree]',node).onclick=()=>{ card('degree'); spark(node); attachDnd(grid,'.edu-card'); };
-  // start with two
-  card('course'); card('degree');
-  stack.insertBefore(node, addAnchor);
-  attachDnd(grid,'.edu-card');
-  cleanAddOptions();
-  return node;
-}
-function spark(host){
-  const p=make('div','poof'); host.appendChild(p); setTimeout(()=>p.remove(),600);
-}
-
-/* drag n drop */
-function attachDnd(container, sel){
-  if(container._dnd) return; container._dnd=true;
-  let dragEl=null, ph=null;
-  container.addEventListener('dragstart',e=>{
-    const it=e.target.closest(sel); if(!it) return;
-    if(it.getAttribute('draggable')!=='true') { e.preventDefault(); return; }
-    dragEl=it; e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','');
-    ph=make('div'); ph.style.height=it.offsetHeight+'px'; ph.style.border='2px dashed #94a3b8'; ph.style.borderRadius='12px';
-    try{const img=document.createElement('canvas');img.width=1;img.height=1;e.dataTransfer.setDragImage(img,0,0);}catch(_){}
-    setTimeout(()=>{ it.style.opacity='.35'; },0);
-  });
-  container.addEventListener('dragend',()=>{ if(dragEl){ dragEl.style.opacity=''; ph&&ph.remove(); dragEl=null; ph=null; } });
-  container.addEventListener('dragover',e=>{
-    if(!dragEl) return; e.preventDefault();
-    const after=Array.from(container.querySelectorAll(sel)).filter(el=>el!==dragEl)
-      .reduce((closest,child)=>{
-        const box=child.getBoundingClientRect();
-        const offset=e.clientY-box.top - box.height/2;
-        return (offset<0 && offset>closest.offset)?{offset,element:child}:closest;
-      },{offset:-Infinity}).element;
-    if(after==null) container.appendChild(ph); else container.insertBefore(ph,after);
-  });
-  container.addEventListener('drop',e=>{
-    e.preventDefault(); if(!dragEl||!ph) return; container.insertBefore(dragEl,ph); ph.remove(); dragEl.style.opacity=''; dragEl=null; ph=null;
-  });
-}
-
-/* add menu and plus */
-function cleanAddOptions(){
-  const hasSkills=!!$('.section.skills',stack) || !!$('.section.skills',railZone()||document);
-  const hasEdu=!!$('.edu-grid',stack);
-  const hasExp=!!$('.exp-list',stack);
-  addTray.innerHTML='';
-  const map=[ ['section-skills','fa-layer-group','Skills',!hasSkills],
-              ['section-edu','fa-user-graduate','Education',!hasEdu],
-              ['section-exp','fa-briefcase','Experience',!hasExp] ];
-  map.filter(m=>m[3]).forEach(m=>{
-    const b=make('button','opt'); b.dataset.add=m[0]; b.innerHTML=`<i class="fa-solid ${m[1]}"></i>`;
-    addTray.appendChild(b);
-  });
-  // hide big plus if all exist
-  addAnchor.style.display = (map.filter(m=>m[3]).length===0)?'none':'flex';
-}
-cleanAddOptions();
-
-dotAdd.addEventListener('click',()=>{
-  addMenu.classList.add('open');
-  function close(e){ if(!addMenu.contains(e.target) && e.target!==dotAdd){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } }
-  setTimeout(()=>document.addEventListener('click',close),0);
-});
-addMenu.addEventListener('click',e=>{
-  const b=e.target.closest('.opt'); if(!b) return;
-  addMenu.classList.remove('open');
-  if(b.dataset.add==='section-skills') sectionSkills(isSidebar()?'sidebar':'canvas');
-  if(b.dataset.add==='section-edu') sectionEdu();
-  if(b.dataset.add==='section-exp') sectionExp();
-});
-
-addAnchor.addEventListener('click',e=>{
-  const r=addAnchor.getBoundingClientRect();
-  layoutPop.style.left=(r.left+window.scrollX)+'px';
-  layoutPop.style.top=(r.bottom+8+window.scrollY)+'px';
-  layoutPop.classList.add('open');
-  const close=ev=>{ if(!layoutPop.contains(ev.target) && ev.target!==addAnchor) { layoutPop.classList.remove('open'); document.removeEventListener('click',close);} };
-  setTimeout(()=>document.addEventListener('click',close),0);
-});
-layoutPop.addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return;
-  layoutPop.classList.remove('open');
-  migrateLayout(b.dataset.layout);
-});
-
-/* layout picker (top menu) */
-function setupLP(id){ const box=document.getElementById(id); if(!box) return; $$('.mock',box).forEach(m=>{
-  m.addEventListener('click',()=>{ $$('.mock',box).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); migrateLayout(m.dataset.layout,true); });
-});}
-setupLP('layoutPickerMenu');
-
-function migrateLayout(kind,closeMenu){
-  const h=$('.header'); if(!h){ stack.insertBefore(buildHeader(kind),addAnchor); ensureHeader(kind); return; }
-  h.setAttribute('data-kind',kind); morphHeader(kind);
-  if(closeMenu) $('#ddLayout').classList.remove('open');
-}
-
-/* SAVE / LOAD / PRINT / PREVIEW */
-function toJSON(){
-  // capture avatar snapshots
-  $$('[data-empty="0"] canvas').forEach(cv=>{
-    try{cv.parentElement.setAttribute('data-snap',cv.toDataURL('image/png'));}catch(_){}
-  });
-  const header=$('.node[data-locked="1"]')?.innerHTML || null;
-  const content=(isSidebar()? mainZone():stack);
-  const nodes=$$('.node',content).filter(n=>!n.hasAttribute('data-locked')).map(n=>({html:n.outerHTML}));
-  return {dark:document.body.getAttribute('data-dark'), material:document.body.getAttribute('data-material'),
-          g1:getComputedStyle(document.documentElement).getPropertyValue('--g1').trim(),
-          g2:getComputedStyle(document.documentElement).getPropertyValue('--g2').trim(),
-          header, nodes};
-}
-function restore(data){
-  document.body.setAttribute('data-dark',data.dark||'0'); document.body.setAttribute('data-material',data.material||'paper');
-  applyGradient(data.g1||'#ff7b54', data.g2||'#ffd166');
-  $$('.node',stack).forEach(n=>n.remove());
-  if(data.header){ const H=make('div','node'); H.setAttribute('data-locked','1'); H.innerHTML=data.header; stack.insertBefore(H,addAnchor); $$('.avatar',H).forEach(initAvatar); }
-  (data.nodes||[]).forEach(o=>{ const p=document.createElement('div'); p.innerHTML=o.html; const n=p.firstElementChild; stack.insertBefore(n,addAnchor); $$('.avatar',n).forEach(initAvatar); });
-  moveAddAnchor(); cleanAddOptions();
-}
-$('#saveJSON').onclick=function(){ const blob=new Blob([JSON.stringify(toJSON(),null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resume_project.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); };
-$('#loadJSON').onclick=function(){ const i=document.createElement('input'); i.type='file'; i.accept='.json'; i.onchange=()=>{ const f=i.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ restore(JSON.parse(String(r.result))); }catch(_){ alert('Invalid JSON'); } }; r.readAsText(f); }; i.click(); };
-$('#startScratch').onclick=function(){ $$('.node',stack).forEach(n=>n.remove()); stack.appendChild(addAnchor); cleanAddOptions(); };
-
-$('#pdfBtn').onclick=function(){ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(()=>{ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),200); },60); };
-const prevBtn=$('#togglePreview'); prevBtn.onclick=function(){ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); prevBtn.textContent=on?'Exit preview':'Preview'; };
-
-/* WELCOME + WIZARD */
-const welcome=$('#welcome'), wizWrap=$('#wizWrap'), stepList=$('#stepList'), wizBody=$('#wizBody');
-const STEPS=['layout','theme','contact','skills','education','experience','done'];
-const STATE={ step:0, layout:'sidebar', dark:0, material:'paper', g1:'#ff7b54', g2:'#ffd166',
-  contact:{name:'',phone:'',email:'',address:'',linkedin:''},
-  skills:{place:'sidebar', list:[]}, edu:[], exp:[]
+/* global state (persists across steps) */
+const S={
+  layout:null,              // 'side' | 'fancy' | 'top'
+  theme:'magentaPurple',
+  dark:false,
+  mat:'paper',
+  contact:{ name:'', phone:'', email:'', address:'', linkedin:'' },
+  skillsInSidebar:false,
+  skills:[],                // [{type:'star'|'slider', label:'', value:3|60}]
+  edu:[],                   // [{kind:'course'|'degree', year:'', academy:'', title:''}]
+  exp:[]                    // [{dates:'', role:'', org:'', desc:''}]
 };
 
-function openWizard(){ renderSteps(); renderStep(); welcome.classList.remove('open'); wizWrap.classList.add('open'); }
-function closeWizard(){ wizWrap.classList.remove('open'); }
+/* ---------- UI chrome: dropdowns ---------- */
+function toggleDD(dd){ dd.classList.toggle('open'); }
+ddFile.querySelector('button').onclick=()=>toggleDD(ddFile);
+ddLayout.querySelector('button').onclick=()=>toggleDD(ddLayout);
+ddTheme.querySelector('button').onclick=()=>toggleDD(ddTheme);
+document.addEventListener('click',e=>{
+  [ddFile,ddLayout,ddTheme].forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove('open'); });
+});
 
-function renderSteps(){
-  stepList.innerHTML='';
-  STEPS.forEach((k,i)=>{
-    const st=make('div','step'+(i===STATE.step?' active':'')+(i<STATE.step?' done':'')); st.dataset.i=i;
-    st.innerHTML=`<div class="dot"></div><div style="text-transform:capitalize">${k}</div>`;
-    st.onclick=()=>{ if(i<=STATE.step) { STATE.step=i; renderSteps(); renderStep(); } };
-    stepList.appendChild(st);
+/* ---------- Theme pop ---------- */
+$$('.swatch',ddTheme).forEach(s=> s.addEventListener('click',()=>{
+  document.body.setAttribute('data-theme', s.dataset.k); S.theme=s.dataset.k; ddTheme.classList.remove('open'); refreshTheme();
+}));
+$('#darkToggle').onclick=()=>{ $('#darkToggle').classList.toggle('on'); S.dark=$('#darkToggle').classList.contains('on'); refreshTheme(); };
+$('#matPaper').onclick=()=>{ S.mat='paper'; refreshTheme(); };
+$('#matGlass').onclick=()=>{ S.mat='glass'; refreshTheme(); };
+$('#applyGrad').onclick=()=>{ document.documentElement.style.setProperty('--accent', $('#c1').value); document.documentElement.style.setProperty('--accent2', $('#c2').value); };
+
+/* ---------- Preview & Print ---------- */
+togglePrev.onclick=()=>{ const on=!document.body.classList.contains('preview'); document.body.classList.toggle('preview',on); togglePrev.textContent=on?'Exit preview':'Preview'; }
+pdfBtn.onclick=()=>{ const was=document.body.classList.contains('preview'); document.body.classList.add('preview'); setTimeout(()=>{ window.print(); if(!was) setTimeout(()=>document.body.classList.remove('preview'),180); },60); };
+
+/* ---------- Welcome ---------- */
+function openWizard(){ wizard.style.display='grid'; buildWizard(); }
+function finishWelcome(){ welcome.remove(); showAddIfNeeded(); }
+
+/* ---------- Layout creation ---------- */
+function headerNode(){ return stack.querySelector('.node [data-header]')?.closest('.node'); }
+function clearHeader(){ const h=headerNode(); if(h) h.remove(); }
+function ensurePlusAtEnd(){
+  stack.appendChild(addWrap);
+  addWrap.style.display='flex';
+}
+function showAddIfNeeded(){ ensurePlusAtEnd(); }
+function moveAddNear(el){
+  if(!el) return;
+  const r=el.getBoundingClientRect(); const m=addMenu;
+  const below=(window.innerHeight-r.bottom)>160;
+  m.style.left=(r.left+window.scrollX)+'px';
+  m.style.top=(below? (r.bottom+10):(r.top-10- m.offsetHeight || 120))+'px';
+}
+
+/* create headers per layout */
+function createHeader(kind){
+  clearHeader();
+  let node=document.createElement('div'); node.className='node'; node.setAttribute('data-locked','1');
+  if(kind==='header-side'){
+    node.innerHTML=`
+      <div class="sidebar-layout" data-header>
+        <div class="rail">
+          <div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div>
+          <div class="name" contenteditable>YOUR NAME</div>
+          <div class="chips" data-info></div>
+          <div class="sec-holder" data-rail-sections></div>
+        </div>
+        <div data-zone="main" class="main-zone">
+          <div class="add-squircle"><div class="add-dot" data-local-plus>+</div></div>
+        </div>
+      </div>`;
+  }
+  if(kind==='header-fancy'){
+    node.innerHTML=`
+      <div class="fancy" data-header>
+        <div class="hero">
+          <h1 class="name" contenteditable>YOUR NAME</h1>
+          <div class="chip-grid"><div class="chips" data-info-left></div><div class="chips" data-info-right></div></div>
+        </div>
+        <div class="avatar-float"><div class="avatar" data-avatar data-empty="1"><canvas width="140" height="140"></canvas><input type="file" accept="image/*"></div></div>
+        <div class="below"></div>
+      </div>`;
+  }
+  if(kind==='header-top'){
+    node.innerHTML=`
+      <div class="topbar" data-header>
+        <div class="topbar-grid">
+          <div class="left">
+            <h1 class="name" contenteditable>YOUR NAME</h1>
+            <div class="chips" data-info></div>
+          </div>
+          <div class="right">
+            <div class="avatar" data-avatar data-empty="1"><canvas width="120" height="120"></canvas><input type="file" accept="image/*"></div>
+          </div>
+        </div>
+      </div>`;
+  }
+  stack.insertBefore(node, addWrap);
+  initAvatars(node);
+  ensurePlusAtEnd();
+  S.layout = (kind==='header-side')?'side': (kind==='header-fancy')?'fancy':'top';
+  refreshTheme();
+  updatePlusMenu();
+}
+
+/* ---------- Avatar simple loader ---------- */
+function initAvatars(root){
+  $$('[data-avatar]',root).forEach(w=>{
+    const input=w.querySelector('input'), canvas=w.querySelector('canvas'); if(!canvas) return;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    w.onclick=()=>input.click();
+    input.onchange=()=>{ const f=input.files?.[0]; if(!f) return; const img=new Image(); img.onload=()=>{ const s=Math.max(canvas.width/img.width, canvas.height/img.height); const dw=img.width*s, dh=img.height*s; const dx=(canvas.width-dw)/2, dy=(canvas.height-dh)/2; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); ctx.imageSmoothingQuality='high'; ctx.drawImage(img,dx,dy,dw,dh); ctx.restore(); w.setAttribute('data-empty','0'); }; img.src=URL.createObjectURL(f); };
   });
 }
 
-function nextStep(){ if(STATE.step<STEPS.length-1){ STATE.step++; renderSteps(); renderStep(); } else { closeWizard(); } }
-function backStep(){ if(STATE.step>0){ STATE.step--; renderSteps(); renderStep(); } }
+/* ---------- Skills rendering ---------- */
+function renderSkills(){
+  // remove existing
+  $$('[data-section="skills"]').forEach(n=>n.closest('.node').remove());
 
-function renderStep(){
-  const k=STEPS[STATE.step]; wizBody.innerHTML='';
-  if(k==='layout'){
-    wizBody.innerHTML=`<h3>Choose your layout</h3><div class="small">Pick a starting header style.</div>
-      <div class="mockrow" id="wizardLayout"></div>
-      <div class="navline"><button class="btn primary" id="n1">Next</button></div>`;
-    const box=$('#wizardLayout',wizBody);
-    const opts=[
-      ['sidebar','Sidebar'],
-      ['fancy','Top fancy'],
-      ['topbar','Top bar']
-    ];
-    opts.forEach(o=>{
-      const m=make('div','mock '+o[0]); m.dataset.layout=o[0];
-      if(o[0]===STATE.layout) m.classList.add('sel');
-      m.innerHTML=(o[0]==='sidebar'
-        ? `<div class="side"></div><div class="circle"></div><div class="lines" style="margin-left:36%"><div class="line"></div><div class="line s"></div><div class="line"></div></div>`
-        : o[0]==='fancy'
-          ? `<div class="rect"></div><div class="circle"></div><div class="lines" style="margin-top:56px"><div class="line"></div><div class="line s"></div><div class="line"></div></div>`
-          : `<div class="rect"></div><div class="circle"></div><div class="lines" style="margin-top:68px"><div class="line"></div><div class="line s"></div></div>`);
-      m.onclick=()=>{ $$('.mock',box).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); STATE.layout=o[0]; ensureHeader(o[0]); migrateLayout(o[0]); };
-      box.appendChild(m);
-    });
-    $('#n1',wizBody).onclick=nextStep;
-  }
-  else if(k==='theme'){
-    wizBody.innerHTML=`<h3>Choose a color theme</h3>
-      <div class="mockrow" id="wPresets"></div>
-      <div style="margin:14px 0;display:flex;gap:10px;align-items:center">
-        <span>Dark mode</span><div class="switch" id="wDark" data-on="${STATE.dark}"></div>
+  if(!S.skills.length) return;
+  const host = (S.skillsInSidebar && S.layout==='side') ? document.querySelector('[data-rail-sections]') : stack;
+
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='skills';
+  outer.innerHTML=`
+    <div class="sec">
+      <div class="stitle"><i class="fa-solid fa-layer-group"></i><div>Skills</div></div>
+      <div class="u"></div>
+      <div class="tip">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
+      <div class="grid-skills" data-sgrid></div>
+      <div class="center" style="margin-top:8px">
+        ${S.layout==='side' ? `<button class="btn" id="togglePlace">${S.skillsInSidebar?'Move to canvas':'Move to sidebar'}</button>`:''}
       </div>
-      <div style="border-top:1px dashed var(--line);padding-top:10px;margin-top:10px">
-        <div class="small" style="margin-bottom:6px">Custom gradient</div>
-        <div class="actions"><input type="color" id="wC1" value="${STATE.g1}"><input type="color" id="wC2" value="${STATE.g2}">
-        <button class="btn" id="wApply">Apply</button></div>
-      </div>
-      <div class="navline"><button class="btn" id="b2">Back</button><button class="btn primary" id="n2">Next</button></div>`;
-    const wp=$('#wPresets',wizBody);
-    PRESETS.forEach(p=>{ const b=make('button','swatch-btn'); b.style.background=`linear-gradient(90deg,${p[1]},${p[0]})`; b.onclick=()=>{applyGradient(p[0],p[1]); STATE.g1=p[0]; STATE.g2=p[1];}; wp.appendChild(b); });
-    $('#wDark',wizBody).onclick=function(){ const on=this.getAttribute('data-on')==='1'?0:1; this.setAttribute('data-on',on); document.body.setAttribute('data-dark',on); STATE.dark=on; };
-    $('#wApply',wizBody).onclick=()=>{ const c1=$('#wC1').value, c2=$('#wC2').value; applyGradient(c1,c2); STATE.g1=c1; STATE.g2=c2; };
-    $('#b2',wizBody).onclick=backStep; $('#n2',wizBody).onclick=nextStep;
-  }
-  else if(k==='contact'){
-    wizBody.innerHTML=`<h3>Contact details</h3>
-      <div class="small">Only filled fields will be added.</div>
-      <div style="display:grid;gap:10px;max-width:600px;margin-top:10px">
-        <input class="btn" id="wn" placeholder="Full name" value="${STATE.contact.name||''}">
-        <input class="btn" id="wp" placeholder="+34 600 123 456" value="${STATE.contact.phone||''}">
-        <input class="btn" id="we" placeholder="you@example.com" value="${STATE.contact.email||''}">
-        <input class="btn" id="wa" placeholder="City, Country" value="${STATE.contact.address||''}">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="small">linkedin.com/in/</span><input class="btn" id="wl" placeholder="username" value="${STATE.contact.linkedin||''}">
-        </div>
-      </div>
-      <div class="navline"><button class="btn" id="b3">Back</button><button class="btn primary" id="n3">Next</button></div>`;
-    $('#b3',wizBody).onclick=()=>{saveContact(); backStep();};
-    $('#n3',wizBody).onclick=()=>{ saveContact(); addContactChips(); nextStep(); };
-    function saveContact(){
-      STATE.contact={ name:$('#wn').value.trim(), phone:$('#wp').value.trim(), email:$('#we').value.trim(),
-        address:$('#wa').value.trim(), linkedin:$('#wl').value.trim() };
-    }
-  }
-  else if(k==='skills'){
-    wizBody.innerHTML=`<h3>Add your skills</h3>
-      <div class="small">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything.</b></div>
-      <div id="skillsWrap" style="margin-top:10px"></div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="addStar">+ ★</button><button class="btn" id="addSl">+ <i class="fa-solid fa-sliders"></i></button></div>
-      <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="placeSide"> Display skills in the sidebar</label>
-      <div class="navline"><button class="btn" id="b4">Back</button><button class="btn primary" id="n4">Next</button></div>`;
-    const wrap=$('#skillsWrap',wizBody);
-    const restore=()=>{ wrap.innerHTML=''; (STATE.skills.list||[]).forEach(it=>wrap.appendChild(it.type==='stars'?starRow(it.label,it.value):sliderRow(it.label,it.value))); attachDnd(wrap,'.skill'); };
-    restore();
-    $('#placeSide').checked=STATE.skills.place==='sidebar';
-    $('#addStar').onclick=()=>{ const r=starRow(); wrap.appendChild(r); attachDnd(wrap,'.skill'); };
-    $('#addSl').onclick=()=>{ const r=sliderRow(); wrap.appendChild(r); attachDnd(wrap,'.skill'); };
-    $('#b4').onclick=()=>{ save(); backStep(); };
-    $('#n4').onclick=()=>{ save(); // push to canvas if any
-      if(STATE.skills.list.length){
-        // remove existing skills section to avoid duplicates
-        $$('.section.skills',document).forEach(s=>s.closest('.node').remove());
-        sectionSkills($('#placeSide').checked?'sidebar':'canvas');
-        // populate
-        const grid=$('.section.skills [data-grid]',document);
-        grid.innerHTML='';
-        STATE.skills.list.forEach(it=>grid.appendChild(it.type==='stars'?starRow(it.label,it.value):sliderRow(it.label,it.value)));
-        attachDnd(grid,'.skill');
-      }
-      nextStep();
-    };
-    function save(){
-      const list=[];
-      $$('.skill',wrap).forEach(s=>{
-        if(s.dataset.type==='stars'){
-          const label=s.querySelector('.label').textContent.trim()||'Skill';
-          const v=s.querySelectorAll('.star.active').length;
-          list.push({type:'stars',label:label,value:v});
-        }else{
-          const label=s.querySelector('.label').textContent.trim()||'Skill';
-          const v=+s.querySelector('input').value;
-          list.push({type:'slider',label:label,value:v});
-        }
-      });
-      STATE.skills.list=list; STATE.skills.place=$('#placeSide').checked?'sidebar':'canvas';
-    }
-  }
-  else if(k==='education'){
-    wizBody.innerHTML=`<h3>Education</h3><div class="small">Add courses and/or degrees.</div>
-      <div id="eduWrap" style="margin-top:10px;display:grid;gap:10px;max-width:640px"></div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="addCourse">+ Add course</button><button class="btn" id="addDegree">+ Add degree</button></div>
-      <div class="navline"><button class="btn" id="b5">Back</button><button class="btn primary" id="n5">Next</button></div>`;
-    const wrap=$('#eduWrap',wizBody);
-    function row(kind='course',data){ const id=uid();
-      const r=make('div','node'); r.innerHTML=`<div class="edu-card">
-        <div class="edu-tools"><div class="ui handle">⋮⋮</div><button class="ui" data-rm><i class="fa-solid fa-xmark"></i></button></div>
-        <div class="edu-title"><i class="fa-solid ${kind==='course'?'fa-scroll':'fa-graduation-cap'}" style="color:${kind==='course'?'var(--g2)':'var(--g1)'}"></i>
-          <span contenteditable>${data?.title||'Title'}</span></div>
-        <div class="edu-year"><span class="badge" contenteditable>${data?.year||'2018–2022'}</span></div>
-        <div class="academy" contenteditable>${data?.academy||'Academy name (wraps to two lines if needed)'}</div>
-      </div>`;
-      r.querySelector('[data-rm]').onclick=()=>r.remove();
-      addDragByHandle(r); return r;
-    }
-    function restore(){ wrap.innerHTML=''; if(!STATE.edu.length) STATE.edu=[{kind:'course'},{kind:'degree'}]; STATE.edu.forEach(it=>wrap.appendChild(row(it.kind,it))); attachDnd(wrap,'.node'); }
-    restore();
-    $('#addCourse').onclick=()=>{ wrap.appendChild(row('course')); attachDnd(wrap,'.node'); };
-    $('#addDegree').onclick=()=>{ wrap.appendChild(row('degree')); attachDnd(wrap,'.node'); };
-    $('#b5').onclick=()=>{ save(); backStep(); };
-    $('#n5').onclick=()=>{ save(); // populate canvas
-      const host=$$('.section',stack).find(s=>$('.title',s)?.innerText.includes('Education'))?.closest('.node');
-      if(host) host.remove();
-      const sec=sectionEdu(); const grid=$('.edu-grid',sec); grid.innerHTML='';
-      STATE.edu.forEach(it=>{
-        const card=make('div','edu-card'); card.innerHTML=`<div class="edu-tools" style="display:none"></div>
-          <div class="edu-title"><i class="fa-solid ${it.kind==='course'?'fa-scroll':'fa-graduation-cap'}" style="color:${it.kind==='course'?'var(--g2)':'var(--g1)'}"></i> <span>${it.title||'Title'}</span></div>
-          <div class="edu-year"><span class="badge">${it.year||'2018–2022'}</span></div>
-          <div class="academy">${it.academy||'Academy name'}</div>`;
-        grid.appendChild(card);
-      });
-      nextStep();
-    };
-    function save(){
-      STATE.edu = $$('.node',wrap).map(n=>{
-        const ic=n.querySelector('.fa-scroll')?'course':'degree';
-        return {kind:ic,title:n.querySelector('.edu-title span').textContent.trim()||'Title',
-          year:n.querySelector('.badge').textContent.trim(),academy:n.querySelector('.academy').textContent.trim()};
-      });
-    }
-  }
-  else if(k==='experience'){
-    wizBody.innerHTML=`<h3>Experience</h3>
-      <div id="expWrap" style="display:grid;gap:10px;max-width:700px"></div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="addRole">+ Add role</button></div>
-      <div class="navline"><button class="btn" id="b6">Back</button><button class="btn primary" id="n6">Next</button></div>`;
-    const wrap=$('#expWrap',wizBody);
-    function row(data){
-      const r=make('div','node'); r.innerHTML=`<div class="exp-card">
-        <div class="exp-tools"><div class="ui handle">⋮⋮</div><button class="ui" data-rm><i class="fa-solid fa-xmark"></i></button></div>
-        <span class="badge" contenteditable>${data?.dates||'Jan 2022'}</span>
-        <span style="font-weight:800;margin-left:8px" contenteditable>${data?.role||'Job title'}</span>
-        <div style="font-weight:700;color:#374151" contenteditable>${data?.org||'@Company'}</div>
-        <div class="desc" contenteditable>${data?.desc||'Describe impact, scale and results.'}</div>
-      </div>`;
-      r.querySelector('[data-rm]').onclick=()=>r.remove();
-      addDragByHandle(r); return r;
-    }
-    function restore(){ wrap.innerHTML=''; if(!STATE.exp.length) STATE.exp=[{}]; STATE.exp.forEach(it=>wrap.appendChild(row(it))); attachDnd(wrap,'.node'); }
-    restore();
-    $('#addRole').onclick=()=>{ const r=row({}); wrap.appendChild(r); attachDnd(wrap,'.node'); };
-    $('#b6').onclick=()=>{ save(); backStep(); };
-    $('#n6').onclick=()=>{ save();
-      const host=$$('.section',stack).find(s=>$('.title',s)?.innerText.includes('Work experience'))?.closest('.node'); if(host) host.remove();
-      const sec=sectionExp(); const list=$('.exp-list',sec); list.innerHTML='';
-      STATE.exp.forEach(it=>{
-        const c=make('div','exp-card'); c.innerHTML=`<div class="exp-tools" style="display:none"></div>
-          <span class="badge">${it.dates||'Jan 2022'}</span>
-          <span style="font-weight:800;margin-left:8px">${it.role||'Job title'}</span>
-          <div style="font-weight:700;color:#374151">${it.org||'@Company'}</div>
-          <div class="desc">${it.desc||'Describe impact, scale and results.'}</div>`;
-        list.appendChild(c);
-      });
-      nextStep();
-    };
-    function save(){ STATE.exp=$$('.node',wrap).map(n=>({
-      dates:n.querySelector('.badge').textContent.trim(),
-      role:n.querySelector('.exp-card span[contenteditable]').textContent.trim(),
-      org:n.querySelector('.exp-card div[contenteditable]').textContent.trim(),
-      desc:n.querySelector('.desc').textContent.trim()
-    })); }
-  }
-  else if(k==='done'){
-    wizBody.innerHTML=`<div class="center" style="height:100%;flex-direction:column;gap:10px">
-      <div style="font-size:26px;font-weight:900">All set ✨</div>
-      <div class="small">You can continue editing directly on the canvas.</div>
-      <div class="navline" style="justify-content:center"><button class="btn primary" id="finish">Finish</button></div>
     </div>`;
-    $('#finish',wizBody).onclick=closeWizard;
-  }
+  const grid=outer.querySelector('[data-sgrid]');
+  // layout grid: 2 columns in canvas, 1 column in rail
+  if(!(S.skillsInSidebar && S.layout==='side')) grid.classList.add('cols-2');
+
+  S.skills.forEach(it=>{
+    const row=document.createElement('div'); row.className='skill';
+    row.innerHTML=`<div class="label"><span>${it.label||'Skill'}</span></div>
+      <div class="right"></div>`;
+    const R=row.querySelector('.right');
+    if(it.type==='star'){
+      const s=document.createElement('div'); s.className='stars';
+      for(let i=1;i<=5;i++){
+        const svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.classList.add('star'); if(i<=(+it.value||0)) svg.classList.add('active');
+        svg.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>';
+        svg.onclick=()=>{ it.value=i; svg.parentElement.querySelectorAll('.star').forEach((e,idx)=>e.classList.toggle('active',idx<i)); };
+        s.appendChild(svg);
+      }
+      R.appendChild(s);
+    }else{
+      const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50;
+      r.oninput=()=>{ it.value=r.value; };
+      R.appendChild(r);
+    }
+    grid.appendChild(row);
+  });
+
+  if(host===stack){ stack.insertBefore(outer, addWrap); }
+  else { const n=document.createElement('div'); n.className='node'; n.appendChild(outer.firstElementChild); host.appendChild(n); }
+
+  const t=outer.querySelector('#togglePlace');
+  if(t) t.onclick=()=>{ S.skillsInSidebar=!S.skillsInSidebar; renderSkills(); updatePlusMenu(); };
 }
 
-/* contact chips placement */
-function addContactChips(){
-  const h=$('.header'); if(!h) ensureHeader(STATE.layout);
-  // simple chip stack under name on sidebar: put into rail chips; otherwise add a transient node under header
-  const list=[];
-  if(STATE.contact.phone) list.push(['fa-phone',STATE.contact.phone]);
-  if(STATE.contact.email) list.push(['fa-envelope',STATE.contact.email]);
-  if(STATE.contact.address) list.push(['fa-location-dot',STATE.contact.address]);
-  if(STATE.contact.linkedin) list.push(['fa-linkedin','linkedin.com/in/'+STATE.contact.linkedin]);
+/* ---------- Education rendering ---------- */
+function renderEdu(){
+  $$('[data-section="edu"]').forEach(n=>n.closest('.node').remove());
+  if(!S.edu.length) return;
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='edu';
+  outer.innerHTML=`<div class="sec">
+    <div class="stitle"><i class="fa-solid fa-graduation-cap"></i><div>Education</div></div>
+    <div class="u"></div>
+    <div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div>
+  </div>`;
+  const grid=outer.querySelector('[data-egrid]');
+  S.edu.forEach(card=>{
+    const c=document.createElement('div'); c.className='sec';
+    const icon = card.kind==='degree' ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>' : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-weight:700">${icon}<span>${card.title||'Title'}</span></div>
+      <div><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(card.year||'2018–2022').slice(0,9)}</span></div>
+      <div style="margin-top:6px">${card.academy||'Academy name (wraps to two lines if needed)'}</div>`;
+    grid.appendChild(c);
+  });
+  stack.insertBefore(outer, addWrap);
+}
 
-  // name
-  if(STATE.contact.name) $('.name',h).textContent=STATE.contact.name;
+/* ---------- Experience rendering ---------- */
+function renderExp(){
+  $$('[data-section="exp"]').forEach(n=>n.closest('.node').remove());
+  if(!S.exp.length) return;
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='exp';
+  outer.innerHTML=`<div class="sec">
+    <div class="stitle"><i class="fa-solid fa-briefcase"></i><div>Work experience</div></div>
+    <div class="u"></div>
+    <div class="exp-list" style="display:grid;gap:12px" data-xgrid></div>
+  </div>`;
+  const grid=outer.querySelector('[data-xgrid]');
+  S.exp.forEach(x=>{
+    const c=document.createElement('div'); c.className='sec'; c.style.background='color-mix(in srgb, var(--accent) 12%, #fff)';
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(x.dates||'Jan 2022').slice(0,16)}</span>
+    <div style="font-weight:800;margin-left:6px">${x.role||'Job title'}</div></div>
+    <div style="font-weight:700;color:#374151;margin-top:4px">${x.org||'@Company'}</div>
+    <div style="margin-top:6px">${x.desc||'Describe impact, scale and results.'}</div>`;
+    grid.appendChild(c);
+  });
+  stack.insertBefore(outer, addWrap);
+}
 
-  if(isSidebar()){
-    const rail=$('[data-rail-chips]',stack); rail.innerHTML='';
-    list.forEach(it=>{
-      const chip=make('div','chip'); chip.innerHTML=`<i class="fa-solid ${it[0]}"></i><span>${it[1]}</span><button class="rm">×</button>`;
-      chip.querySelector('.rm').onclick=()=>chip.remove();
-      rail.appendChild(chip);
-    });
+/* ---------- Plus menu ---------- */
+function updatePlusMenu(){
+  // hide plus if we have all three sections
+  const haveSkills=!!$('[data-section="skills"]');
+  const haveEdu=!!$('[data-section="edu"]');
+  const haveExp=!!$('[data-section="exp"]');
+  if(haveSkills && haveEdu && haveExp){ addWrap.style.display='none'; return; }
+  addWrap.style.display='flex';
+}
+function openAddMenuNear(btn){
+  addTray.innerHTML='';
+  const haveHeader=!!headerNode();
+  if(!haveHeader){
+    addTray.innerHTML=`<div class="sq" data-add="header-side" title="Sidebar"><i class="fa-solid fa-table-columns"></i></div>
+      <div class="sq" data-add="header-fancy" title="Top fancy"><i class="fa-solid fa-sparkles"></i></div>
+      <div class="sq" data-add="header-top" title="Top bar"><i class="fa-solid fa-grip-lines"></i></div>`;
   }else{
-    // create a simple chips node section (unlocked)
-    let holder=$('#contactHolder'); if(!holder){ holder=make('div','node'); holder.id='contactHolder'; holder.innerHTML=`<div class="chips" data-hold></div>`; stack.insertBefore(holder, addAnchor); }
-    const wrap=$('[data-hold]',holder); wrap.innerHTML='';
-    list.forEach(it=>{
-      const chip=make('div','chip'); chip.innerHTML=`<i class="fa-solid ${it[0]}"></i><span>${it[1]}</span><button class="rm">×</button>`;
-      chip.querySelector('.rm').onclick=()=>chip.remove();
-      wrap.appendChild(chip);
-    });
+    if(!S.skills.length) addTray.innerHTML+=`<div class="sq" data-add="skills" title="Skills"><i class="fa-solid fa-layer-group"></i></div>`;
+    if(!S.edu.length)   addTray.innerHTML+=`<div class="sq" data-add="edu" title="Education"><i class="fa-solid fa-user-graduate"></i></div>`;
+    if(!S.exp.length)   addTray.innerHTML+=`<div class="sq" data-add="exp" title="Experience"><i class="fa-solid fa-briefcase"></i></div>`;
   }
+  if(!addTray.children.length){ addWrap.style.display='none'; return; }
+  addMenu.classList.add('open'); moveAddNear(btn);
 }
-
-/* WELCOME open */
-welcome.classList.add('open');
-$('#startWizard').onclick=openWizard;
-$('#startBlank').onclick=()=>{ welcome.classList.remove('open'); ensureHeader('sidebar'); };
-
-/* LAYOUT inside canvas popup */
-layoutPop.addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b) return;
+addBtn.onclick=(e)=>openAddMenuNear(e.currentTarget);
+document.addEventListener('click',e=>{
+  if(addMenu.classList.contains('open') && !addMenu.contains(e.target) && e.target!==addBtn){ addMenu.classList.remove('open'); }
+});
+addTray.addEventListener('click',e=>{
+  const k=e.target.closest('.sq')?.dataset.add; if(!k) return;
+  addMenu.classList.remove('open');
+  if(k.startsWith('header')) createHeader(k);
+  if(k==='skills'){ if(!S.skills.length) S.skills=[{type:'star',label:'Skill',value:3},{type:'slider',label:'Skill',value:50}]; renderSkills(); }
+  if(k==='edu'){ if(!S.edu.length) S.edu=[{kind:'course',year:'2018–2022',academy:'Academy name (wraps to two lines if needed)',title:'Title'}]; renderEdu(); }
+  if(k==='exp'){ if(!S.exp.length) S.exp=[{dates:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; renderExp(); }
+  updatePlusMenu();
 });
 
-/* initial */
-ensureHeader('sidebar'); morphHeader('sidebar'); cleanAddOptions();
+/* ---------- Wizard ---------- */
+const STEPS=[
+  {k:'layout',label:'Layout'},
+  {k:'theme',label:'Theme'},
+  {k:'contact',label:'Profile data'},
+  {k:'skills',label:'Skills'},
+  {k:'education',label:'Education'},
+  {k:'experience',label:'Experience'},
+  {k:'done',label:'Done'}
+];
+let stepIdx=0, backCount=0;
 
-/* END IIFE */
+function buildWizard(){
+  stepList.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    const el=document.createElement('div'); el.className='step'; el.dataset.i=i;
+    el.innerHTML=`<div class="dot"></div><div>${s.label}</div>`;
+    stepList.appendChild(el);
+  });
+  renderStep();
+}
+function markSteps(){
+  $$('.step',stepList).forEach((el,i)=>{
+    el.classList.toggle('on', i===stepIdx);
+    el.classList.toggle('done', i<stepIdx);
+  });
+}
+function renderStep(){
+  markSteps(); wizStartOver.style.display=(backCount>=2?'inline-flex':'none');
+
+  const s=STEPS[stepIdx].k;
+  // layout
+  if(s==='layout'){
+    wizBody.innerHTML=`
+      <div class="wtitle">Choose your layout</div>
+      <div class="wsub">Pick a starting header style.</div>
+      <div class="wrow">
+        <div class="mock sidebar ${S.layout==='side'?'sel':''}" data-layout="header-side">
+          <div class="hero"></div><div class="pp"></div>
+          <div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:48%"></div><div class="line" style="width:40%"></div></div>
+        </div>
+        <div class="mock fancy ${S.layout==='fancy'?'sel':''}" data-layout="header-fancy">
+          <div class="hero"></div><div class="pp"></div>
+          <div class="txt"><div class="line" style="width:64%"></div><div class="line" style="width:44%"></div></div>
+        </div>
+        <div class="mock topbar ${S.layout==='top'?'sel':''}" data-layout="header-top">
+          <div class="hero"></div><div class="pp"></div>
+          <div class="txt"><div class="line" style="width:60%"></div><div class="line" style="width:40%"></div></div>
+        </div>
+      </div>`;
+    $$('.mock',wizBody).forEach(m=> m.onclick=()=>{ $$('.mock',wizBody).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); createHeader(m.dataset.layout); });
+  }
+
+  // theme
+  if(s==='theme'){
+    wizBody.innerHTML=`
+      <div class="wtitle">Choose a color theme</div>
+      <div class="theme-row" style="grid-template-columns:1fr 1fr 1fr">
+        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack'].map(k=>`<div class="swatch" data-k="${k}" style="height:54px"></div>`).join('')}
+      </div>
+      <div class="k-row" style="margin-top:14px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
+      <div class="k-row"><span>Material</span>
+        <button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button>
+      </div>
+      <div class="k-row"><span>Custom gradient</span>
+        <input type="color" id="w1" value="#8b5cf6"><input type="color" id="w2" value="#d946ef">
+        <button class="mbtn" id="wApply">Apply</button>
+      </div>`;
+    $$('.swatch',wizBody).forEach(s=> s.onclick=()=>{ document.body.setAttribute('data-theme', s.dataset.k); S.theme=s.dataset.k; });
+    $('#wizDark').onclick=()=>{ $('#wizDark').classList.toggle('on'); S.dark=$('#wizDark').classList.contains('on'); refreshTheme(); };
+    $('#wizPaper').onclick=()=>{ S.mat='paper'; refreshTheme(); };
+    $('#wizGlass').onclick=()=>{ S.mat='glass'; refreshTheme(); };
+    $('#wApply').onclick=()=>{ document.documentElement.style.setProperty('--accent',$('#w1').value); document.documentElement.style.setProperty('--accent2',$('#w2').value); };
+  }
+
+  // contact
+  if(s==='contact'){
+    wizBody.innerHTML=`
+      <div class="wtitle">Profile data</div>
+      <div class="wsub">Only filled fields will appear.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
+        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
+        <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
+        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center">
+          <span style="opacity:.7">linkedin.com/in/</span>
+          <input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}">
+        </div>
+      </div>`;
+    $$('.wipt',wizBody).forEach(i=> i.oninput=saveContact);
+  }
+  if(s==='skills'){
+    wizBody.innerHTML=`
+      <div class="wtitle">Add your skills</div>
+      <div class="wsub">Use stars or a slider. This block can represent <b>languages, tools, abilities—anything</b>. The stars/slider reflect your confidence in that skill.</div>
+      <div id="ws"></div>
+      <div class="center" style="margin:10px 0 0">
+        <button class="btn" id="addStar">+ ★</button>
+        <button class="btn" id="addSlider">+ <i class="fa-solid fa-sliders"></i></button>
+      </div>
+      ${(S.layout==='side')?'<div style="margin-top:10px"><label><input type="checkbox" id="inSide"> Display skills in the sidebar</label></div>':''}
+    `;
+    const ws=$("#ws");
+    function row(it,idx){
+      const d=document.createElement('div'); d.style.cssText='display:grid;grid-template-columns:1fr 180px;gap:10px;align-items:center;margin:6px 0';
+      d.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+          <span class="handle" draggable="true" title="Drag"></span>
+          <button class="btn" data-rm style="padding:6px 10px">×</button>
+          <input class="wipt" data-lab value="${it.label||'Skill'}" style="max-width:240px">
+        </div>
+        <div class="right"></div>`;
+      const R=d.querySelector('.right');
+      if(it.type==='star'){
+        const box=document.createElement('div'); box.className='stars';
+        for(let i=1;i<=5;i++){
+          const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('star'); if(i<=(+it.value||0)) s.classList.add('active');
+          s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>';
+          s.onclick=()=>{ it.value=i; box.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); };
+          box.appendChild(s);
+        }
+        R.appendChild(box);
+      }else{
+        const r=document.createElement('input'); r.type='range'; r.min=0;r.max=100;r.value=+it.value||50; r.oninput=()=>it.value=r.value;
+        R.appendChild(r);
+      }
+      d.querySelector('[data-rm]').onclick=()=>{ S.skills.splice(idx,1); paint(); };
+      d.querySelector('[data-lab]').oninput=e=>it.label=e.target.value;
+      d.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; });
+      d.addEventListener('dragover',ev=>ev.preventDefault());
+      d.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); paint(); });
+      return d;
+    }
+    function paint(){ ws.innerHTML=''; S.skills.forEach((it,i)=>ws.appendChild(row(it,i))); }
+    paint();
+    $('#addStar').onclick=()=>{ S.skills.push({type:'star',label:'Skill',value:3}); paint(); };
+    $('#addSlider').onclick=()=>{ S.skills.push({type:'slider',label:'Skill',value:50}); paint(); };
+    if($('#inSide')){ $('#inSide').checked=S.skillsInSidebar; $('#inSide').onchange=()=>{ S.skillsInSidebar=$('#inSide').checked; }; }
+  }
+  if(s==='education'){
+    wizBody.innerHTML=`
+      <div class="wtitle">Education</div>
+      <div class="wsub">Add courses and/or degrees.</div>
+      <div id="eduWrap"></div>
+      <div class="center" style="margin-top:10px">
+        <button class="btn" id="addCourse">+ Add course</button>
+        <button class="btn" id="addDegree">+ Add degree</button>
+      </div>`;
+    const wr=$("#eduWrap");
+    function row(it,idx){
+      const card=document.createElement('div'); card.className='sec'; card.style.margin='10px 0';
+      const icon = it.kind==='degree' ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>' : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
+      card.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
+        <span class="handle" draggable="true"></span>
+        <button class="btn" data-rm style="padding:6px 10px">×</button>
+        <div style="font-weight:700">${icon} <input class="wipt" data-title placeholder="Title" value="${it.title||''}" style="max-width:280px"></div>
+      </div>
+      <div style="margin-top:6px"><input class="wipt" data-year placeholder="2018–2022" value="${it.year||''}" style="max-width:120px"></div>
+      <div style="margin-top:6px"><input class="wipt" data-ac placeholder="Academy name (wraps to two lines if needed)" value="${it.academy||''}" style="width:100%"></div>`;
+      card.querySelector('[data-title]').oninput=e=>it.title=e.target.value;
+      card.querySelector('[data-year]').oninput=e=>it.year=e.target.value.slice(0,9);
+      card.querySelector('[data-ac]').oninput=e=>it.academy=e.target.value;
+      card.querySelector('[data-rm]').onclick=()=>{ S.edu.splice(idx,1); paint(); };
+      card.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx);});
+      card.addEventListener('dragover',ev=>ev.preventDefault());
+      card.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.edu.splice(from,1); S.edu.splice(to,0,m); paint(); });
+      return card;
+    }
+    function paint(){ wr.innerHTML=''; S.edu.forEach((it,i)=>wr.appendChild(row(it,i))); }
+    paint();
+    $('#addCourse').onclick=()=>{ S.edu.push({kind:'course',year:'',academy:'',title:''}); paint(); };
+    $('#addDegree').onclick=()=>{ S.edu.push({kind:'degree',year:'',academy:'',title:''}); paint(); };
+  }
+  if(s==='experience'){
+    wizBody.innerHTML=`
+      <div class="wtitle">Experience</div>
+      <div id="xWrap"></div>
+      <div class="center" style="margin-top:10px"><button class="btn" id="addRole">+ Add role</button></div>
+    `;
+    const wr=$("#xWrap");
+    function row(it,idx){
+      const c=document.createElement('div'); c.className='sec'; c.style.margin='10px 0';
+      c.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
+        <span class="handle" draggable="true"></span>
+        <button class="btn" data-rm style="padding:6px 10px">×</button>
+        <input class="wipt" data-d placeholder="Jan 2022 – Present" value="${it.dates||''}" style="max-width:160px">
+        <input class="wipt" data-r placeholder="Job title" value="${it.role||''}" style="max-width:220px">
+      </div>
+      <div style="margin-top:6px"><input class="wipt" data-o placeholder="@Company" value="${it.org||''}" style="max-width:220px"></div>
+      <div style="margin-top:6px"><textarea class="wipt" data-desc placeholder="Describe impact, scale and results." style="width:100%;min-height:60px">${it.desc||''}</textarea></div>`;
+      c.querySelector('[data-d]').oninput=e=>it.dates=e.target.value.slice(0,16);
+      c.querySelector('[data-r]').oninput=e=>it.role=e.target.value;
+      c.querySelector('[data-o]').oninput=e=>it.org=e.target.value;
+      c.querySelector('[data-desc]').oninput=e=>it.desc=e.target.value;
+      c.querySelector('[data-rm]').onclick=()=>{ S.exp.splice(idx,1); paint(); };
+      c.querySelector('.handle').addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',idx));
+      c.addEventListener('dragover',ev=>ev.preventDefault());
+      c.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.exp.splice(from,1); S.exp.splice(to,0,m); paint(); });
+      return c;
+    }
+    function paint(){ wr.innerHTML=''; S.exp.forEach((it,i)=>wr.appendChild(row(it,i))); }
+    paint();
+    $('#addRole').onclick=()=>{ S.exp.push({dates:'',role:'',org:'',desc:''}); paint(); };
+  }
+  if(s==='done'){
+    wizBody.innerHTML=`<div class="wtitle" style="text-align:center">All set 🎉</div>
+      <div class="wsub" style="text-align:center">You can keep editing on the canvas. Change layout or theme any time.</div>`;
+    wizNext.textContent='Finish';
+  }else{
+    wizNext.textContent='Next';
+  }
+}
+function saveContact(){
+  S.contact={ name:$('#nm').value, phone:$('#ph').value, email:$('#em').value, address:$('#ad').value, linkedin:$('#ln').value };
+  // live apply to header chips
+  const h=headerNode(); if(!h) return;
+  const nameEl=h.querySelector('.name'); if(nameEl) nameEl.textContent=S.contact.name||'YOUR NAME';
+  function addChip(icon,text){
+    const chip=document.createElement('div'); chip.className='chip';
+    chip.innerHTML=`<span>${icon}</span><span>${text}</span><button class="rm">×</button>`;
+    chip.querySelector('.rm').onclick=()=>chip.remove();
+    return chip;
+  }
+  // reset chips
+  const chipAreas=[...h.querySelectorAll('[data-info],[data-info-left],[data-info-right]')];
+  chipAreas.forEach(el=>el.innerHTML='');
+  const list=[];
+  if(S.contact.phone) list.push(addChip('<i class="fa-solid fa-phone"></i>',S.contact.phone));
+  if(S.contact.email) list.push(addChip('<i class="fa-solid fa-envelope"></i>',S.contact.email));
+  if(S.contact.address) list.push(addChip('<i class="fa-solid fa-location-dot"></i>',S.contact.address));
+  if(S.contact.linkedin) list.push(addChip('<i class="fa-brands fa-linkedin"></i>','linkedin.com/in/'+S.contact.linkedin));
+  if(h.querySelector('[data-info-left]')){
+    const L=h.querySelector('[data-info-left]'), R=h.querySelector('[data-info-right]');
+    list.forEach((c,i)=> (i%2?R:L).appendChild(c));
+  }else{
+    const box=h.querySelector('[data-info]'); list.forEach(c=>box.appendChild(c));
+  }
+}
+
+wizBack.onclick=()=>{ if(stepIdx>0){ stepIdx--; backCount++; renderStep(); } };
+wizStartOver.onclick=()=>{ Object.assign(S,{contact:{name:'',phone:'',email:'',address:'',linkedin:''}, skills:[], edu:[], exp:[]}); stepIdx=0; backCount=0; buildWizard(); };
+
+wizNext.onclick=()=>{
+  const cur=STEPS[stepIdx].k;
+  // apply changes to canvas on step transitions (without duplicating)
+  if(cur==='skills'){ renderSkills(); updatePlusMenu(); }
+  if(cur==='education'){ renderEdu(); }
+  if(cur==='experience'){ renderExp(); }
+  if(cur==='done'){ wizard.style.display='none'; finishWelcome(); return; }
+  if(stepIdx<STEPS.length-1){ stepIdx++; renderStep(); }
+};
+
+/* ---------- Theme apply ---------- */
+function refreshTheme(){
+  document.body.setAttribute('data-theme', S.theme || 'magentaPurple');
+  document.body.setAttribute('data-dark', S.dark?'1':'0');
+  document.body.setAttribute('data-mat', S.mat||'paper');
+}
+
+/* ---------- Start ---------- */
+$('#startWizard').onclick=()=>{ openWizard(); };
+$('#startBlank').onclick=()=>{ finishWelcome(); addWrap.style.display='flex'; };
+
+createHeader('header-fancy'); // prepare preview behind welcome but keep canvas clean (hidden under overlay)
+stack.querySelector('.node')?.remove(); // clean until user starts
+refreshTheme();
+
+/* layout quick under top menu */
+$('#layoutQuick').addEventListener('click',e=>{
+  const k=e.target.closest('.mock')?.dataset.layout; if(!k) return; createHeader(k); ddLayout.classList.remove('open');
+});
+
+/* Add bubble actions (global clicks handled above) */
+
+/* initial plus hidden until welcome closed */
+function showAddOnReady(){ if(!document.getElementById('welcome')) addWrap.style.display='flex'; }
+setTimeout(showAddOnReady,50);
+
 })();
 </script>
 </body>
