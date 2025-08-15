@@ -6,7 +6,6 @@
 <title>Easy Resume Builder</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
-/* === tokens =============================================================== */
 :root{
   --accent:#8b5cf6; --accent2:#d946ef;
   --ink:#e6e8ef; --ink-d:#0e1117;
@@ -24,13 +23,13 @@ body[data-theme="magentaPink"]{ --accent:#ec4899; --accent2:#f97316 }
 body[data-theme="blueGreen"]{ --accent:#22c1c3; --accent2:#2ecc71 }
 body[data-theme="grayBlack"]{ --accent:#8892a6; --accent2:#414b57 }
 
-/* === base ================================================================ */
+/* base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;display:grid;grid-template-rows:auto 1fr}
 a{color:inherit;text-decoration:none}
 
-/* === top bar ============================================================= */
+/* top bar */
 .nav{position:sticky;top:0;z-index:10000;display:flex;justify-content:center;gap:10px;align-items:center;padding:10px 14px;background:linear-gradient(180deg,#0b0f19,rgba(11,15,25,.85));border-bottom:1px solid #1d2336;backdrop-filter:blur(8px)}
 .brand{font-weight:800}
 .menu{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:14px;background:#0f1420;border:1px solid #1f2540;box-shadow:0 10px 30px rgba(0,0,0,.25)}
@@ -44,9 +43,7 @@ a{color:inherit;text-decoration:none}
 .theme-pop{min-width:340px}
 .theme-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .swatch{height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2));position:relative;overflow:hidden}
-.swatch:active::after{content:"";position:absolute;inset:-60px;pointer-events:none;background:
-radial-gradient(circle at center, #fff6 0 8px, #fff0 9px) no-repeat center/120px 120px;
-animation:spark .6s ease}
+.swatch:active::after{content:"";position:absolute;inset:-60px;pointer-events:none;background:radial-gradient(circle at center,#fff6 0 8px,#fff0 9px) no-repeat center/120px 120px;animation:spark .6s ease}
 @keyframes spark{from{opacity:1;transform:scale(.6)}to{opacity:0;transform:scale(1.6)}}
 .swatch[data-k="coral"]{--a1:#ff7b54;--a2:#ffd166}
 .swatch[data-k="sea"]{--a1:#4facfe;--a2:#38d2ff}
@@ -62,7 +59,7 @@ animation:spark .6s ease}
 .switch.on{background:#3b82f6}
 .switch.on::after{left:23px}
 
-/* === canvas ============================================================= */
+/* canvas */
 #canvas{display:flex;justify-content:center;overflow:auto;padding:18px}
 .page{background:var(--card);color:#111;width:860px;min-height:1200px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
 [data-dark="1"] .page{background:#0d1220;color:#e6e8ef}
@@ -80,25 +77,20 @@ animation:spark .6s ease}
 .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
 /* layouts */
-.node{grid-column:span 12}
-
-/* === Sidebar layout (rail grows with page; content to the right) ======== */
-.sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px}
-.sidebar-layout .rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;align-self:stretch}
+.sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px;min-height:320px;align-items:stretch}
+.sidebar-layout .rail{background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;height:100%}
 .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
 .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
 .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
-.sidebar-layout [data-zone="main"]{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
+.sidebar-layout [data-zone="main"]{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
 
-/* === Top bar ============================================================ */
-.topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
+.topbar{position:sticky;top:0;z-index:20;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
 .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
 .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
 .topbar .right{display:flex;justify-content:flex-end}
-.topbar .right .avatar{width:120px;height:120px;border-width:4px;margin-right:3px}
+.topbar .right .avatar{width:120px;height:120px;border-width:4px}
 
-/* === Top fancy ========================================================== */
-.fancy{position:relative;border-radius:14px}
+.fancy{position:sticky;top:0;z-index:20;border-radius:14px}
 .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
 .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
 .fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:72px;row-gap:10px;margin:8px auto 0;max-width:740px}
@@ -106,6 +98,7 @@ animation:spark .6s ease}
 .fancy .below{height:88px}
 
 /* section shells */
+.node{grid-column:span 12}
 .sec{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px}
 [data-dark="1"] .sec{background:#0f1420;border-color:#1f2a44}
 body[data-mat="glass"] .sec,
@@ -115,27 +108,30 @@ body[data-mat="glass"] .node:not([data-locked="1"]){background:rgba(255,255,255,
 .stitle{display:flex;align-items:center;gap:10px;justify-content:center;font-weight:800}
 .stitle .u{height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px;margin-top:8px;margin-inline:auto}
 
-/* chips (theme-aware) */
+/* chips */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
 .chip i{width:16px;text-align:center}
 
-/* skills presentation (canvas) */
+/* skills (canvas) */
 .grid-skills{display:grid;gap:10px}
 .grid-skills.cols-2{grid-template-columns:1fr 1fr}
 .skill{display:grid;grid-template-columns:1fr var(--skill-right);align-items:center;gap:10px;padding:4px 0}
 .skill .label{display:flex;align-items:center;gap:8px}
-.skill .label [contenteditable]{outline:1px dashed transparent;border-radius:6px;padding:2px 4px}
-.skill .label [contenteditable]:focus{outline-color:#4e62c9;background:#0c1328;color:#e6ebff}
-.skill .grab{cursor:grab;opacity:.7}
-.sdel{border:none;background:#1112;color:#fff;width:24px;height:24px;border-radius:8px;cursor:pointer}
+.skill .label [contenteditable]{padding:2px 4px;border-radius:6px}
+.skill .label [contenteditable]:focus{outline:1px dashed #4e62c9;background:#0c1328}
 .stars{display:inline-flex;gap:var(--star-gap);justify-content:flex-end}
 .star{cursor:pointer;width:18px;height:18px;fill:#d1d5db}
 .star.active{fill:#f59e0b}
+.s-btn{border:0;border-radius:10px;padding:6px 9px;background:#12182a;color:#e6e8ef;cursor:pointer}
+.s-handle{width:18px;height:18px;border-radius:4px;background:#1f2a44;display:inline-block;margin-right:6px;cursor:grab}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));outline:1px solid rgba(0,0,0,.22)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
 
-/* ==== WELCOME ============================================================ */
+/* placeholder for drag */
+.ph{border:2px dashed #3a4a7a;border-radius:12px;height:46px;opacity:.8}
+
+/* welcome */
 #welcome{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:20000}
 .wcard{width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;justify-items:center;gap:16px}
 .wtitle{font-weight:900;font-size:22px;margin:0 0 6px;text-align:center}
@@ -144,7 +140,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
 .wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
 
-/* ==== WIZARD ============================================================= */
+/* wizard (unchanged core UI) */
 .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:21000}
 .wiz{width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden}
 .wiz-left{background:#0c111f;border-right:1px solid #1b2340;padding:16px}
@@ -156,50 +152,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .wiz-right{padding:20px 22px;display:flex;flex-direction:column;min-height:480px}
 #wizBody{flex:1}
 .navline{display:flex;gap:10px;justify-content:flex-end}
-
-/* inline inputs for wizard */
 .wipt{background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .wipt::placeholder{color:#95a0c7}
-
-/* layout mocks */
 .mock{flex:1;min-width:220px;min-height:130px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative;transition:transform .15s ease}
 .mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .mock.sel{outline:2px solid #ffb86c}
 .mock .hero{border-radius:12px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
 .mock .line{height:8px;border-radius:999px;background:#2b375f}
-
-/* sidebar mock */
 .mock.sidebar .hero{position:absolute;inset:14px auto 14px 14px;width:30%}
 .mock.sidebar .pp{position:absolute;left:34px;top:34px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.sidebar .txt{position:absolute;left:38%;right:20px;top:26px;display:grid;gap:10px}
-
-/* fancy mock */
 .mock.fancy .hero{height:64px;margin:8px}
 .mock.fancy .pp{position:absolute;left:50%;transform:translateX(-50%);top:58px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.fancy .txt{position:absolute;left:26px;right:26px;top:120px;display:grid;gap:10px}
-
-/* topbar mock (avatar fully inside, 3px inset) */
 .mock.topbar .hero{height:64px;margin:8px}
 .mock.topbar .pp{position:absolute;right:31px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.topbar .txt{position:absolute;left:26px;right:120px;top:28px;display:grid;gap:10px}
 
-/* drag placeholder */
-.ph{border:2px dashed #3a4a7a;border-radius:12px;height:46px;opacity:.8}
-
-/* add floating menu */
-.pop{position:fixed;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:18000}
-.pop.open{display:block}
-.pop .tray{display:flex;gap:10px}
-.pop .sq{width:48px;height:48px;border-radius:12px;border:1px solid #293255;background:#12182a;color:#e6e8ef;display:grid;place-items:center;cursor:pointer;box-shadow:0 12px 32px rgba(0,0,0,.35)}
-.pop .sq:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset}
-
 /* preview hides helpers */
-.preview .add-dot,.preview .tip,.preview .fmtbar,.preview .handle,.preview .chip .rm{display:none!important}
+.preview .add-dot,.preview .fmtbar,.preview .handle{display:none!important}
 @media print{ .nav,#welcome,#wizard,.pop{display:none!important} .page{box-shadow:none} }
 </style>
 </head>
 <body data-theme="magentaPurple" data-mat="paper">
-  <!-- top bar -->
   <div class="nav">
     <span class="brand">Easy Resume</span>
     <div class="menu">
@@ -258,7 +233,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
     </div>
   </div>
 
-  <!-- canvas -->
   <div id="canvas">
     <div class="page" id="page">
       <div id="sheet">
@@ -268,9 +242,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       </div>
     </div>
   </div>
-
-  <!-- floating add menu -->
-  <div class="pop" id="addMenu"><div class="tray" id="addTray"></div></div>
 
   <!-- welcome -->
   <div id="welcome">
@@ -312,11 +283,11 @@ const $$=(s,r)=> Array.from((r||document).querySelectorAll(s));
 /* state */
 const S={ layout:null, theme:'magentaPurple', dark:false, mat:'paper',
   contact:{name:'',phone:'',email:'',address:'',linkedin:''},
-  avatarData:null, /* preserved across layouts */
+  avatar:null, // dataURL
   skillsInSidebar:false, skills:[], edu:[], exp:[] };
 
 /* elements */
-const stack=$("#stack"), addWrap=$("#canvasAdd"), addBtn=$("#dotAdd"), addMenu=$("#addMenu"), addTray=$("#addTray");
+const addWrap=$("#canvasAdd"), addBtn=$("#dotAdd");
 const ddFile=$("#ddFile"), ddLayout=$("#ddLayout"), ddTheme=$("#ddTheme");
 const pdfBtn=$("#pdfBtn"), togglePrev=$("#togglePreview");
 const welcome=$("#welcome"), wizard=$("#wizard");
@@ -344,44 +315,33 @@ $('#startWizard').addEventListener('click',e=>{ e.stopPropagation(); openWizard(
 $('#startBlank').addEventListener('click',e=>{ e.stopPropagation(); welcome.style.display='none'; ensurePlusAtEnd(); });
 
 /* helpers */
-function headerNode(){ return stack.querySelector('[data-header]')?.closest('.node'); }
-function contentHost(){ // where sections + plus button go
-  if(S.layout==='side'){ return headerNode()?.querySelector('[data-zone="main"]') || stack; }
-  return stack;
-}
+function pageStack(){ return $("#stack"); }
+function headerNode(){ return pageStack().querySelector('[data-header]')?.closest('.node'); }
+function sideMainZone(){ return headerNode()?.querySelector('[data-zone="main"]'); }
+function hostForSections(){ return (S.layout==='side' ? sideMainZone() || pageStack() : pageStack()); }
 function ensurePlusAtEnd(){
-  const host=contentHost();
-  if(host && addWrap.parentElement!==host){ host.appendChild(addWrap); }
+  const host=hostForSections();
+  host.appendChild(addWrap);
   addWrap.style.display='flex';
 }
 
-/* avatar helpers (preserve across layouts) */
-function drawCover(ctx,img,w,h){
-  const s=Math.max(w/img.width,h/img.height), dw=img.width*s, dh=img.height*s, dx=(w-dw)/2, dy=(h-dh)/2;
-  ctx.clearRect(0,0,w,h); ctx.save(); ctx.beginPath(); ctx.arc(w/2,h/2,w/2,0,Math.PI*2); ctx.clip();
-  ctx.imageSmoothingQuality='high'; ctx.drawImage(img,dx,dy,dw,dh); ctx.restore();
-}
-function applySavedAvatar(root){
-  if(!S.avatarData) return;
-  const cav=root.querySelector('[data-avatar] canvas'); if(!cav) return;
-  const ctx=cav.getContext('2d'); const img=new Image();
-  img.onload=()=>{ drawCover(ctx,img,cav.width,cav.height); root.querySelector('[data-avatar]').setAttribute('data-empty','0'); };
-  img.src=S.avatarData;
+/* avatar */
+function drawAvatarTo(label){
+  if(!S.avatar) return;
+  const canvas=document.createElement('canvas'); canvas.width=140; canvas.height=140; label.appendChild(canvas);
+  const img=new Image(); img.onload=()=>{ const ctx=canvas.getContext('2d'); const s=Math.max(140/img.width,140/img.height); const dw=img.width*s, dh=img.height*s; const dx=(140-dw)/2, dy=(140-dh)/2; ctx.save(); ctx.beginPath(); ctx.arc(70,70,70,0,Math.PI*2); ctx.clip(); ctx.imageSmoothingQuality='high'; ctx.drawImage(img,dx,dy,dw,dh); ctx.restore(); label.setAttribute('data-empty','0'); }; img.src=S.avatar;
 }
 function initAvatars(root){
   $$('[data-avatar]',root).forEach(w=>{
-    const input=w.querySelector('input'), canvas=document.createElement('canvas');
-    canvas.width=140; canvas.height=140; w.appendChild(canvas);
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    const input=document.createElement('input'); input.type='file'; input.accept='image/*'; w.appendChild(input);
+    const canvas=document.createElement('canvas'); canvas.width=140; canvas.height=140; w.appendChild(canvas);
+    if(S.avatar) drawAvatarTo(w);
     w.onclick=()=>input.click();
-    input.onchange=()=>{ const f=input.files?.[0]; if(!f) return; const img=new Image();
-      img.onload=()=>{ drawCover(ctx,img,canvas.width,canvas.height); w.setAttribute('data-empty','0'); S.avatarData=canvas.toDataURL('image/png'); };
-      img.src=URL.createObjectURL(f);
-    };
+    input.onchange=()=>{ const f=input.files?.[0]; if(!f) return; const img=new Image(); img.onload=()=>{ const ctx=canvas.getContext('2d',{willReadFrequently:true}); const s=Math.max(canvas.width/img.width, canvas.height/img.height); const dw=img.width*s, dh=img.height*s; const dx=(canvas.width-dw)/2, dy=(canvas.height-dh)/2; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,Math.PI*2); ctx.clip(); ctx.imageSmoothingQuality='high'; ctx.drawImage(img,dx,dy,dw,dh); ctx.restore(); w.setAttribute('data-empty','0'); S.avatar=canvas.toDataURL('image/png'); }; img.src=URL.createObjectURL(f); };
   });
 }
 
-/* chip themeing */
+/* chip theme (paper/glass + dark) */
 function chipMode(){ return (S.mat==='glass')?'glass': (S.dark?'dark':'light'); }
 function tintForTheme(){ const darkThemes=['grayBlack','magentaPurple']; return darkThemes.includes(S.theme)?'lightText':'darkText'; }
 function applyChipTheme(el){
@@ -394,15 +354,16 @@ function applyChipTheme(el){
 }
 function applyChipThemeAll(){ $$('.chip').forEach(applyChipTheme); }
 
-/* create header (with morph + preserve data) */
+/* header creation + morph, preserves data */
 function createHeader(kind, prevRect){
   const old=headerNode(); if(old) old.remove();
 
   const node=document.createElement('div'); node.className='node'; node.setAttribute('data-locked','1');
+
   if(kind==='header-side'){
     node.innerHTML=`<div class="sidebar-layout" data-header>
       <div class="rail">
-        <label class="avatar" data-avatar data-empty="${S.avatarData?0:1}"><input type="file" accept="image/*"></label>
+        <label class="avatar" data-avatar data-empty="${S.avatar?0:1}"></label>
         <div class="name" contenteditable>YOUR NAME</div>
         <div class="chips" data-info></div>
         <div class="sec-holder" data-rail-sections></div>
@@ -416,7 +377,7 @@ function createHeader(kind, prevRect){
         <h1 class="name" contenteditable>YOUR NAME</h1>
         <div class="chip-grid"><div class="chips" data-info-left></div><div class="chips" data-info-right></div></div>
       </div>
-      <div class="avatar-float"><label class="avatar" data-avatar data-empty="${S.avatarData?0:1}"><input type="file" accept="image/*"></label></div>
+      <div class="avatar-float"><label class="avatar" data-avatar data-empty="${S.avatar?0:1}"></label></div>
       <div class="below"></div>
     </div>`;
   }
@@ -428,23 +389,16 @@ function createHeader(kind, prevRect){
           <div class="chips" data-info></div>
         </div>
         <div class="right">
-          <label class="avatar" data-avatar data-empty="${S.avatarData?0:1}" style="width:120px;height:120px;border-width:4px"><input type="file" accept="image/*"></label>
+          <label class="avatar" data-avatar data-empty="${S.avatar?0:1}" style="width:120px;height:120px;border-width:4px"></label>
         </div>
       </div>
     </div>`;
   }
-  stack.insertBefore(node, addWrap);
-  initAvatars(node);
 
-  // sync name typed directly in header back to state, and restore value
-  const nm=node.querySelector('.name');
-  if(nm){ nm.oninput=(e)=>{ S.contact.name=e.target.textContent||''; }; nm.textContent=S.contact.name||'YOUR NAME'; }
+  pageStack().insertBefore(node, addWrap);
 
-  // restore contact chips + avatar
-  saveContact();
-  applySavedAvatar(node);
-
-  S.layout = (kind==='header-side')?'side' : (kind==='header-fancy')?'fancy':'top';
+  initAvatars(node);        // creates input/canvas and redraws saved avatar
+  saveContact();            // repopulate name + chips from state
   refreshTheme(); applyChipThemeAll();
 
   // morph (FLIP)
@@ -456,13 +410,14 @@ function createHeader(kind, prevRect){
     setTimeout(()=>{ node.style.transition=''; node.style.transform=''; },380);
   }
 
-  // re-render sections into the correct host (right side for sidebar)
+  // sections may need to move host when switching to/from sidebar
   renderAllSections();
-  // ensure the + button sits in the right place (right column when sidebar)
   ensurePlusAtEnd();
 }
 
-/* contact chips & live update */
+function morphTo(kind){ const oldRect=headerNode()?.getBoundingClientRect(); createHeader(kind, oldRect); S.layout=(kind==='header-side')?'side':(kind==='header-fancy')?'fancy':'top'; }
+
+/* contact chips */
 function addChip(icon, text){
   const chip=document.createElement('div'); chip.className='chip';
   chip.innerHTML=`<i class="${icon}"></i><span>${text}</span>`;
@@ -477,7 +432,6 @@ function saveContact(){
   if(S.contact.email) list.push(addChip('fa-solid fa-envelope', S.contact.email));
   if(S.contact.address) list.push(addChip('fa-solid fa-location-dot', S.contact.address));
   if(S.contact.linkedin) list.push(addChip('fa-brands fa-linkedin','linkedin.com/in/'+S.contact.linkedin));
-
   const areas=[...h.querySelectorAll('[data-info],[data-info-left],[data-info-right]')];
   areas.forEach(a=>a.innerHTML='');
   if(h.querySelector('[data-info-left]')){
@@ -488,147 +442,125 @@ function saveContact(){
   }
 }
 
-/* ===== Sections ========================================================= */
-function sectionHostInsert(el){
-  const host=contentHost();
-  if(host===stack){ // full-width on grid
-    const wrapper=document.createElement('div'); wrapper.className='node'; wrapper.appendChild(el);
-    stack.insertBefore(wrapper, addWrap);
-  }else{ // sidebar layout → right column
-    host.appendChild(el);
-  }
-}
+/* render sections (canvas) */
 function renderSkills(){
-  $$('[data-section="skills"]').forEach(n=>n.remove());
+  $$('[data-section="skills"]').forEach(n=>n.closest('.node').remove());
   if(!S.skills.length) return;
+  const host=(S.skillsInSidebar && S.layout==='side')? headerNode().querySelector('[data-rail-sections]'): hostForSections();
 
-  const sec=document.createElement('div'); sec.className='sec'; sec.dataset.section='skills';
-  sec.innerHTML=`<div class="stitle"><i class="fa-solid fa-layer-group"></i><div>Skills</div></div>
-    <div class="u"></div>
-    <div class="grid-skills ${!(S.skillsInSidebar && S.layout==='side')?'cols-2':''}" data-sgrid></div>`;
-  const grid=sec.querySelector('[data-sgrid]');
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='skills';
+  const title=`<div class="stitle"><i class="fa-solid fa-layer-group"></i><div>Skills</div></div><div class="u"></div>`;
+  outer.innerHTML=`<div class="sec">${title}<div class="tip">Use ★ or the slider to rate your confidence.</div><div class="grid-skills" data-sgrid></div>${(S.layout==='side')?'<div class="center" style="margin-top:8px"><button class="mbtn" id="togglePlace">'+(S.skillsInSidebar?'Move to canvas':'Move to sidebar')+'</button></div>':''}</div>`;
+  const grid=outer.querySelector('[data-sgrid]');
+  if(!(S.skillsInSidebar && S.layout==='side')) grid.classList.add('cols-2');
 
-  S.skills.forEach((it,idx)=>{
-    const row=document.createElement('div'); row.className='skill'; row.draggable=true; row.dataset.i=idx;
-    row.innerHTML=`<div class="label"><span class="grab">⋮⋮</span><span class="ws-label" contenteditable>${it.label||'Skill'}</span><button class="sdel" title="Remove">✕</button></div><div class="right"></div>`;
+  const dragState={from:null};
+  function makeRow(it,idx){
+    const row=document.createElement('div'); row.className='skill'; row.draggable=true;
+    row.innerHTML=`<div class="label"><span class="s-handle" title="Drag"></span><button class="s-btn" data-rm title="Delete">×</button><span class="ws-label" contenteditable>${it.label||'Skill'}</span></div><div class="right"></div>`;
     const R=row.querySelector('.right');
 
-    row.querySelector('.sdel').onclick=()=>{ S.skills.splice(idx,1); renderSkills(); };
-
-    row.querySelector('.ws-label').oninput=e=>{ it.label=e.target.textContent||''; };
-
     if(it.type==='star'){
-      const holder=document.createElement('div'); holder.className='stars';
-      for(let i=1;i<=5;i++){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('star'); if(i<=(+it.value||0)) s.classList.add('active'); s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; s.onclick=()=>{ it.value=i; holder.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; holder.appendChild(s); }
-      R.appendChild(holder);
+      const s=document.createElement('div'); s.className='stars';
+      for(let i=1;i<=5;i++){
+        const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('viewBox','0 0 24 24'); svg.classList.add('star');
+        if(i<=(+it.value||0)) svg.classList.add('active');
+        svg.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>';
+        svg.onclick=()=>{ it.value=i; s.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); };
+        s.appendChild(svg);
+      }
+      R.appendChild(s);
     }else{
       const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50; r.oninput=()=>it.value=r.value; R.appendChild(r);
     }
 
-    // drag re-order (robust target index)
-    row.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; row.classList.add('dragging'); });
-    row.addEventListener('dragend',()=>row.classList.remove('dragging'));
-    row.addEventListener('dragover',ev=>{ ev.preventDefault(); });
-    row.addEventListener('drop',ev=>{ ev.preventDefault();
-      const from=+ev.dataTransfer.getData('text/plain');
-      const to=Array.from(grid.children).indexOf(row);
-      const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); renderSkills();
-    });
+    row.querySelector('[data-rm]').onclick=()=>{ S.skills.splice(idx,1); renderSkills(); updatePlusMenu(); };
+    row.querySelector('.ws-label').oninput=e=>it.label=e.target.textContent||'';
 
-    grid.appendChild(row);
-  });
-
-  if(S.layout==='side'){
-    const bt=document.createElement('div');
-    bt.style.textAlign='center'; bt.style.marginTop='8px';
-    bt.innerHTML=`<button class="mbtn" id="togglePlace">${S.skillsInSidebar?'Move to canvas':'Move to sidebar'}</button>`;
-    sec.appendChild(bt);
-    bt.querySelector('#togglePlace').onclick=()=>{ S.skillsInSidebar=!S.skillsInSidebar; renderAllSections(); };
+    row.addEventListener('dragstart',ev=>{ dragState.from=idx; ev.dataTransfer.effectAllowed='move'; });
+    row.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!grid.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; grid.insertBefore(ph,row.nextSibling);} });
+    row.addEventListener('dragleave',()=>{ const ph=grid.querySelector('.ph'); if(ph) ph.remove(); });
+    row.addEventListener('drop',ev=>{ ev.preventDefault(); const from=dragState.from, to=idx; const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); renderSkills(); });
+    return row;
   }
+  S.skills.forEach((it,i)=>grid.appendChild(makeRow(it,i)));
 
-  sectionHostInsert(sec);
+  if(host===hostForSections()) host.insertBefore(outer, addWrap); else host.appendChild(outer.firstElementChild);
+
+  const t=outer.querySelector('#togglePlace'); if(t) t.onclick=()=>{ S.skillsInSidebar=!S.skillsInSidebar; renderSkills(); updatePlusMenu(); };
 }
+
 function renderEdu(){
-  $$('[data-section="edu"]').forEach(n=>n.remove());
+  $$('[data-section="edu"]').forEach(n=>n.closest('.node').remove());
   if(!S.edu.length) return;
-  const sec=document.createElement('div'); sec.className='sec'; sec.dataset.section='edu';
-  sec.innerHTML=`<div class="stitle"><i class="fa-solid fa-graduation-cap"></i><div>Education</div></div>
-    <div class="u"></div><div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div>`;
-  const grid=sec.querySelector('[data-egrid]');
-  S.edu.forEach((card,idx)=>{
-    const c=document.createElement('div'); c.className='sec';
-    const icon = card.kind==='degree' ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>' : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
-    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-weight:700">${icon}<span contenteditable class="ws-label">${card.title||'Title'}</span><button class="sdel" style="margin-left:auto">✕</button></div>
-      <div><span class="badge" contenteditable style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(card.year||'2018–2022').slice(0,9)}</span></div>
-      <div style="margin-top:6px"><span contenteditable class="ws-label">${card.academy||'Academy name (wraps to two lines if needed)'}</span></div>`;
-    c.querySelectorAll('[contenteditable]').forEach((el,i)=> el.oninput=()=>{ if(i===0) card.title=el.textContent; else if(i===1) card.year=el.textContent.slice(0,9); else card.academy=el.textContent; });
-    c.querySelector('.sdel').onclick=()=>{ S.edu.splice(idx,1); renderEdu(); };
-    grid.appendChild(c);
-  });
-  sectionHostInsert(sec);
-}
-function renderExp(){
-  $$('[data-section="exp"]').forEach(n=>n.remove());
-  if(!S.exp.length) return;
-  const sec=document.createElement('div'); sec.className='sec'; sec.dataset.section='exp';
-  sec.innerHTML=`<div class="stitle"><i class="fa-solid fa-briefcase"></i><div>Work experience</div></div>
-    <div class="u"></div><div class="exp-list" style="display:grid;gap:12px" data-xgrid></div>`;
-  const grid=sec.querySelector('[data-xgrid]');
-  S.exp.forEach((x,idx)=>{
-    const c=document.createElement('div'); c.className='sec'; c.style.background='color-mix(in srgb, var(--accent) 12%, #fff)';
-    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="badge" contenteditable style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(x.dates||'Jan 2022').slice(0,16)}</span><div contenteditable style="font-weight:800;margin-left:6px">${x.role||'Job title'}</div><button class="sdel" style="margin-left:auto">✕</button></div>
-      <div style="font-weight:700;color:#374151;margin-top:4px" contenteditable>${x.org||'@Company'}</div>
-      <div style="margin-top:6px" contenteditable>${x.desc||'Describe impact, scale and results.'}</div>`;
-    const edits=c.querySelectorAll('[contenteditable]');
-    edits[0].oninput=e=>x.dates=e.target.textContent.slice(0,16);
-    edits[1].oninput=e=>x.role=e.target.textContent;
-    edits[2].oninput=e=>x.org=e.target.textContent;
-    edits[3]?.oninput && (edits[3].oninput=e=>x.desc=e.target.textContent);
-    c.querySelector('.sdel').onclick=()=>{ S.exp.splice(idx,1); renderExp(); };
-    grid.appendChild(c);
-  });
-  sectionHostInsert(sec);
-}
-function renderAllSections(){ renderSkills(); renderEdu(); renderExp(); updatePlusMenu(); ensurePlusAtEnd(); }
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='edu';
+  outer.innerHTML=`<div class="sec">
+    <div class="stitle"><i class="fa-solid fa-graduation-cap"></i><div>Education</div></div>
+    <div class="u"></div><div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div></div>`;
+  const grid=outer.querySelector('[data-egrid]');
 
-/* plus menu */
+  const dragState={from:null};
+  function card(it,idx){
+    const c=document.createElement('div'); c.className='sec'; c.draggable=true;
+    const icon = it.kind==='degree' ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>' : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-weight:700"><span class="s-handle" title="Drag"></span><button class="s-btn" data-rm>×</button>${icon}<span contenteditable class="ws-label">${it.title||'Title'}</span></div>
+      <div><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)" contenteditable>${(it.year||'2018–2022').slice(0,9)}</span></div>
+      <div style="margin-top:6px"><span contenteditable class="ws-label">${it.academy||'Academy name (wraps to two lines if needed)'}</span></div>`;
+
+    c.querySelector('[data-rm]').onclick=()=>{ S.edu.splice(idx,1); renderEdu(); updatePlusMenu(); };
+    const [ttl,yr,acd]=c.querySelectorAll('[contenteditable]');
+    ttl.oninput=()=>it.title=ttl.textContent; yr.oninput=()=>it.year=yr.textContent.slice(0,9); acd.oninput=()=>it.academy=acd.textContent;
+
+    c.addEventListener('dragstart',ev=>{ dragState.from=idx; ev.dataTransfer.effectAllowed='move'; });
+    c.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!grid.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; ph.style.height=c.offsetHeight+'px'; grid.insertBefore(ph,c.nextSibling);} });
+    c.addEventListener('dragleave',()=>{ const ph=grid.querySelector('.ph'); if(ph) ph.remove(); });
+    c.addEventListener('drop',ev=>{ ev.preventDefault(); const from=dragState.from, to=idx; const [m]=S.edu.splice(from,1); S.edu.splice(to,0,m); renderEdu(); });
+    return c;
+  }
+  S.edu.forEach((it,i)=>grid.appendChild(card(it,i)));
+
+  hostForSections().insertBefore(outer, addWrap);
+}
+
+function renderExp(){
+  $$('[data-section="exp"]').forEach(n=>n.closest('.node').remove());
+  if(!S.exp.length) return;
+  const outer=document.createElement('div'); outer.className='node'; outer.dataset.section='exp';
+  outer.innerHTML=`<div class="sec">
+    <div class="stitle"><i class="fa-solid fa-briefcase"></i><div>Work experience</div></div>
+    <div class="u"></div><div class="exp-list" style="display:grid;gap:12px" data-xgrid></div></div>`;
+  const grid=outer.querySelector('[data-xgrid]');
+  S.exp.forEach(x=>{
+    const c=document.createElement('div'); c.className='sec'; c.style.background='color-mix(in srgb, var(--accent) 12%, #fff)';
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(x.dates||'Jan 2022').slice(0,16)}</span><div style="font-weight:800;margin-left:6px">${x.role||'Job title'}</div></div>
+      <div style="font-weight:700;color:#374151;margin-top:4px">${x.org||'@Company'}</div>
+      <div style="margin-top:6px">${x.desc||'Describe impact, scale and results.'}</div>`;
+    grid.appendChild(c);
+  });
+  hostForSections().insertBefore(outer, addWrap);
+}
+
+function renderAllSections(){ renderSkills(); renderEdu(); renderExp(); updatePlusMenu(); }
+
+/* plus menu (minimal – same as before) */
 function updatePlusMenu(){
-  const haveSkills=!!$('[data-section="skills"]');
-  const haveEdu=!!$('[data-section="edu"]');
-  const haveExp=!!$('[data-section="exp"]');
+  const haveSkills=!!document.querySelector('[data-section="skills"]');
+  const haveEdu=!!document.querySelector('[data-section="edu"]');
+  const haveExp=!!document.querySelector('[data-section="exp"]');
   addWrap.style.display=(haveSkills&&haveEdu&&haveExp)?'none':'flex';
 }
-function moveAddNear(el){ const r=el.getBoundingClientRect(); const m=addMenu; const below=(window.innerHeight-r.bottom)>160; m.style.left=(r.left+window.scrollX)+'px'; m.style.top=(below? (r.bottom+10):(r.top-10- (m.offsetHeight||120)))+'px'; }
-function openAddMenuNear(btn){
-  addTray.innerHTML='';
-  const haveHeader=!!headerNode();
-  if(!haveHeader){
-    addTray.innerHTML=`<div class="sq" data-add="header-side" title="Sidebar"><i class="fa-solid fa-table-columns"></i></div>
-      <div class="sq" data-add="header-fancy" title="Top fancy"><i class="fa-solid fa-sparkles"></i></div>
-      <div class="sq" data-add="header-top" title="Top bar"><i class="fa-solid fa-grip-lines"></i></div>`;
-  }else{
-    if(!S.skills.length) addTray.innerHTML+=`<div class="sq" data-add="skills" title="Skills"><i class="fa-solid fa-layer-group"></i></div>`;
-    if(!S.edu.length)   addTray.innerHTML+=`<div class="sq" data-add="edu" title="Education"><i class="fa-solid fa-user-graduate"></i></div>`;
-    if(!S.exp.length)   addTray.innerHTML+=`<div class="sq" data-add="exp" title="Experience"><i class="fa-solid fa-briefcase"></i></div>`;
-  }
-  if(!addTray.children.length){ addWrap.style.display='none'; return; }
-  addMenu.classList.add('open'); moveAddNear(btn);
-}
-addBtn.onclick=(e)=>openAddMenuNear(e.currentTarget);
-document.addEventListener('click',e=>{ if(addMenu.classList.contains('open') && !addMenu.contains(e.target) && e.target!==addBtn) addMenu.classList.remove('open'); });
-addTray.addEventListener('click',e=>{
-  const k=e.target.closest('.sq')?.dataset.add; if(!k) return;
-  addMenu.classList.remove('open');
-  if(k.startsWith('header')) morphTo(k);
-  if(k==='skills'){ if(!S.skills.length) S.skills=[{type:'star',label:'Skill',value:3},{type:'slider',label:'Skill',value:50}]; renderSkills(); }
-  if(k==='edu'){ if(!S.edu.length) S.edu=[{kind:'course',year:'2018–2022',academy:'Academy name (wraps to two lines if needed)',title:'Title'}]; renderEdu(); }
-  if(k==='exp'){ if(!S.exp.length) S.exp=[{dates:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; renderExp(); }
-  updatePlusMenu();
-  ensurePlusAtEnd();
-});
-
-/* morph helper */
-function morphTo(kind){ const oldRect=headerNode()?.getBoundingClientRect(); createHeader(kind, oldRect); }
+addBtn.onclick=()=>{
+  // If no header, prompt to pick one quickly from the layout menu
+  if(!headerNode()){ ddLayout.classList.add('open'); return; }
+  // Otherwise open the wizard directly on the step for missing blocks
+  wizard.style.display='grid';
+  stepIdx=STEPS.findIndex(s=>s.k==='skills'); if(!S.skills.length) stepIdx=STEPS.findIndex(s=>s.k==='skills');
+  else if(!S.edu.length) stepIdx=STEPS.findIndex(s=>s.k==='education');
+  else if(!S.exp.length) stepIdx=STEPS.findIndex(s=>s.k==='experience');
+  else stepIdx=STEPS.findIndex(s=>s.k==='done');
+  renderStep();
+};
 
 /* theme */
 function setTheme(k){ S.theme=k; refreshTheme(); applyChipThemeAll(); }
@@ -657,7 +589,7 @@ function renderStep(){
     </div>
     <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>`;
     $$('.mock',wizBody).forEach(m=> m.onclick=()=>{ $$('.mock',wizBody).forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); morphTo(m.dataset.layout); });
-    $('#wizAddPhoto').onclick=()=>{ const a=headerNode()?.querySelector('[data-avatar] input'); if(a) a.click(); };
+    $('#wizAddPhoto').onclick=()=>{ const a=headerNode()?.querySelector('[data-avatar]'); if(a) a.click(); };
   }
 
   if(s==='theme'){
@@ -698,21 +630,20 @@ function renderStep(){
       ${(S.layout==='side')?'<div class="k-row"><label><input type="checkbox" id="inSide"> Display skills in the sidebar</label></div>':''}`;
     const wrap=$("#ws");
     function row(it,idx){
-      const d=document.createElement('div'); d.className='ws-row';
-      d.innerHTML=`<div class="ws-head"><span class="handle" draggable="true" title="Drag">⋮⋮</span><button class="mbtn" data-rm style="padding:6px 10px">×</button><span class="ws-label" contenteditable>${it.label||'Skill'}</span></div><div class="right"></div>`;
+      const d=document.createElement('div'); d.className='skill';
+      d.innerHTML=`<div class="label"><span class="s-handle" title="Drag"></span><button class="s-btn" data-rm>×</button><span class="ws-label" contenteditable>${it.label||'Skill'}</span></div><div class="right"></div>`;
       const R=d.querySelector('.right');
       if(it.type==='star'){
-        const holder=document.createElement('div'); holder.className='ws-stars';
-        for(let i=1;i<=5;i++){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('ws-star'); if(i<=(+it.value||0)) s.classList.add('active'); s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; s.onclick=()=>{ it.value=i; holder.querySelectorAll('.ws-star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; holder.appendChild(s); }
+        const holder=document.createElement('div'); holder.className='stars';
+        for(let i=1;i<=5;i++){ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.classList.add('star'); if(i<=(+it.value||0)) s.classList.add('active'); s.innerHTML='<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'; s.onclick=()=>{ it.value=i; holder.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); }; holder.appendChild(s); }
         R.appendChild(holder);
       }else{
-        const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50; r.className='ws-range';
-        r.oninput=()=>it.value=r.value; R.appendChild(r);
+        const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50; r.oninput=()=>it.value=r.value; r.className='ws-range'; R.appendChild(r);
       }
       d.querySelector('[data-rm]').onclick=()=>{ S.skills.splice(idx,1); paint(); };
       d.querySelector('.ws-label').oninput=e=>it.label=e.target.textContent||'';
-      d.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; d.classList.add('dragging'); });
-      d.addEventListener('dragend',()=>d.classList.remove('dragging'));
+      d.draggable=true;
+      d.addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; });
       d.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wrap.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; wrap.insertBefore(ph,d.nextSibling); }});
       d.addEventListener('dragleave',()=>{ const ph=wrap.querySelector('.ph'); if(ph) ph.remove(); });
       d.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.skills.splice(from,1); S.skills.splice(to,0,m); paint(); });
@@ -731,14 +662,14 @@ function renderStep(){
       <div class="k-row"><button class="mbtn" id="addCourse">+ Add course</button><button class="mbtn" id="addDegree">+ Add degree</button></div>`;
     const wr=$("#eduWrap");
     function card(it,idx){
-      const c=document.createElement('div'); c.className='sec'; c.style.paddingBottom='10px';
+      const c=document.createElement('div'); c.className='sec'; c.style.paddingBottom='10px'; c.draggable=true;
       const icon = it.kind==='degree' ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>' : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
-      c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="handle" draggable="true">⋮⋮</span><button class="mbtn" data-rm style="padding:6px 10px">×</button><div style="font-weight:700">${icon} <span contenteditable class="ws-label">${it.title||'Title'}</span></div></div>
+      c.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span class="s-handle" title="Drag"></span><button class="s-btn" data-rm>×</button><div style="font-weight:700">${icon} <span contenteditable class="ws-label">${it.title||'Title'}</span></div></div>
         <div style="margin-top:6px"><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)" contenteditable>${(it.year||'2018–2022').slice(0,9)}</span></div>
         <div style="margin-top:6px"><span contenteditable class="ws-label">${it.academy||'Academy name (wraps to two lines if needed)'}</span></div>`;
       c.querySelector('[data-rm]').onclick=()=>{ S.edu.splice(idx,1); paint(); };
       c.querySelectorAll('[contenteditable]').forEach((el,ix)=> el.oninput=()=>{ if(ix===0) it.title=el.textContent; else if(ix===1) it.year=el.textContent.slice(0,9); else it.academy=el.textContent; });
-      c.querySelector('.handle').addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',idx));
+      c.addEventListener('dragstart',ev=>ev.dataTransfer.setData('text/plain',idx));
       c.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wr.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; ph.style.height=c.offsetHeight+'px'; wr.insertBefore(ph,c.nextSibling);} });
       c.addEventListener('dragleave',()=>{ const ph=wr.querySelector('.ph'); if(ph) ph.remove(); });
       c.addEventListener('drop',ev=>{ ev.preventDefault(); const from=+ev.dataTransfer.getData('text/plain'); const to=idx; const [m]=S.edu.splice(from,1); S.edu.splice(to,0,m); paint(); });
@@ -769,9 +700,7 @@ function renderStep(){
     }
     function paint(){ wr.innerHTML=''; S.exp.forEach(it=>wr.appendChild(card(it))); }
     paint();
-    $('#addRole').onclick=(ev)=>{ S.exp.push({dates:'',role:'',org:'',desc:''}); paint();
-      const b=ev.currentTarget, r=b.getBoundingClientRect(); const t=document.createElement('div'); t.className='toast'; t.textContent='Experience added'; document.body.appendChild(t); t.style.left=(r.left+window.scrollX)+'px'; t.style.top=(r.top+window.scrollY-40)+'px'; setTimeout(()=>t.remove(),900);
-    };
+    $('#addRole').onclick=(ev)=>{ S.exp.push({dates:'',role:'',org:'',desc:''}); paint(); const r=ev.currentTarget.getBoundingClientRect(); const t=document.createElement('div'); t.className='toast'; t.textContent='Experience added'; document.body.appendChild(t); t.style.left=(r.left+window.scrollX)+'px'; t.style.top=(r.top+window.scrollY-40)+'px'; setTimeout(()=>t.remove(),900); };
   }
 
   if(s==='done'){
@@ -787,16 +716,19 @@ wizNext.onclick=()=>{
   if(cur==='skills'){ renderSkills(); }
   if(cur==='education'){ renderEdu(); }
   if(cur==='experience'){ renderExp(); }
-  if(cur==='done'){ wizard.style.display='none'; welcome.remove(); ensurePlusAtEnd(); updatePlusMenu(); return; }
+  if(cur==='done'){ wizard.style.display='none'; welcome.remove(); ensurePlusAtEnd(); return; }
   if(stepIdx<STEPS.length-1){ stepIdx++; renderStep(); }
 };
 
-/* top menu layout quick */
+/* top menu quick layouts */
 $('#layoutQuick').addEventListener('click',e=>{ const k=e.target.closest('.mock')?.dataset.layout; if(!k) return; morphTo(k); ddLayout.classList.remove('open'); });
 
-/* initial */
-refreshTheme();
-stack.querySelector('.node')?.remove(); // canvas clean behind welcome
+/* init */
+function renderFromStateFirstTime(){
+  refreshTheme();
+  // keep canvas clean until a choice is made
+}
+renderFromStateFirstTime();
 })();
 </script>
 </body>
