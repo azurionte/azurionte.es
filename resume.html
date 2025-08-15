@@ -628,7 +628,7 @@ function renderStep(){
       <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
       <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
     </div>`;
-    ['nm','ph','em','ad','ln'].forEach(id=> $('#'+id).oninput=()=>{ S.contact={ name:$('#nm').value, phone:$('#ph').value, email:$('#em').value, address:$('#ad').value, linkedin:$('#ln').value }; saveContact(); }));
+    ['nm','ph','em','ad','ln'].forEach(id=> $('#'+id).oninput=()=>{ S.contact={ name:$('#nm').value, phone:$('#ph').value, email:$('#em').value, address:$('#ad').value, linkedin:$('#ln').value }; saveContact(); });
   }
 
   if(s==='skills'){
