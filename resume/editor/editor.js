@@ -1,6 +1,7 @@
+// resume/editor/editor.js
 // Builds top bar, theme menu, preview/print and the canvas shell
 import { S, save } from '../app/state.js';
-import { quickLayoutSwitch, getHeaderNode, morphTo } from '../layouts/layouts.js';
+import { getHeaderNode, morphTo } from '../layouts/layouts.js';
 import { openAddMenu } from '../modules/modules.js';
 
 export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCustomGradient }){
