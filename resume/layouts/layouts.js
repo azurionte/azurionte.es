@@ -1,150 +1,178 @@
-// /resume/layouts/layouts.js
+// layouts/layouts.js
+// responsible for building header for each layout, FLIP morphing between them,
+// and applying contact chips/name into the active header.
 
-// ------- utilities -------
-function $(sel, root = document) { return root.querySelector(sel); }
+import { S } from '../app/state.js';
 
-function getStack() {
-  return document.querySelector('#stack') || document.querySelector('.stack');
-}
-export function getHeaderNode() {
-  const stack = getStack();
-  return stack?.querySelector('[data-header]')?.closest('.node') || null;
-}
+// --- internal helpers -------------------------------------------------------
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-// Tiny helper to create a chip
-function makeChip(icon, text) {
-  const chip = document.createElement('div');
-  chip.className = 'chip';
-  chip.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
-  return chip;
+function headerNode() {
+  return $('#stack')?.querySelector('[data-header]')?.closest('.node') || null;
 }
 
-// ------- public: applyContact(S) -------
-// Writes name + contact chips into whichever header is currently mounted.
-export function applyContact(S) {
-  const header = getHeaderNode();
-  if (!header || !S) return;
+function injectLayoutCSSOnce() {
+  if (document.getElementById('layout-css')) return;
+  const css = `
+  /* header-only styles injected by layouts.js */
+  .avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
+  .avatar input{display:none}
+  .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
-  // name
-  const nameEl = header.querySelector('.name');
-  if (nameEl) nameEl.textContent = (S.contact?.name || 'YOUR NAME');
+  .sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px;min-height:320px}
+  .sidebar-layout .rail{background:linear-gradient(135deg,var(--accent2),var(--accent));
+    border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;
+    min-height:100%; align-self:stretch}
+  .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
+  .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
+  .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
+  .sidebar-layout [data-zone="main"]{min-height:200px;display:flex;flex-direction:column;gap:16px}
 
-  // chips (only for filled fields)
-  const c = S.contact || {};
-  const chips = [];
-  if (c.phone)    chips.push(makeChip('fa-solid fa-phone', c.phone));
-  if (c.email)    chips.push(makeChip('fa-solid fa-envelope', c.email));
-  if (c.address)  chips.push(makeChip('fa-solid fa-location-dot', c.address));
-  if (c.linkedin) chips.push(makeChip('fa-brands fa-linkedin', `linkedin.com/in/${c.linkedin}`));
+  .topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
+  .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
+  .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
+  .topbar .right{display:flex;justify-content:flex-end}
+  .topbar .right .avatar{width:120px;height:120px;border-width:4px}
 
-  const single = header.querySelector('[data-info]');
-  const left   = header.querySelector('[data-info-left]');
-  const right  = header.querySelector('[data-info-right]');
+  .fancy{position:relative;border-radius:14px}
+  .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
+  .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
+  .fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:72px;row-gap:10px;margin:8px auto 0;max-width:740px}
+  .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
+  .fancy .below{height:88px}
 
-  [single, left, right].forEach(box => { if (box) box.innerHTML = ''; });
-
-  if (left && right) {
-    chips.forEach((chip, i) => (i % 2 ? right : left).appendChild(chip));
-  } else if (single) {
-    chips.forEach(chip => single.appendChild(chip));
-  }
-
-  // Let app theme pass recolor chips if present (no duplication)
-  if (window.applyChipThemeAll) window.applyChipThemeAll();
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08);background:#fff;color:#111}
+  [data-dark="1"] .chip{background:#0c1324;color:#e6ecff;border-color:#1f2a44}
+  body[data-mat="glass"] .chip{background:rgba(255,255,255,.1);border-color:#ffffff28;backdrop-filter:blur(6px)}
+  .chip i{width:16px;text-align:center}
+  `;
+  const tag = document.createElement('style');
+  tag.id = 'layout-css';
+  tag.textContent = css;
+  document.head.appendChild(tag);
 }
 
-// ------- internal: header templates -------
-function headerHTML(kind) {
-  if (kind === 'header-side') {
-    return `
+function addChip(icon, text) {
+  const div = document.createElement('div');
+  div.className = 'chip';
+  div.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
+  return div;
+}
+
+// keep avatar uploader local so layouts.js is self-contained
+function initAvatars(root) {
+  $$('.avatar', root).forEach(w => {
+    const input = $('input', w);
+    if (!input) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 140; canvas.height = 140;
+    w.appendChild(canvas);
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    w.addEventListener('click', () => input.click());
+    input.onchange = () => {
+      const f = input.files?.[0]; if (!f) return;
+      const img = new Image();
+      img.onload = () => {
+        const s = Math.max(canvas.width / img.width, canvas.height / img.height);
+        const dw = img.width * s, dh = img.height * s;
+        const dx = (canvas.width - dw) / 2, dy = (canvas.height - dh) / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+        w.setAttribute('data-empty', '0');
+      };
+      img.src = URL.createObjectURL(f);
+    };
+  });
+}
+
+function buildHeader(layout) {
+  // remove existing header
+  const old = headerNode();
+  if (old) old.remove();
+
+  const stack = $('#stack');
+  const addWrap = $('#canvasAdd');
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.setAttribute('data-locked', '1');
+
+  if (layout === 'side') {
+    node.innerHTML = `
       <div class="sidebar-layout" data-header>
         <div class="rail">
-          <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
+          <label class="avatar" data-empty="1"><input type="file" accept="image/*"></label>
           <div class="name" contenteditable>YOUR NAME</div>
           <div class="chips" data-info></div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
         <div data-zone="main">
-          <div class="add-squircle"><div class="add-dot" data-local-plus>+</div></div>
+          <!-- main content (skills/edu/exp when sidebar) goes here -->
         </div>
-      </div>
-    `;
-  }
-  if (kind === 'header-fancy') {
-    return `
+      </div>`;
+  } else if (layout === 'fancy') {
+    node.innerHTML = `
       <div class="fancy" data-header>
         <div class="hero">
           <h1 class="name" contenteditable>YOUR NAME</h1>
-          <div class="chip-grid">
-            <div class="chips" data-info-left></div>
-            <div class="chips" data-info-right></div>
+          <div class="chip-grid"><div class="chips" data-info-left></div><div class="chips" data-info-right></div></div>
+        </div>
+        <div class="avatar-float"><label class="avatar" data-empty="1"><input type="file" accept="image/*"></label></div>
+        <div class="below"></div>
+      </div>`;
+  } else {
+    node.innerHTML = `
+      <div class="topbar" data-header>
+        <div class="topbar-grid">
+          <div class="left">
+            <h1 class="name" contenteditable>YOUR NAME</h1>
+            <div class="chips" data-info></div>
+          </div>
+          <div class="right">
+            <label class="avatar" data-empty="1" style="width:120px;height:120px;border-width:4px"><input type="file" accept="image/*"></label>
           </div>
         </div>
-        <div class="avatar-float">
-          <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
-        </div>
-        <div class="below"></div>
-      </div>
-    `;
+      </div>`;
   }
-  // header-top
-  return `
-    <div class="topbar" data-header>
-      <div class="topbar-grid">
-        <div class="left">
-          <h1 class="name" contenteditable>YOUR NAME</h1>
-          <div class="chips" data-info></div>
-        </div>
-        <div class="right">
-          <label class="avatar" data-avatar data-empty="1" style="width:120px;height:120px;border-width:4px">
-            <input type="file" accept="image/*">
-          </label>
-        </div>
-      </div>
-    </div>
-  `;
+
+  stack.insertBefore(node, addWrap);
+  initAvatars(node);
+  S.layout = layout;
+  return node;
 }
 
-// ------- public: morphTo(kind, S) -------
-// Replaces the header, animates the change, and re-applies contact data.
-// Accepts kind: 'header-side' | 'header-fancy' | 'header-top'
-export function morphTo(kind, S) {
-  const stack = getStack();
-  const old = getHeaderNode();
-  const addWrap = $('#canvasAdd') || $('#canvas-add') || $('.add-squircle');
+function normalize(kind) {
+  if (kind === 'header-side') return 'side';
+  if (kind === 'header-fancy') return 'fancy';
+  if (kind === 'header-top') return 'top';
+  return ['side','fancy','top'].includes(kind) ? kind : 'side';
+}
 
-  // Save old rect for FLIP
-  const prevRect = old?.getBoundingClientRect();
+// --- public API ------------------------------------------------------------
 
-  if (old) old.remove();
+export function morphTo(kind) {
+  injectLayoutCSSOnce();
 
-  // Build new header node
-  const node = document.createElement('div');
-  node.className = 'node';
-  node.setAttribute('data-locked', '1');
-  node.innerHTML = headerHTML(kind);
+  const layout = normalize(kind);
+  const old = headerNode();
+  const prev = old?.getBoundingClientRect();
 
-  // Insert before plus button to keep header at the top
-  stack.insertBefore(node, addWrap || null);
+  const node = buildHeader(layout);
 
-  // Initialize avatar only if the app exposed a single implementation
-  if (window.initAvatars) window.initAvatars(node);
-
-  // Re-apply contact data so name/chips persist across layouts
-  applyContact(S);
-
-  // Re-tint chips after layout swap (theme/glass/dark)
-  if (window.applyChipThemeAll) window.applyChipThemeAll();
-
-  // FLIP-ish morph animation
-  if (prevRect) {
+  // FLIP-ish morph
+  if (prev) {
     const nh = node.getBoundingClientRect();
-    const dx = prevRect.left - nh.left;
-    const dy = prevRect.top - nh.top;
-    const sx = prevRect.width / nh.width;
-    const sy = prevRect.height / nh.height;
+    const dx = prev.left - nh.left, dy = prev.top - nh.top;
+    const sx = prev.width / nh.width, sy = prev.height / nh.height;
     node.style.transformOrigin = 'top left';
-    node.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    node.style.transform = `translate(${dx}px,${dy}px) scale(${sx},${sy})`;
     node.style.opacity = '0.6';
     node.style.transition = 'transform .35s ease, opacity .35s ease';
     requestAnimationFrame(() => {
@@ -153,8 +181,50 @@ export function morphTo(kind, S) {
     });
     setTimeout(() => { node.style.transition = ''; node.style.transform = ''; }, 380);
   }
+
+  // after (re)building header, re-apply current contact into chips/name
+  applyContact(S.contact);
+  // notify others (editor/modules) to re-place plus or re-render if needed
+  document.dispatchEvent(new CustomEvent('layout:changed', {
+    detail: {
+      layout,
+      main: getSideMainHost(),
+      rail: $('[data-rail-sections]')
+    }
+  }));
 }
 
-// Backward-compat names (so old imports don’t break)
-export { morphTo as quickLayoutSwitch };
-export { applyContact as saveContact };
+export function applyContact(contact) {
+  const h = headerNode(); if (!h) return;
+  const root = h.querySelector('[data-header]');
+  const isFancy = !!root.querySelector('.chip-grid');
+
+  // name
+  const nameEl = root.querySelector('.name');
+  if (nameEl) nameEl.textContent = contact?.name || 'YOUR NAME';
+
+  // chips
+  const chips = [];
+  if (contact?.phone)   chips.push(addChip('fa-solid fa-phone', contact.phone));
+  if (contact?.email)   chips.push(addChip('fa-solid fa-envelope', contact.email));
+  if (contact?.address) chips.push(addChip('fa-solid fa-location-dot', contact.address));
+  if (contact?.linkedin)chips.push(addChip('fa-brands fa-linkedin', `linkedin.com/in/${contact.linkedin}`));
+
+  // clear + place
+  const infoBoxes = [...root.querySelectorAll('[data-info],[data-info-left],[data-info-right]')];
+  infoBoxes.forEach(b => b.innerHTML = '');
+
+  if (isFancy) {
+    const L = root.querySelector('[data-info-left]');
+    const R = root.querySelector('[data-info-right]');
+    chips.forEach((c, i) => (i % 2 ? R : L).appendChild(c));
+  } else {
+    const box = root.querySelector('[data-info]');
+    chips.forEach(c => box.appendChild(c));
+  }
+}
+
+// expose where modules should render content when S.layout === 'side'
+export function getSideMainHost() {
+  return headerNode()?.querySelector('[data-zone="main"]') || null;
+}
