@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.2
-console.log('[wizard.js] v1.2');
+// [wizard.js] v1.3
+console.log('[wizard.js] v1.3');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
@@ -194,7 +194,7 @@ function renderStep(){
       const m = e.target.closest('.mock'); if(!m) return;
       row.querySelectorAll('.mock').forEach(x=>x.classList.remove('sel'));
       m.classList.add('sel');
-      morphTo(m.dataset.layout); // moves/updates header & stack correctly
+      morphTo(m.dataset.layout);
     });
     body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
@@ -204,8 +204,7 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
       <div class="theme-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
         ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
-          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"
-               data-a1="${A1[k]||'#8b5cf6'}" data-a2="${A2[k]||'#d946ef'}"></div>`).join('')}
+          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"></div>`).join('')}
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
@@ -228,11 +227,11 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Only filled fields will appear.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input class="wipt" id="nm" placeholder="Full name" value="\${S.contact.name||''}">
-        <input class="wipt" id="ph" placeholder="Phone" value="\${S.contact.phone||''}">
-        <input class="wipt" id="em" placeholder="Email" value="\${S.contact.email||''}">
-        <input class="wipt" id="ad" placeholder="City, Country" value="\${S.contact.address||''}">
-        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="\${S.contact.linkedin||''}"></div>
+        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
+        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
+        <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
+        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
       </div>`;
     ['nm','ph','em','ad','ln'].forEach(id=>{
       body.querySelector('#'+id).oninput = ()=>{
@@ -297,7 +296,6 @@ function advance(){
 }
 
 /* ---------- helpers ---------------------------------------------------- */
-
 const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
