@@ -1,33 +1,30 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.8
-console.log('[wizard.js] v1.8');
+// [wizard.js] v1.9
+console.log('[wizard.js] v1.9');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- minimal wizard-only styles (cards, hover, selected) ---------- */
+/* ---------- wizard-only styles (cards, hover, selected) ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    #wizard .mockRow{
-      display:grid;
-      gap:22px;
-    }
-    /* card container */
+    #wizard .mockRow{ display:grid; gap:26px; }
+
+    /* card shell */
     #wizard .mock{
       width:450px;height:158px;
       position:relative;
       border-radius:16px;
       padding:14px 18px;
-      background:linear-gradient(135deg,#4f5fa0,#2f3a74);
-      box-shadow:0 12px 30px rgba(0,0,0,.35);
+      background:linear-gradient(135deg,#5564a4,#2e3a73);
+      box-shadow:0 12px 28px rgba(0,0,0,.35);
       border:1px solid #1f2540;
-      cursor:pointer;
+      cursor:pointer; overflow:visible;
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
-      overflow:visible;
     }
     #wizard .mock:hover{
       transform:translateY(-2px);
@@ -37,15 +34,19 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
       outline:2px solid #ffb86c;
       box-shadow:0 18px 40px rgba(0,0,0,.45), 0 0 0 1px #ffb86c inset;
     }
-    /* shared doodles */
-    #wizard .hero{border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)}
-    #wizard .dot{display:block;border-radius:999px;background:#cfd6ff;border:3px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}
-    #wizard .line{height:8px;border-radius:999px;background:#2b375f;opacity:.9}
+
+    /* doodles */
+    #wizard .hero{ border-radius:14px; background:linear-gradient(135deg,#5b6fb7,#2f3d7a) }
+    #wizard .dot{
+      display:block;border-radius:999px;background:#cfd6ff;
+      border:3px solid #fff; box-shadow:0 6px 18px rgba(0,0,0,.35)
+    }
+    #wizard .line{ height:8px;border-radius:999px;background:#2b375f;opacity:.9 }
   `;
   document.head.appendChild(st);
 })();
 
-/* ---------- public API --------------------------------------------------- */
+/* ---------- public API ---------- */
 export function mountWelcome() {
   if (document.getElementById('welcome')) return;
 
@@ -130,7 +131,7 @@ export function mountWizard() {
   buildWizard();
 }
 
-/* ---------- wizard internals ------------------------------------------- */
+/* ---------- internals ---------- */
 const STEPS = [
   { k: 'layout',    label: 'Layout' },
   { k: 'theme',     label: 'Theme' },
@@ -142,8 +143,7 @@ const STEPS = [
   { k: 'done',      label: 'Done' },
 ];
 
-let stepIdx = 0;
-let backCount = 0;
+let stepIdx = 0, backCount = 0;
 
 function openWizard(){ 
   renderStep();
@@ -197,12 +197,11 @@ function renderStep(){
         ${mock('header-fancy')}
         ${mock('header-top')}
       </div>
-      <div class="k-row" style="margin-top:14px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
+      <div class="k-row" style="margin-top:16px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
     `;
 
     const row = body.querySelector('#mockRow');
 
-    // pre-select current layout
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
 
@@ -210,7 +209,7 @@ function renderStep(){
       const m = e.target.closest('.mock'); if(!m) return;
       row.querySelectorAll('.mock').forEach(x=>x.classList.remove('sel'));
       m.classList.add('sel');
-      morphTo(m.dataset.layout); // flips the real header
+      morphTo(m.dataset.layout);
     });
     body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
@@ -311,56 +310,58 @@ function advance(){
   if (stepIdx < STEPS.length-1){ stepIdx++; renderStep(); }
 }
 
-/* ---------- layout mock templates -------------------------------------- */
+/* ---------- layout mock templates (match your drawings) ---------- */
 function mock(layoutKey){
-  const k = layoutKey.split('-')[1]; // side | fancy | top
+  const type = layoutKey.split('-')[1]; // side|fancy|top
 
-  if (k === 'side'){
+  if (type === 'side'){
+    // Sidebar: left hero column + avatar, right text stack + a pill inside hero
     return `
       <div class="mock sidebar" data-layout="${layoutKey}">
         <div class="hero" style="position:absolute;left:14px;top:14px;bottom:14px;width:150px"></div>
         <div class="dot"  style="position:absolute;left:48px;top:28px;width:64px;height:64px"></div>
-        <div class="line" style="position:absolute;left:36px;bottom:52px;width:120px;height:16px;opacity:.75"></div>
+        <div class="line" style="position:absolute;left:38px;bottom:48px;width:120px;height:16px;opacity:.85"></div>
 
         <div class="txt"  style="position:absolute;left:190px;right:24px;top:26px;display:grid;row-gap:12px">
           <div class="line" style="width:68%"></div>
-          <div class="line" style="width:44%"></div>
+          <div class="line" style="width:52%"></div>
           <div class="line" style="width:84%"></div>
           <div class="line" style="width:70%"></div>
         </div>
       </div>`;
   }
 
-  if (k === 'fancy'){
-    // hero across, avatar overlapping bottom center, three lines beneath
+  if (type === 'fancy'){
+    // Top Fancy: wide hero, centered pill inside hero, avatar overlapping bottom center,
+    // then (below hero) small pill, long line, small pill, long line
+    const heroH = 96, pp = 104, gap = 18;
+    const belowTop = 14 + heroH + (pp/2) + gap;
     return `
-      <div class="mock fancy" data-layout="${layoutKey}" style="--hero-h:88px; --pp:92px">
-        <div class="hero" style="position:absolute;left:14px;right:14px;top:14px;height:var(--hero-h)"></div>
-        <div class="dot"  style="position:absolute;left:50%;transform:translateX(-50%);
-             top:calc(14px + var(--hero-h) - var(--pp)/2); width:var(--pp); height:var(--pp)"></div>
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:34px;width:34%;height:14px;opacity:.9"></div>
+      <div class="mock fancy" data-layout="${layoutKey}">
+        <div class="hero" style="position:absolute;left:14px;right:14px;top:14px;height:${heroH}px"></div>
+        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${14 + 20}px;width:36%;height:14px;opacity:.95"></div>
+        <div class="dot"  style="position:absolute;left:50%;transform:translateX(-50%);top:${14 + heroH - pp/2}px;width:${pp}px;height:${pp}px"></div>
 
-        <div class="txt"  style="position:absolute;left:40px;right:40px;
-             top:calc(14px + var(--hero-h) + var(--pp)/2 + 16px);
-             display:grid;row-gap:14px">
-          <div class="line" style="width:70%"></div>
-          <div class="line" style="width:44%"></div>
-          <div class="line" style="width:84%"></div>
-        </div>
+        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${belowTop}px;width:26%;height:10px;opacity:.95"></div>
+        <div class="line" style="position:absolute;left:12%;right:12%;top:${belowTop + 20}px"></div>
+        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${belowTop + 42}px;width:26%;height:10px;opacity:.95"></div>
+        <div class="line" style="position:absolute;left:12%;right:12%;top:${belowTop + 62}px"></div>
       </div>`;
   }
 
-  // top bar
+  // Top Bar: hero band, left pill inside hero, right avatar inside hero,
+  // then (below) small pill, long line, small pill, long line
+  const heroH = 96, pp = 96;
+  const base = 14 + heroH + 18;
   return `
-    <div class="mock topbar" data-layout="${layoutKey}" style="--hero-h:88px; --pp:88px">
-      <div class="hero" style="position:absolute;left:14px;right:14px;top:14px;height:var(--hero-h)"></div>
-      <div class="dot"  style="position:absolute;right:34px;top:calc(14px + (var(--hero-h) - var(--pp))/2);width:var(--pp);height:var(--pp)"></div>
-      <div class="txt"  style="position:absolute;left:34px;right:calc(34px + var(--pp) + 22px);top:34px;display:grid;row-gap:14px">
-        <div class="line" style="width:44%"></div>
-        <div class="line" style="width:74%"></div>
-      </div>
+    <div class="mock topbar" data-layout="${layoutKey}">
+      <div class="hero" style="position:absolute;left:14px;right:14px;top:14px;height:${heroH}px"></div>
+      <div class="line" style="position:absolute;left:34px;top:${14 + 26}px;width:32%;height:14px;opacity:.95"></div>
+      <div class="dot"  style="position:absolute;right:34px;top:${14 + (heroH - pp)/2}px;width:${pp}px;height:${pp}px"></div>
 
-      <div class="line" style="position:absolute;left:140px;right:140px;bottom:34px"></div>
-      <div class="line" style="position:absolute;left:82px;right:82px;bottom:18px"></div>
+      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base}px;width:26%;height:10px;opacity:.95"></div>
+      <div class="line" style="position:absolute;left:12%;right:12%;top:${base + 20}px"></div>
+      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base + 42}px;width:26%;height:10px;opacity:.95"></div>
+      <div class="line" style="position:absolute;left:12%;right:12%;top:${base + 62}px"></div>
     </div>`;
 }
