@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.1
-console.log('[layouts.js] v2.1');
+// [layouts.js] v2.2
+console.log('[layouts.js] v2.2');
 
 import { S } from '../app/state.js';
 
@@ -15,37 +15,76 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const st = document.createElement('style');
   st.id = 'layouts-style';
   st.textContent = `
-    /* header: sidebar grid and full-height rail */
-    .sidebar-layout{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);gap:16px;min-height:320px}
+    /* ---- Sidebar header grid ---- */
+    .sidebar-layout{
+      display:grid;
+      grid-template-columns: var(--rail) minmax(0,1fr);
+      gap:16px;
+      min-height:320px;
+      align-items:start;
+    }
     .sidebar-layout .rail{
       background:linear-gradient(135deg,var(--accent2),var(--accent));
-      border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;gap:12px;align-items:center;
+      border-radius:14px;
+      padding:18px 14px;
+      display:flex;flex-direction:column;gap:12px;align-items:center;
       min-height:1060px;
+      position:relative;
     }
     .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
     .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
     .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-    /* topbar header */
-    .topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
+    /* ---- Right side column becomes a mini canvas grid ---- */
+    .sidebar-layout [data-zone="main"]{
+      display:grid;
+      grid-template-columns: repeat(12, minmax(0,1fr));
+      gap:16px;
+      align-content:start;
+      min-height:100%;
+    }
+    /* make children full width by default */
+    .sidebar-layout [data-zone="main"] > .node,
+    .sidebar-layout [data-zone="main"] > .section,
+    .sidebar-layout [data-zone="main"] > .module,
+    .sidebar-layout [data-zone="main"] > #canvasAdd{
+      grid-column: 1 / -1;
+      width:100%;
+    }
+
+    /* ---- Top bar header ---- */
+    .topbar{
+      position:relative;border-radius:14px;
+      background:linear-gradient(135deg,var(--accent2),var(--accent));
+      padding:16px;min-height:160px
+    }
     .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
     .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
     .topbar .right{display:flex;justify-content:flex-end}
 
-    /* fancy header */
+    /* ---- Fancy header ---- */
     .fancy{position:relative;border-radius:14px}
-    .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
+    .fancy .hero{
+      border-radius:14px;padding:18px 14px 26px;min-height:200px;
+      background:linear-gradient(135deg,var(--accent2),var(--accent));
+      display:flex;flex-direction:column;align-items:center
+    }
     .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
     .fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:72px;row-gap:10px;margin:8px auto 0;max-width:740px}
     .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
     .fancy .below{height:88px}
 
-    /* avatar shell */
-    .avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
+    /* ---- avatar shell ---- */
+    .avatar{
+      border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px
+    }
     .avatar input{display:none}
-    .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
+    .avatar[data-empty="1"]::after{
+      content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)
+    }
 
-    /* chips baseline (color adjusted by JS) */
+    /* ---- chips baseline ---- */
     .chips{display:flex;flex-wrap:wrap;gap:8px}
     .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .chip i{width:16px;text-align:center}
@@ -57,6 +96,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 /* helpers                                                         */
 /* --------------------------------------------------------------- */
 function stackEl(){ return $('#stack'); }
+
+/** Create canvas if missing and expose both stack and addWrap */
 export function ensureCanvas(){
   if (!$('#stack')){
     const root = $('#canvas-root') || document.body;
@@ -71,7 +112,7 @@ export function ensureCanvas(){
     root.appendChild(page);
   }
   ensureAddAnchor();
-  return { stack: $('#stack'), add: $('#canvasAdd') };
+  return { stack: $('#stack'), addWrap: $('#canvasAdd'), add: $('#canvasAdd') };
 }
 
 export function getHeaderNode(){ return $('[data-header]'); }
@@ -102,6 +143,7 @@ export function getSideMain(){
 /* --------------------------------------------------------------- */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
+    if (w._inited) return; w._inited = true;
     const input = w.querySelector('input[type=file]');
     const canvas = document.createElement('canvas');
     canvas.width = 140; canvas.height = 140;
@@ -110,7 +152,7 @@ function initAvatars(root){
 
     w.addEventListener('click', e=>{ if (e.target !== input) input.click(); });
     input.addEventListener('change', ()=>{
-      const f = input.files?.[0]; if (!f) return;
+      const f = input.files?.[0]; if(!f) return;
       const img = new Image();
       img.onload = ()=>{
         const s = Math.max(canvas.width/img.width, canvas.height/img.height);
@@ -192,7 +234,7 @@ function buildHeader(kind){
 
   if(kind==='header-side'){
     node.innerHTML=`
-      <div class="sidebar-layout" data-header>
+      <div class="sidebar-layout" data-header data-hero="side">
         <div class="rail">
           <label class="avatar" data-avatar data-empty="1">
             <input type="file" accept="image/*" style="display:none">
@@ -243,6 +285,10 @@ function buildHeader(kind){
 
   ensureAddAnchor(true);
   applyContact();
+
+  // let listeners (editor) re-place the + anchor
+  queueMicrotask(()=> document.dispatchEvent(new CustomEvent('layout:changed', { detail:{ kind:S.layout } })));
+
   return node;
 }
 
