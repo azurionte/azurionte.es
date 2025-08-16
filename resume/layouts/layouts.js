@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.0
-console.log('[layouts.js] v2.0');
+// [layouts.js] v2.1
+console.log('[layouts.js] v2.1');
 
 import { S } from '../app/state.js';
 
@@ -31,27 +31,20 @@ export function ensureCanvas(){
 export function getHeaderNode(){ return $('[data-header]'); }
 function getHeaderNodeWrapper(){ return getHeaderNode()?.closest('.node') || null; }
 
-/* Explicit sidebar state for other modules */
+/* Layout helpers used by modules/wizard */
 export function isSidebarActive(){
   const head = getHeaderNode();
   return (S.layout === 'side') || !!head?.closest('.sidebar-layout');
 }
-
-/* Where to put sidebar sections (left rail) */
 export function getRailHolder(){
   const head = getHeaderNode();
   if (!head) return null;
   if (head.closest('.sidebar-layout')) return head.querySelector('[data-rail-sections]');
   return null;
 }
-
-/* Where to put main content when sidebar layout is active */
 export function getSideMain(){
   const head = getHeaderNode();
-  if (isSidebarActive() && head){
-    return head.querySelector('[data-zone="main"]');
-  }
-  // Fallback: in non-sidebar layouts modules live on the main stack
+  if (isSidebarActive() && head) return head.querySelector('[data-zone="main"]');
   return $('#stack');
 }
 
@@ -93,7 +86,6 @@ function chip(icon, text){
   el.style.borderRadius = '999px';
   return el;
 }
-
 function setChips(containerList, items){
   containerList.forEach(c => c.innerHTML = '');
   if (!items.length) return;
@@ -106,7 +98,6 @@ function setChips(containerList, items){
 
 /* theme-aware chip surface (paper/glass + dark) */
 function styleOneChip(el){
-  // reset
   el.style.background = '';
   el.style.color = '';
   el.style.border = '';
@@ -132,8 +123,6 @@ function styleOneChip(el){
   const ic = el.querySelector('i');
   if (ic) ic.style.color = 'var(--accent)';
 }
-
-/* Exported so wizard/theme step can re-tint chips after changes */
 export function restyleContactChips(scope=document){
   const head = getHeaderNode();
   if (!head) return;
@@ -179,9 +168,14 @@ function buildHeader(kind){
           </label>
           <div class="name" contenteditable>YOUR NAME</div>
           <div class="chips" data-info></div>
+          <div style="width:100%;display:flex;justify-content:center;margin:8px 0">
+            <button class="mbtn" id="addContactChip">Add chip</button>
+          </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
-        <div data-zone="main"></div>
+        <div data-zone="main">
+          <!-- the add anchor will be moved here when sidebar is active -->
+        </div>
       </div>`;
   }
 
@@ -225,6 +219,17 @@ function buildHeader(kind){
   s.insertBefore(node, $('#canvasAdd'));
   initAvatars(node);
 
+  // Sidebar "Add chip" quick adder
+  node.querySelector('#addContactChip')?.addEventListener('click', ()=>{
+    const txt = prompt('Chip text (e.g., Portfolio, GitHub, etc.)');
+    if (!txt) return;
+    const target = node.querySelector('[data-info]') || node.querySelector('[data-info-left]');
+    if (!target) return;
+    const el = chip('fa-solid fa-circle', txt);
+    target.appendChild(el);
+    styleOneChip(el);
+  });
+
   S.layout = (kind==='header-side') ? 'side' : (kind==='header-fancy') ? 'fancy' : 'top';
   if (S.theme) document.body.setAttribute('data-theme', S.theme);
   document.body.setAttribute('data-dark', S.dark ? '1':'0');
@@ -267,11 +272,20 @@ export function morphTo(kind){
 }
 
 /* ---------------------------- Add anchor ---------------------------- */
+/* Move the + anchor next to the rail when sidebar is active */
 export function ensureAddAnchor(show){
-  const s = stackEl();
   const add = $('#canvasAdd');
-  if (!s || !add) return null;
-  if (add.parentElement !== s) s.appendChild(add);
+  if (!add) return null;
+
+  const mainZone = getSideMain();
+  const stack = stackEl();
+
+  if (isSidebarActive() && mainZone){
+    if (add.parentElement !== mainZone) mainZone.appendChild(add);
+  } else {
+    if (add.parentElement !== stack) stack.appendChild(add);
+  }
+
   if (typeof show === 'boolean') add.style.display = show ? 'flex' : 'none';
   return add;
 }
