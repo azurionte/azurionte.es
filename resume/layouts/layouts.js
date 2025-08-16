@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v1.9
-console.log('[layouts.js] v1.9');
+// [layouts.js] v2.0
+console.log('[layouts.js] v2.0');
 
 import { S } from '../app/state.js';
 
@@ -31,7 +31,7 @@ export function ensureCanvas(){
 export function getHeaderNode(){ return $('[data-header]'); }
 function getHeaderNodeWrapper(){ return getHeaderNode()?.closest('.node') || null; }
 
-/* NEW: explicit sidebar state for other modules */
+/* Explicit sidebar state for other modules */
 export function isSidebarActive(){
   const head = getHeaderNode();
   return (S.layout === 'side') || !!head?.closest('.sidebar-layout');
@@ -93,6 +93,7 @@ function chip(icon, text){
   el.style.borderRadius = '999px';
   return el;
 }
+
 function setChips(containerList, items){
   containerList.forEach(c => c.innerHTML = '');
   if (!items.length) return;
@@ -101,6 +102,42 @@ function setChips(containerList, items){
   } else {
     items.forEach((it,i)=> containerList[i%2].appendChild(it));
   }
+}
+
+/* theme-aware chip surface (paper/glass + dark) */
+function styleOneChip(el){
+  // reset
+  el.style.background = '';
+  el.style.color = '';
+  el.style.border = '';
+  el.style.backdropFilter = '';
+
+  const isGlass = (S.mat === 'glass');
+  const isDark  = !!S.dark;
+
+  if (isGlass){
+    el.style.background = 'rgba(255,255,255,.10)';
+    el.style.border = '1px solid #ffffff28';
+    el.style.backdropFilter = 'blur(6px)';
+    el.style.color = (['grayBlack','magentaPurple'].includes(S.theme) ? '#fff' : '#111');
+  } else if (isDark){
+    el.style.background = '#0c1324';
+    el.style.border = '1px solid #1f2a44';
+    el.style.color = '#e6ecff';
+  } else {
+    el.style.background = '#fff';
+    el.style.border = '1px solid rgba(0,0,0,.08)';
+    el.style.color = '#111';
+  }
+  const ic = el.querySelector('i');
+  if (ic) ic.style.color = 'var(--accent)';
+}
+
+/* Exported so wizard/theme step can re-tint chips after changes */
+export function restyleContactChips(scope=document){
+  const head = getHeaderNode();
+  if (!head) return;
+  $$('.chip', head).forEach(styleOneChip);
 }
 
 /* --------------------------- Contact apply -------------------------- */
@@ -124,6 +161,7 @@ export function applyContact(){
   ].filter(Boolean);
 
   setChips(holders, items);
+  restyleContactChips();
 }
 
 /* --------------------------- Header builders ------------------------ */
