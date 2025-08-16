@@ -1,117 +1,94 @@
-// layouts/layouts.js
-// Drop-in: provides quickLayoutSwitch + helpers without touching any other file.
+// /resume/layouts/layouts.js
 
-const QS = sel => document.querySelector(sel);
-const QSA = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+// ------- utilities -------
+function $(sel, root = document) { return root.querySelector(sel); }
 
-/* ---------- public helpers ---------- */
-export function getStack() {
-  // main stack on the page
-  return QS('#sheet .stack') || QS('.stack');
+function getStack() {
+  return document.querySelector('#stack') || document.querySelector('.stack');
 }
 export function getHeaderNode() {
   const stack = getStack();
-  const hdr = stack?.querySelector('[data-header]');
-  return hdr ? hdr.closest('.node') : null;
+  return stack?.querySelector('[data-header]')?.closest('.node') || null;
 }
 
-/* ---------- data snapshot/restore ---------- */
-function snapshotHeader() {
-  const hdrNode = getHeaderNode();
-  if (!hdrNode) return null;
+// Tiny helper to create a chip
+function makeChip(icon, text) {
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
+  return chip;
+}
 
-  const root = hdrNode.querySelector('[data-header]');
-  const snap = {
-    name: (root.querySelector('.name')?.textContent || 'YOUR NAME').trim(),
-    chips: [],
-    avatarImage: null
-  };
+// ------- public: applyContact(S) -------
+// Writes name + contact chips into whichever header is currently mounted.
+export function applyContact(S) {
+  const header = getHeaderNode();
+  if (!header || !S) return;
 
-  // copy chips (icon class + text)
-  const chipAreas = QSA('[data-info],[data-info-left],[data-info-right]', root);
-  chipAreas.forEach(area => {
-    QSA('.chip', area).forEach(ch => {
-      const i = ch.querySelector('i');
-      const icon = i ? Array.from(i.classList).join(' ') : '';
-      const text = ch.textContent.trim();
-      snap.chips.push({ icon, text });
-    });
-  });
+  // name
+  const nameEl = header.querySelector('.name');
+  if (nameEl) nameEl.textContent = (S.contact?.name || 'YOUR NAME');
 
-  // copy avatar canvas, if any
-  const oldCanvas = root.querySelector('.avatar canvas');
-  if (oldCanvas) {
-    const off = document.createElement('canvas');
-    off.width = oldCanvas.width;
-    off.height = oldCanvas.height;
-    off.getContext('2d').drawImage(oldCanvas, 0, 0);
-    snap.avatarImage = off;
+  // chips (only for filled fields)
+  const c = S.contact || {};
+  const chips = [];
+  if (c.phone)    chips.push(makeChip('fa-solid fa-phone', c.phone));
+  if (c.email)    chips.push(makeChip('fa-solid fa-envelope', c.email));
+  if (c.address)  chips.push(makeChip('fa-solid fa-location-dot', c.address));
+  if (c.linkedin) chips.push(makeChip('fa-brands fa-linkedin', `linkedin.com/in/${c.linkedin}`));
+
+  const single = header.querySelector('[data-info]');
+  const left   = header.querySelector('[data-info-left]');
+  const right  = header.querySelector('[data-info-right]');
+
+  [single, left, right].forEach(box => { if (box) box.innerHTML = ''; });
+
+  if (left && right) {
+    chips.forEach((chip, i) => (i % 2 ? right : left).appendChild(chip));
+  } else if (single) {
+    chips.forEach(chip => single.appendChild(chip));
   }
-  return snap;
+
+  // Let app theme pass recolor chips if present (no duplication)
+  if (window.applyChipThemeAll) window.applyChipThemeAll();
 }
 
-function buildChip({ icon, text }) {
-  const el = document.createElement('div');
-  el.className = 'chip';
-  el.innerHTML = `<i class="${icon || 'fa-solid fa-circle'}"></i><span>${text || ''}</span>`;
-  return el;
-}
-
-function paintAvatar(canvas, sourceCanvas) {
-  if (!canvas || !sourceCanvas) return;
-  const ctx = canvas.getContext('2d');
-  canvas.width = sourceCanvas.width;
-  canvas.height = sourceCanvas.height;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(sourceCanvas, 0, 0);
-}
-
-/* ---------- layout DOM builders ---------- */
-function tplSidebar() {
-  const wrap = document.createElement('div');
-  wrap.className = 'node';
-  // two-column layout; right column hosts sections in an internal grid (so they never go under the rail)
-  wrap.innerHTML = `
-    <div class="sidebar-layout" data-header>
-      <div class="rail">
-        <label class="avatar" data-avatar data-empty="1" style="width:140px;height:140px;border-width:5px">
-          <input type="file" accept="image/*">
-        </label>
-        <div class="name" contenteditable>YOUR NAME</div>
-        <div class="chips" data-info></div>
-        <div class="sec-holder" data-rail-sections></div>
-      </div>
-      <div data-main style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start"></div>
-    </div>`;
-  return wrap;
-}
-
-function tplFancy() {
-  const wrap = document.createElement('div');
-  wrap.className = 'node';
-  wrap.innerHTML = `
-    <div class="fancy" data-header>
-      <div class="hero">
-        <h1 class="name" contenteditable>YOUR NAME</h1>
-        <div class="chip-grid">
-          <div class="chips" data-info-left></div>
-          <div class="chips" data-info-right></div>
+// ------- internal: header templates -------
+function headerHTML(kind) {
+  if (kind === 'header-side') {
+    return `
+      <div class="sidebar-layout" data-header>
+        <div class="rail">
+          <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
+          <div class="name" contenteditable>YOUR NAME</div>
+          <div class="chips" data-info></div>
+          <div class="sec-holder" data-rail-sections></div>
+        </div>
+        <div data-zone="main">
+          <div class="add-squircle"><div class="add-dot" data-local-plus>+</div></div>
         </div>
       </div>
-      <div class="avatar-float">
-        <label class="avatar" data-avatar data-empty="1" style="width:140px;height:140px;border-width:5px">
-          <input type="file" accept="image/*">
-        </label>
+    `;
+  }
+  if (kind === 'header-fancy') {
+    return `
+      <div class="fancy" data-header>
+        <div class="hero">
+          <h1 class="name" contenteditable>YOUR NAME</h1>
+          <div class="chip-grid">
+            <div class="chips" data-info-left></div>
+            <div class="chips" data-info-right></div>
+          </div>
+        </div>
+        <div class="avatar-float">
+          <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
+        </div>
+        <div class="below"></div>
       </div>
-      <div class="below"></div>
-    </div>`;
-  return wrap;
-}
-
-function tplTopbar() {
-  const wrap = document.createElement('div');
-  wrap.className = 'node';
-  wrap.innerHTML = `
+    `;
+  }
+  // header-top
+  return `
     <div class="topbar" data-header>
       <div class="topbar-grid">
         <div class="left">
@@ -124,169 +101,60 @@ function tplTopbar() {
           </label>
         </div>
       </div>
-    </div>`;
-  return wrap;
+    </div>
+  `;
 }
 
-/* ---------- internal helpers ---------- */
-function initAvatarPicker(root) {
-  QSA('[data-avatar]', root).forEach(w => {
-    const input = w.querySelector('input');
-    const canvas = document.createElement('canvas');
-    canvas.width = 140; canvas.height = 140;
-    w.appendChild(canvas);
-
-    w.onclick = (e) => {
-      // don’t trigger when clicking the file input itself
-      if (e.target !== input) input.click();
-    };
-    input.onchange = () => {
-      const f = input.files?.[0];
-      if (!f) return;
-      const img = new Image();
-      img.onload = () => {
-        const s = Math.max(canvas.width / img.width, canvas.height / img.height);
-        const dw = img.width * s, dh = img.height * s;
-        const dx = (canvas.width - dw) / 2, dy = (canvas.height - dh) / 2;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, dx, dy, dw, dh);
-        ctx.restore();
-        w.setAttribute('data-empty', '0');
-      };
-      img.src = URL.createObjectURL(f);
-    };
-  });
-}
-
-function applySnapshot(root, snap) {
-  if (!snap) return;
-
-  // name
-  const nameEl = root.querySelector('.name');
-  if (nameEl) nameEl.textContent = snap.name || 'YOUR NAME';
-
-  // chips — distribute left/right if fancy, otherwise single area
-  const left = root.querySelector('[data-info-left]');
-  const right = root.querySelector('[data-info-right]');
-  const single = root.querySelector('[data-info]');
-
-  if (left && right) {
-    // alternate
-    snap.chips.forEach((c, i) => {
-      (i % 2 ? right : left).appendChild(buildChip(c));
-    });
-  } else if (single) {
-    snap.chips.forEach(c => single.appendChild(buildChip(c)));
-  }
-
-  // avatar
-  const cv = root.querySelector('.avatar canvas');
-  if (cv && snap.avatarImage) paintAvatar(cv, snap.avatarImage);
-  initAvatarPicker(root);
-}
-
-/* Move (or restore) content sections so sidebar layout houses them in the right column */
-function hoistSectionsIntoMain(newHeaderNode) {
-  const main = newHeaderNode.querySelector('[data-main]');
-  if (!main) return;
-
+// ------- public: morphTo(kind, S) -------
+// Replaces the header, animates the change, and re-applies contact data.
+// Accepts kind: 'header-side' | 'header-fancy' | 'header-top'
+export function morphTo(kind, S) {
   const stack = getStack();
-  // Everything after header that is a "section node" gets moved into the sidebar main grid
-  const siblings = [];
-  let cur = newHeaderNode.nextElementSibling;
-  while (cur) {
-    if (cur.matches('.node') && cur.querySelector('[data-section]')) siblings.push(cur);
-    cur = cur.nextElementSibling;
-  }
-  siblings.forEach(n => main.appendChild(n));
-}
+  const old = getHeaderNode();
+  const addWrap = $('#canvasAdd') || $('#canvas-add') || $('.add-squircle');
 
-function restoreSectionsBackToStack(oldHeaderNode) {
-  // When leaving sidebar, put sections back right after the soon-to-be old header’s position
-  const stack = getStack();
-  const main = oldHeaderNode?.querySelector('[data-main]');
-  if (!main) return;
+  // Save old rect for FLIP
+  const prevRect = old?.getBoundingClientRect();
 
-  const anchor = oldHeaderNode; // insert after this
-  const items = QSA('.node', main);
-  items.forEach(n => stack.insertBefore(n, anchor.nextSibling));
-}
+  if (old) old.remove();
 
-/* ---------- core: render + morph ---------- */
-function renderLayout(key, prevHeaderRect) {
-  const stack = getStack();
-  if (!stack) return;
+  // Build new header node
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.setAttribute('data-locked', '1');
+  node.innerHTML = headerHTML(kind);
 
-  const snap = snapshotHeader();             // grab existing data (if any)
-  const oldHeaderNode = getHeaderNode();     // for section restoration
+  // Insert before plus button to keep header at the top
+  stack.insertBefore(node, addWrap || null);
 
-  // if we are leaving sidebar, first restore nodes to the main stack
-  if (oldHeaderNode && oldHeaderNode.querySelector('[data-main]')) {
-    restoreSectionsBackToStack(oldHeaderNode);
-  }
+  // Initialize avatar only if the app exposed a single implementation
+  if (window.initAvatars) window.initAvatars(node);
 
-  // remove old header
-  if (oldHeaderNode) oldHeaderNode.remove();
+  // Re-apply contact data so name/chips persist across layouts
+  applyContact(S);
 
-  // create new header
-  let fresh;
-  if (key === 'header-side') fresh = tplSidebar();
-  else if (key === 'header-top') fresh = tplTopbar();
-  else fresh = tplFancy(); // 'header-fancy'
+  // Re-tint chips after layout swap (theme/glass/dark)
+  if (window.applyChipThemeAll) window.applyChipThemeAll();
 
-  // insert at the top of the stack
-  stack.insertBefore(fresh, stack.firstChild);
-
-  // fill with previous data
-  applySnapshot(fresh, snap);
-
-  // If this is sidebar, swallow the content nodes into the right column
-  if (fresh.querySelector('[data-main]')) {
-    hoistSectionsIntoMain(fresh);
-  }
-
-  // morph animation (FLIP-ish) using previous header rect if provided
-  if (prevHeaderRect) {
-    const nh = fresh.getBoundingClientRect();
-    const dx = prevHeaderRect.left - nh.left;
-    const dy = prevHeaderRect.top - nh.top;
-    const sx = prevHeaderRect.width / nh.width;
-    const sy = prevHeaderRect.height / nh.height;
-    const target = fresh; // animate the outer node
-
-    target.style.transformOrigin = 'top left';
-    target.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
-    target.style.opacity = '0.6';
-    target.style.transition = 'transform .35s ease, opacity .35s ease';
-
+  // FLIP-ish morph animation
+  if (prevRect) {
+    const nh = node.getBoundingClientRect();
+    const dx = prevRect.left - nh.left;
+    const dy = prevRect.top - nh.top;
+    const sx = prevRect.width / nh.width;
+    const sy = prevRect.height / nh.height;
+    node.style.transformOrigin = 'top left';
+    node.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    node.style.opacity = '0.6';
+    node.style.transition = 'transform .35s ease, opacity .35s ease';
     requestAnimationFrame(() => {
-      target.style.transform = 'translate(0,0) scale(1,1)';
-      target.style.opacity = '1';
+      node.style.transform = 'translate(0,0) scale(1,1)';
+      node.style.opacity = '1';
     });
-    setTimeout(() => {
-      target.style.transition = '';
-      target.style.transform = '';
-    }, 380);
+    setTimeout(() => { node.style.transition = ''; node.style.transform = ''; }, 380);
   }
 }
 
-/* ---------- PUBLIC API ---------- */
-export function quickLayoutSwitch(key) {
-  // key: 'header-side' | 'header-fancy' | 'header-top'
-  const oldRect = getHeaderNode()?.getBoundingClientRect();
-  renderLayout(key, oldRect);
-}
-
-// A tiny helper some callers may want for initial mount:
-export function ensureLayout(keyIfNone = 'header-fancy') {
-  if (!getHeaderNode()) quickLayoutSwitch(keyIfNone);
-}
-
-export { quickLayoutSwitch as morphTo };
-
+// Backward-compat names (so old imports don’t break)
+export { morphTo as quickLayoutSwitch };
+export { applyContact as saveContact };
