@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.3
-console.log('[wizard.js] v1.3');
+// [wizard.js] v1.7
+console.log('[wizard.js] v1.7');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
