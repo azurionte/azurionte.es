@@ -1,18 +1,18 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.3
-console.log('[wizard.js] v2.3');
+// [wizard.js] v2.4
+console.log('[wizard.js] v2.4');
 
 import { S } from '../app/state.js';
-import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
+import { morphTo, getHeaderNode, applyContact, restyleContactChips } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- wizard mock styles (hard sizes, namespaced) ---------------- */
+/* ---------- wizard mock + inputs + picker styles (scoped) ------------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    /* card shell + interactions */
+    /* interactive mocks */
     #wizard .wz-mock{
       width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;
       border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
@@ -22,81 +22,60 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
       box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset;
     }
     #wizard .wz-mock.sel{ outline:2px solid #ffb86c; }
+    #wizard .wz-card{position:absolute;inset:0;border-radius:16px;padding:12px;
+      background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);overflow:hidden}
+    #wizard .wz-pill{height:10px;border-radius:999px;background:#2b375f}
+    #wizard .wz-pp{width:74px;height:74px;border-radius:50%;background:#cfd6ff;border:4px solid #ffffffc0;box-shadow:0 10px 24px rgba(0,0,0,.35)}
 
-    /* inner gradient panel */
-    #wizard .wz-card{
-      position:absolute; inset:0; border-radius:16px; padding:12px;
-      background:linear-gradient(135deg,#5d71b4,#2e3c79);
-      box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);
-      overflow:hidden;
-    }
+    /* sidebar mock (unchanged) */
+    #wizard .wz-mock--side .wz-left{position:absolute;left:12px;top:12px;bottom:12px;width:162px;border-radius:14px;
+      background:linear-gradient(160deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+    #wizard .wz-mock--side .wz-right{position:absolute;left:192px;right:20px;top:24px;display:grid;row-gap:12px}
+    #wizard .wz-mock--side .wz-right .wz-l1{width:72%} #wizard .wz-mock--side .wz-right .wz-l2{width:56%}
+    #wizard .wz-mock--side .wz-left .wz-under{width:72%}
 
-    /* tiny shapes */
-    #wizard .wz-pill{ height:10px; border-radius:999px; background:#2b375f; }
-    #wizard .wz-pp{
-      width:74px;height:74px;border-radius:50%; background:#cfd6ff;
-      border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35);
-    }
+    /* top fancy mock (final) */
+    #wizard .wz-mock--fancy .wz-hero{position:absolute;left:12px;right:12px;top:12px;height:68px;border-radius:14px;
+      background:linear-gradient(135deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14}
+    #wizard .wz-mock--fancy .wz-pp{position:absolute;left:50%;transform:translateX(-50%);top:28px;width:92px;height:92px;z-index:1}
+    #wizard .wz-mock--fancy .wz-b1,#wizard .wz-mock--fancy .wz-b2,#wizard .wz-mock--fancy .wz-b3{position:absolute;left:50%;transform:translateX(-50%);z-index:0}
+    #wizard .wz-mock--fancy .wz-b1{width:140px;bottom:26px}
+    #wizard .wz-mock--fancy .wz-b2{width:78%;bottom:14px}
+    #wizard .wz-mock--fancy .wz-b3{width:160px;bottom:6px}
 
-    /* ===== Sidebar (unchanged) ========================================= */
-    #wizard .wz-mock--side .wz-left{
-      position:absolute; left:12px; top:12px; bottom:12px; width:162px;
-      border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
-    }
-    #wizard .wz-mock--side .wz-right{
-      position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px;
-    }
-    #wizard .wz-mock--side .wz-right .wz-l1{ width:72%; }
-    #wizard .wz-mock--side .wz-right .wz-l2{ width:56%; }
-    #wizard .wz-mock--side .wz-left .wz-under{ width:72%; }
+    /* top bar mock (avatar smaller & inside band) */
+    #wizard .wz-mock--top .wz-hero{position:absolute;left:12px;right:12px;top:12px;height:66px;border-radius:14px;
+      background:linear-gradient(135deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14}
+    #wizard .wz-mock--top .wz-pp{position:absolute;right:26px;top:15px;width:60px;height:60px}
+    #wizard .wz-mock--top .wz-txt{position:absolute;left:32px;right:130px;top:30px;display:grid;row-gap:12px}
+    #wizard .wz-mock--top .wz-t1{width:52%} #wizard .wz-mock--top .wz-t2{width:70%}
+    #wizard .wz-mock--top .wz-b1,#wizard .wz-mock--top .wz-b2,#wizard .wz-mock--top .wz-b3{position:absolute;left:50%;transform:translateX(-50%)}
+    #wizard .wz-mock--top .wz-b1{width:160px;bottom:42px} #wizard .wz-mock--top .wz-b2{width:78%;bottom:24px} #wizard .wz-mock--top .wz-b3{width:170px;bottom:8px}
 
-    /* ===== Top Fancy (fixed per request) =============================== */
-    #wizard .wz-mock--fancy .wz-hero{
-      position:absolute; left:12px; right:12px; top:12px; height:68px;
-      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
+    /* nicer wizard inputs */
+    #wizard .wipt{
+      background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
     }
-    /* center of the circle sits ABOVE the band bottom (band bottom y=80) */
-    #wizard .wz-mock--fancy .wz-pp{
-      position:absolute; left:50%; transform:translateX(-50%);
-      top:28px; /* was 58px; 28+37=65 < 80 => center above band bottom */
-      width:92px; height:92px; z-index:1;
-    }
-    /* lines now strictly below the avatar */
-    #wizard .wz-mock--fancy .wz-b1,
-    #wizard .wz-mock--fancy .wz-b2,
-    #wizard .wz-mock--fancy .wz-b3{
-      position:absolute; left:50%; transform:translateX(-50%); z-index:0;
-    }
-    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px; } /* below circle */
-    #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px; }
-    #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px; }
+    #wizard .wipt::placeholder{color:#95a0c7}
+    #wizard .wipt:focus{border-color:#4e62c9;box-shadow:0 0 0 2px #4e62c944 inset}
 
-    /* ===== Top Bar (avatar smaller and inside band) ==================== */
-    #wizard .wz-mock--top .wz-hero{
-      position:absolute; left:12px; right:12px; top:12px; height:66px;
-      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
+    /* animated "Customize" swatch */
+    #wizard .swatch.custom{
+      display:grid;place-items:center;font-weight:800;color:#111;border:1px solid #2b324b;border-radius:12px;height:42px;cursor:pointer;
+      background:linear-gradient(135deg,#ff0080,#ff8c00,#ffd200,#00f260,#0575e6,#8a2be2);
+      background-size:300% 300%; animation:wiz-rainbow 6s linear infinite; text-shadow:0 1px 0 #ffffffaa
     }
-    #wizard .wz-mock--top .wz-pp{
-      position:absolute; right:26px; top:15px; /* inside the 66px band */
-      width:60px; height:60px; /* smaller to fit */
-    }
-    #wizard .wz-mock--top .wz-txt{
-      position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px;
-    }
-    #wizard .wz-mock--top .wz-t1{ width:52%; height:10px; }
-    #wizard .wz-mock--top .wz-t2{ width:70%; height:10px; }
-    #wizard .wz-mock--top .wz-b1,
-    #wizard .wz-mock--top .wz-b2,
-    #wizard .wz-mock--top .wz-b3{
-      position:absolute; left:50%; transform:translateX(-50%);
-    }
-    #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px; }
-    #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px; }
-    #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px; }
+    @keyframes wiz-rainbow{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+
+    /* mini modal for gradient picker */
+    #wizard .mini-overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:22000}
+    #wizard .mini-card{width:360px;max-width:92vw;background:#0f1420;border:1px solid #1f2540;border-radius:16px;padding:16px;color:#e6e8ef;
+      box-shadow:0 30px 100px rgba(0,0,0,.6);display:grid;gap:10px}
+    #wizard .mini-row{display:flex;gap:10px;align-items:center}
+    #wizard .mini-row input[type=color]{width:36px;height:36px;border:0;border-radius:8px;cursor:pointer}
+    #wizard .mini-prev{height:40px;border-radius:10px;border:1px solid #2b324b}
+    #wizard .mini-actions{display:flex;gap:8px;justify-content:flex-end}
   `;
   document.head.appendChild(st);
 })();
@@ -276,21 +255,24 @@ function renderStep(){
         ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
           .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"
                data-a1="${A1[k]||'#8b5cf6'}" data-a2="${A2[k]||'#d946ef'}"></div>`).join('')}
+        <div class="swatch custom" id="openCustom">Customize</div>
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
     `;
-    body.querySelectorAll('.swatch').forEach(swatch=>{
+    body.querySelectorAll('.swatch:not(.custom)').forEach(swatch=>{
       const k = swatch.dataset.k;
-      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; };
+      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; document.dispatchEvent(new CustomEvent('ui:theme-updated')); };
     });
     body.querySelector('#wizDark').onclick = e=>{
       e.currentTarget.classList.toggle('on');
       S.dark = e.currentTarget.classList.contains('on');
       document.body.setAttribute('data-dark', S.dark ? '1' : '0');
+      document.dispatchEvent(new CustomEvent('ui:theme-updated'));
     };
-    body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); };
-    body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); };
+    body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); document.dispatchEvent(new CustomEvent('ui:theme-updated')); };
+    body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); document.dispatchEvent(new CustomEvent('ui:theme-updated')); };
+    body.querySelector('#openCustom').onclick = openGradientModal;
   }
 
   if (s === 'contact'){
@@ -417,4 +399,42 @@ function mock(layoutKey){
         <div class="wz-pill wz-b3"></div>
       </div>
     </div>`;
+}
+
+/* gradient picker modal */
+function openGradientModal(){
+  const overlay = document.createElement('div');
+  overlay.className = 'mini-overlay';
+  overlay.innerHTML = `
+    <div class="mini-card">
+      <div style="font-weight:800">Customize gradient</div>
+      <div class="mini-prev" id="miniPrev"></div>
+      <div class="mini-row">
+        <input type="color" id="g1" value="${S.custom?.a1 || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#8b5cf6'}">
+        <input type="color" id="g2" value="${S.custom?.a2 || getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim() || '#d946ef'}">
+        <div style="flex:1"></div>
+      </div>
+      <div class="mini-actions">
+        <button class="mbtn" id="miniCancel">Cancel</button>
+        <button class="mbtn" id="miniApply" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Apply</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const prev = overlay.querySelector('#miniPrev');
+  const g1 = overlay.querySelector('#g1');
+  const g2 = overlay.querySelector('#g2');
+  const paint = ()=> prev.style.background = `linear-gradient(135deg, ${g1.value}, ${g2.value})`;
+  paint();
+  g1.oninput = g2.oninput = paint;
+
+  overlay.querySelector('#miniCancel').onclick = () => overlay.remove();
+  overlay.querySelector('#miniApply').onclick = () => {
+    document.documentElement.style.setProperty('--accent', g1.value);
+    document.documentElement.style.setProperty('--accent2', g2.value);
+    S.theme = 'custom'; S.custom = { a1: g1.value, a2: g2.value };
+    document.dispatchEvent(new CustomEvent('ui:theme-updated'));
+    overlay.remove();
+  };
 }
