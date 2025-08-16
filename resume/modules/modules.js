@@ -1,13 +1,13 @@
 // /resume/modules/modules.js
-// v1.4 — Sidebar-aware insertion + width fixes (no app.css changes)
+// v1.5 — fix NotFoundError by ensuring add anchor is in the same host before insert
 import { ensureCanvas, isSidebarActive, getSideMain, getRailHolder, ensureAddAnchor } from '../layouts/layouts.js';
 
-console.log('%c[modules.js] v1.4 loaded', 'color:#22c1c3');
+console.log('%c[modules.js] v1.5 loaded', 'color:#22c1c3');
 
 const $ = (s,r)=> (r||document).querySelector(s);
 const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
 
-/* ------------ styles (same as before) ------------- */
+/* ------------ styles (unchanged) ------------- */
 (function injectModulesCSS(){
   if (document.getElementById('modules-css')) return;
   const css = `
@@ -93,8 +93,15 @@ function attachDnd(container, itemSel){
 
 /* ------------ where to insert content? ------------ */
 function contentHost(){
-  const main = isSidebarActive() ? getSideMain() : null;
-  return main || ensureCanvas().stack;
+  return isSidebarActive() ? (getSideMain() || ensureCanvas().stack) : ensureCanvas().stack;
+}
+
+/* Ensure the + anchor is inside the same host before inserting */
+function hostAndAdd() {
+  const host = contentHost();
+  const { addWrap } = ensureCanvas();
+  if (addWrap && addWrap.parentElement !== host) host.appendChild(addWrap);
+  return { host, addWrap };
 }
 
 /* ------------ title helper ------------ */
@@ -175,11 +182,11 @@ export function renderSkills(){
   `;
   wrap.appendChild(sec);
 
-  if (isSidebarActive() && getRailHolder()){
+  if (isSidebarActive()){
     getRailHolder().appendChild(sec);
   } else {
-    const host = contentHost();
-    host.insertBefore(wrap, ensureCanvas().addWrap);
+    const { host, addWrap } = hostAndAdd();
+    host.insertBefore(wrap, addWrap);
   }
 
   const grid = sec.querySelector('.grid-skills');
@@ -200,8 +207,8 @@ export function renderSkills(){
   });
   moveOut && (moveOut.onclick = ()=>{
     const w = document.createElement('div'); w.className='node'; w.appendChild(sec);
-    const host = contentHost();
-    host.insertBefore(w, ensureCanvas().addWrap);
+    const { host, addWrap } = hostAndAdd();
+    host.insertBefore(w, addWrap);
     const h = sec.querySelector('.handle'); if (h) h.style.removeProperty('display');
     ensureAddAnchor();
   });
@@ -223,8 +230,8 @@ export function renderEdu(){
     </div>`;
   wrap.appendChild(sec);
 
-  const host = contentHost();
-  host.insertBefore(wrap, ensureCanvas().addWrap);
+  const { host, addWrap } = hostAndAdd();
+  host.insertBefore(wrap, addWrap);
 
   const grid = sec.querySelector('.edu-grid');
   const mkCard = (kind='course')=>{
@@ -255,8 +262,8 @@ export function renderExp(){
     <div class="ctrl-mini"><button class="mini" type="button" data-add-exp>+ Add role</button></div>`;
   wrap.appendChild(sec);
 
-  const host = contentHost();
-  host.insertBefore(wrap, ensureCanvas().addWrap);
+  const { host, addWrap } = hostAndAdd();
+  host.insertBefore(wrap, addWrap);
 
   const grid = sec.querySelector('.exp-list');
   const mk = (dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.')=>{
@@ -288,12 +295,13 @@ export function renderBio(){
   body.textContent = 'Add a short summary of your profile, strengths and what you’re looking for.';
   sec.appendChild(body);
   wrap.appendChild(sec);
-  const host = contentHost();
-  host.insertBefore(wrap, ensureCanvas().addWrap);
+
+  const { host, addWrap } = hostAndAdd();
+  host.insertBefore(wrap, addWrap);
   ensureAddAnchor();
 }
 
-/* ------------ Add menu exposed to editor ------------ */
+/* ------------ Add menu (unchanged) ------------ */
 export function openAddMenu(anchorBtn){
   const { addWrap } = ensureCanvas();
   let menu = $('#addMenu'); let tray = $('#addTray');
@@ -322,7 +330,6 @@ export function openAddMenu(anchorBtn){
 
   if(!tray.children.length){ addWrap.style.display='none'; return; }
 
-  // position the floating pop near the "+" anchor
   const r = anchorBtn.getBoundingClientRect();
   menu.style.left = (r.left + window.scrollX) + 'px';
   menu.style.top  = (r.top + window.scrollY - (menu.offsetHeight||120) - 12) + 'px';
