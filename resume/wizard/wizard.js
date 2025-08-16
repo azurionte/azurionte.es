@@ -1,53 +1,111 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.0
-console.log('[wizard.js] v2.0');
+// [wizard.js] v2.1
+console.log('[wizard.js] v2.1');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- wizard-only styles (cards, hover, selected) ---------- */
+/* ---------- inject wizard mock styles (exact sizes + layout) ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    #wizard .mockRow{ display:grid; gap:26px; }
-
-    /* card shell (fixed size) */
+    /* card shell / interactions */
     #wizard .mock{
-      width:450px;height:158px;
-      position:relative;
-      border-radius:16px;
-      padding:14px 18px;
-      background:linear-gradient(135deg,#5564a4,#2e3a73);
-      box-shadow:0 12px 28px rgba(0,0,0,.35);
-      border:1px solid #1f2540;
-      cursor:pointer;
-      overflow:hidden; /* keep everything inside the 158px card */
+      width:450px;height:158px;position:relative;cursor:pointer;
+      border-radius:18px;padding:10px; margin:6px 0;
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
+      background:transparent; /* container only, the inner .card draws visuals */
     }
     #wizard .mock:hover{
       transform:translateY(-2px);
-      box-shadow:0 18px 40px rgba(0,0,0,.45), 0 0 0 2px #7c99ff inset;
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset;
     }
-    #wizard .mock.sel{
-      outline:2px solid #ffb86c;
-      box-shadow:0 18px 40px rgba(0,0,0,.45), 0 0 0 1px #ffb86c inset;
+    #wizard .mock.sel{ outline:2px solid #ffb86c; }
+
+    /* gradient “card” that all mock content sits on */
+    #wizard .mock .card{
+      position:absolute; inset:0; border-radius:16px; padding:12px;
+      background:linear-gradient(135deg,#5d71b4,#2e3c79);
+      box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);
     }
 
-    /* doodles */
-    #wizard .hero{ border-radius:14px; background:linear-gradient(135deg,#5b6fb7,#2f3d7a) }
-    #wizard .dot{
-      display:block;border-radius:999px;background:#cfd6ff;
-      border:3px solid #fff; box-shadow:0 6px 18px rgba(0,0,0,.35)
+    /* shared tiny shapes */
+    #wizard .pill{ height:10px; border-radius:999px; background:#2b375f; opacity:.95; }
+    #wizard .pp{
+      width:74px;height:74px;border-radius:50%; background:#cfd6ff;
+      border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35);
     }
-    #wizard .line{ height:8px;border-radius:999px;background:#2b375f;opacity:.9 }
+
+    /* ===== Sidebar mock ================================================= */
+    #wizard .mock.sidebar .left{
+      position:absolute; left:12px; top:12px; bottom:12px; width:162px;
+      border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93);
+      box-shadow:inset 0 1px 0 #ffffff14;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    }
+    #wizard .mock.sidebar .right{
+      position:absolute; left:192px; right:20px; top:24px;
+      display:grid; row-gap:12px;
+    }
+    #wizard .mock.sidebar .right .l1{ width:72%; }
+    #wizard .mock.sidebar .right .l2{ width:56%; }
+    #wizard .mock.sidebar .left .under{ width:72%; }
+
+    /* ===== Top Fancy mock ============================================== */
+    #wizard .mock.fancy .hero{
+      position:absolute; left:12px; right:12px; top:12px; height:66px;
+      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
+      box-shadow:inset 0 1px 0 #ffffff14;
+    }
+    /* center avatar overlapping the band */
+    #wizard .mock.fancy .pp{
+      position:absolute; left:50%; transform:translateX(-50%);
+      top:52px; width:84px; height:84px;  /* larger than sidebar/topbar */
+    }
+    /* below stack: short → long → short (anchored from bottom so it never overflows) */
+    #wizard .mock.fancy .b1,
+    #wizard .mock.fancy .b2,
+    #wizard .mock.fancy .b3{
+      position:absolute; left:50%; transform:translateX(-50%);
+    }
+    #wizard .mock.fancy .b1{ width:120px; bottom:44px; }
+    #wizard .mock.fancy .b2{ width:72%;   bottom:26px; }
+    #wizard .mock.fancy .b3{ width:140px; bottom:10px; }
+
+    /* ===== Top Bar mock ================================================= */
+    #wizard .mock.top .hero{
+      position:absolute; left:12px; right:12px; top:12px; height:66px;
+      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
+      box-shadow:inset 0 1px 0 #ffffff14;
+    }
+    #wizard .mock.top .pp{
+      position:absolute; right:26px; top:26px;
+      width:84px; height:84px;
+    }
+    #wizard .mock.top .txt{
+      position:absolute; left:32px; right:130px; top:30px;
+      display:grid; row-gap:12px;
+    }
+    #wizard .mock.top .t1{ width:52%; height:10px; }
+    #wizard .mock.top .t2{ width:70%; height:10px; }
+
+    /* group below hero: short → long → short */
+    #wizard .mock.top .b1,
+    #wizard .mock.top .b2,
+    #wizard .mock.top .b3{
+      position:absolute; left:50%; transform:translateX(-50%);
+    }
+    #wizard .mock.top .b1{ width:160px; bottom:42px; }
+    #wizard .mock.top .b2{ width:78%;  bottom:24px; }
+    #wizard .mock.top .b3{ width:170px; bottom:8px; }
   `;
   document.head.appendChild(st);
 })();
 
-/* ---------- public API ---------- */
+/* ---------- Public API -------------------------------------------------- */
 export function mountWelcome() {
   if (document.getElementById('welcome')) return;
 
@@ -132,7 +190,7 @@ export function mountWizard() {
   buildWizard();
 }
 
-/* ---------- internals ---------- */
+/* ---------- Wizard internals ------------------------------------------ */
 const STEPS = [
   { k: 'layout',    label: 'Layout' },
   { k: 'theme',     label: 'Theme' },
@@ -144,7 +202,8 @@ const STEPS = [
   { k: 'done',      label: 'Done' },
 ];
 
-let stepIdx = 0, backCount = 0;
+let stepIdx = 0;
+let backCount = 0;
 
 function openWizard(){ 
   renderStep();
@@ -192,13 +251,13 @@ function renderStep(){
   if (s === 'layout'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:10px">Pick a starting header style.</div>
-      <div id="mockRow" class="mockRow">
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Pick a starting header style.</div>
+      <div id="mockRow" style="display:grid;gap:22px">
         ${mock('header-side')}
         ${mock('header-fancy')}
         ${mock('header-top')}
       </div>
-      <div class="k-row" style="margin-top:16px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
+      <div class="k-row" style="margin-top:14px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
     `;
 
     const row = body.querySelector('#mockRow');
@@ -220,7 +279,8 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
       <div class="theme-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
         ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
-          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"></div>`).join('')}
+          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"
+               data-a1="${A1[k]||'#8b5cf6'}" data-a2="${A2[k]||'#d946ef'}"></div>`).join('')}
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
@@ -311,61 +371,57 @@ function advance(){
   if (stepIdx < STEPS.length-1){ stepIdx++; renderStep(); }
 }
 
-/* ---------- layout mock templates (fit exactly into 450×158) ---------- */
-function mock(layoutKey){
-  const type = layoutKey.split('-')[1]; // side|fancy|top
-  const PAD = 14;
+/* ---------- helpers ---------------------------------------------------- */
 
-  if (type === 'side'){
-    // Sidebar: left hero column + avatar, pill inside hero; lines on right.
+const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
+const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
+
+/* precise 450x158 mocks matching your drawings */
+function mock(layoutKey){
+  const kind = layoutKey.split('-')[1]; // side | fancy | top
+
+  if (kind === 'side'){
     return `
       <div class="mock sidebar" data-layout="${layoutKey}">
-        <div class="hero" style="position:absolute;left:${PAD}px;top:${PAD}px;bottom:${PAD}px;width:150px"></div>
-        <div class="dot"  style="position:absolute;left:48px;top:28px;width:64px;height:64px"></div>
-        <div class="line" style="position:absolute;left:38px;bottom:38px;width:120px;height:16px;opacity:.85"></div>
-
-        <div class="txt"  style="position:absolute;left:${PAD+160}px;right:${PAD}px;top:${PAD+12}px;display:grid;row-gap:12px">
-          <div class="line" style="width:68%"></div>
-          <div class="line" style="width:52%"></div>
-          <div class="line" style="width:84%"></div>
-          <div class="line" style="width:70%"></div>
+        <div class="card">
+          <div class="left">
+            <div class="pp"></div>
+            <div class="pill under"></div>
+          </div>
+          <div class="right">
+            <div class="pill l1"></div>
+            <div class="pill l2"></div>
+          </div>
         </div>
       </div>`;
   }
 
-  if (type === 'fancy'){
-    // Top Fancy (all inside 158px):
-    // hero band (72px), centered pill in hero, avatar (68px) overlapping hero bottom,
-    // below: small pill + long line + small pill (fits).
-    const heroH = 72, dot = 68;
-    const dotTop = PAD + heroH - dot/2;         // overlap hero bottom by half
-    const below1 = PAD + heroH + dot/2 + 10;    // first small pill
-    const below2 = below1 + 16;                 // long line
-    const below3 = below2 + 16;                 // second small pill (kept short to fit)
+  if (kind === 'fancy'){
     return `
       <div class="mock fancy" data-layout="${layoutKey}">
-        <div class="hero" style="position:absolute;left:${PAD}px;right:${PAD}px;top:${PAD}px;height:${heroH}px"></div>
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${PAD + 18}px;width:36%;height:12px;opacity:.95"></div>
-        <div class="dot"  style="position:absolute;left:50%;transform:translateX(-50%);top:${dotTop}px;width:${dot}px;height:${dot}px"></div>
-
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${below1}px;width:28%;height:10px;opacity:.95"></div>
-        <div class="line" style="position:absolute;left:12%;right:12%;top:${below2}px;height:8px"></div>
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${below3}px;width:28%;height:10px;opacity:.95"></div>
+        <div class="card">
+          <div class="hero"></div>
+          <div class="pp"></div>
+          <div class="pill b1"></div>
+          <div class="pill b2"></div>
+          <div class="pill b3"></div>
+        </div>
       </div>`;
   }
 
-  // Top Bar: hero band (80px), left pill inside hero, right avatar inside hero,
-  // below: small pill + long line + small pill (all inside).
-  const heroH = 80, dot = 72;
-  const base = PAD + heroH + 10; // first pill below
+  // top bar
   return `
-    <div class="mock topbar" data-layout="${layoutKey}">
-      <div class="hero" style="position:absolute;left:${PAD}px;right:${PAD}px;top:${PAD}px;height:${heroH}px"></div>
-      <div class="line" style="position:absolute;left:${PAD+20}px;top:${PAD + 22}px;width:34%;height:12px;opacity:.95"></div>
-      <div class="dot"  style="position:absolute;right:${PAD+20}px;top:${PAD + (heroH - dot)/2}px;width:${dot}px;height:${dot}px"></div>
-
-      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base}px;width:28%;height:10px;opacity:.95"></div>
-      <div class="line" style="position:absolute;left:12%;right:12%;top:${base + 18}px;height:8px"></div>
-      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base + 36}px;width:28%;height:10px;opacity:.95"></div>
+    <div class="mock top" data-layout="${layoutKey}">
+      <div class="card">
+        <div class="hero"></div>
+        <div class="pp"></div>
+        <div class="txt">
+          <div class="pill t1"></div>
+          <div class="pill t2"></div>
+        </div>
+        <div class="pill b1"></div>
+        <div class="pill b2"></div>
+        <div class="pill b3"></div>
+      </div>
     </div>`;
 }
