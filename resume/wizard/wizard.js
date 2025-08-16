@@ -1,69 +1,71 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.4  — restores classic mockup visuals
-console.log('[wizard.js] v1.4');
+// [wizard.js] v1.5 — compact classic mocks + clear hover/selected
+console.log('[wizard.js] v1.5');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- inject wizard styles (classic mocks + hover/selected) ---------- */
+/* ---------- wizard styles (fixed height, classic layout) ---------- */
 (function ensureWizardStyle(){
-  if (document.getElementById('wizard-style')) return;
+  const id = 'wizard-style';
+  if (document.getElementById(id)) return;
   const st = document.createElement('style');
-  st.id = 'wizard-style';
+  st.id = id;
   st.textContent = `
-    /* container */
+    /* cards */
     #wizard .mock{
-      flex:1; min-width:220px; min-height:130px;
+      position:relative; height:130px; min-width:220px;
       background:#0c1324;border:1px solid #1f2540;border-radius:18px;
-      padding:14px; cursor:pointer; position:relative;
+      padding:0; cursor:pointer; overflow:hidden;
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
     #wizard .mock:hover{
       transform:translateY(-2px);
-      box-shadow:0 18px 40px rgba(0,0,0,.35);
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff inset;
     }
     #wizard .mock.sel{
       outline:2px solid #ffb86c;
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset;
     }
-    /* generic bits */
+
+    /* decorative bits shared */
     #wizard .mock .hero{
-      border-radius:12px;
-      background:linear-gradient(135deg,#5b6fb7,#2f3d7a);
+      position:absolute; left:16px; right:16px; top:16px; height:56px;
+      border-radius:12px; background:linear-gradient(135deg,#5b6fb7,#2f3d7a);
     }
-    #wizard .mock .line{
-      height:8px;border-radius:999px;background:#2b375f;
-    }
-    /* sidebar mock */
+    #wizard .mock .line{ height:8px; border-radius:999px; background:#2b375f; }
+
+    /* layout variants */
+    /* sidebar: persistent left rail */
     #wizard .mock.sidebar .hero{
-      position:absolute; inset:14px auto 14px 14px; width:30%;
+      left:14px; right:auto; top:14px; bottom:14px; width:30%;
     }
     #wizard .mock.sidebar .pp{
-      position:absolute; left:34px; top:34px; width:42px; height:42px;
-      border-radius:50%; background:#cfd6ff; border:3px solid #fff;
-      box-shadow:0 4px 12px rgba(0,0,0,.35);
+      position:absolute; left:34px; top:30px; width:42px; height:42px; border-radius:50%;
+      background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
     }
     #wizard .mock.sidebar .txt{
       position:absolute; left:38%; right:20px; top:26px; display:grid; gap:10px;
     }
-    /* fancy mock */
-    #wizard .mock.fancy .hero{ height:64px; margin:8px; }
+
+    /* fancy: banner + centered avatar, two lines below */
     #wizard .mock.fancy .pp{
       position:absolute; left:50%; transform:translateX(-50%);
-      top:58px; width:56px; height:56px; border-radius:50%;
+      top:56px; width:56px; height:56px; border-radius:50%;
       background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
     }
     #wizard .mock.fancy .txt{
-      position:absolute; left:26px; right:26px; top:120px; display:grid; gap:10px;
+      position:absolute; left:24px; right:24px; top:112px; display:grid; gap:10px;
     }
-    /* topbar mock */
-    #wizard .mock.topbar .hero{ height:64px; margin:8px; }
+
+    /* topbar: banner + avatar on right, text on left */
     #wizard .mock.topbar .pp{
       position:absolute; right:31px; top:22px; width:56px; height:56px; border-radius:50%;
       background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
     }
     #wizard .mock.topbar .txt{
-      position:absolute; left:26px; right:120px; top:28px; display:grid; gap:10px;
+      position:absolute; left:24px; right:120px; top:26px; display:grid; gap:10px;
     }
   `;
   document.head.appendChild(st);
