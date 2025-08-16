@@ -1,19 +1,19 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.6
-console.log('[wizard.js] v2.6');
+// [wizard.js] v2.7
+console.log('[wizard.js] v2.7');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact, restyleContactChips } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- styles: hover/selected & modal & inputs --------------- */
+/* ---------- styles: hover/selected, modal, inputs, tiny lists -------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
     #wizard .mock{
-      position:relative;min-height:130px;border:1px solid #1f2540;border-radius:14px;
+      position:relative;min-height:158px;border:1px solid #1f2540;border-radius:14px;
       padding:10px;background:#0c1324;cursor:pointer;
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
@@ -47,12 +47,18 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     .dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
     .dlg-actions .mbtn{padding:8px 12px}
 
-    /* nicer wizard inputs */
+    /* nicer wizard inputs + small list */
     .wipt{
       background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;
       box-shadow:0 4px 14px rgba(0,0,0,.25)
     }
     .wipt::placeholder{color:#95a0c7}
+    .mini-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid #2b324b;background:#0c1328}
+    .pill button{appearance:none;border:0;border-radius:8px;padding:6px 8px;background:#12182a;color:#e6e8ef;cursor:pointer}
+    .rowbtn{appearance:none;border:0;border-radius:10px;padding:8px 12px;background:#12182a;color:#e6e8ef;cursor:pointer}
+    .rowbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;font-weight:800}
+    .list{display:grid;gap:10px;margin-top:10px}
   `;
   document.head.appendChild(st);
 })();
@@ -232,8 +238,6 @@ function renderStep(){
     };
     body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); restyleContactChips(); };
     body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); restyleContactChips(); };
-
-    // custom gradient modal
     body.querySelector('#openCustom').onclick = openGradientModal;
   }
 
@@ -262,12 +266,104 @@ function renderStep(){
     });
   }
 
-  if (s === 'skills'){ body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div><div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`; }
-  if (s === 'education'){ body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div><div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`; }
-  if (s === 'experience'){ body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div><div class="wsub" style="opacity:.8;margin-bottom:8px">You can keep adding/editing from the canvas.</div>`; }
+  if (s === 'skills'){
+    if (!Array.isArray(S.skills)) S.skills = [];
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Use either stars or sliders. Nothing will be added unless you click “Add”.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="rowbtn" id="addStar"><i class="fa-solid fa-star"></i> Add star skill</button>
+        <button class="rowbtn" id="addSlider"><i class="fa-solid fa-sliders"></i> Add slider skill</button>
+      </div>
+      <div class="list" id="skillList"></div>
+    `;
+    const list = body.querySelector('#skillList');
+    const refresh = ()=>{
+      list.innerHTML='';
+      S.skills.forEach((sk, i)=>{
+        const row = document.createElement('div');
+        row.className='mini-row';
+        row.innerHTML = `
+          <input class="wipt" value="${sk.label||'Skill'}">
+          <div class="pill">
+            <span>${sk.mode==='stars'?'★':'⎯'} ${sk.value??3}</span>
+            <button data-i="${i}" class="rm">Remove</button>
+          </div>`;
+        row.querySelector('input').oninput = (e)=>{ S.skills[i].label = e.target.value; };
+        row.querySelector('.rm').onclick = ()=>{ S.skills.splice(i,1); refresh(); };
+        list.appendChild(row);
+      });
+    };
+    body.querySelector('#addStar').onclick   = ()=>{ S.skills.push({label:'Skill', mode:'stars',  value:3}); refresh(); };
+    body.querySelector('#addSlider').onclick = ()=>{ S.skills.push({label:'Skill', mode:'slider', value:70}); refresh(); };
+    refresh();
+  }
+
+  if (s === 'education'){
+    if (!Array.isArray(S.edu)) S.edu = [];
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add degrees or short courses.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="rowbtn" id="addDegree"><i class="fa-solid fa-graduation-cap"></i> Add degree</button>
+        <button class="rowbtn" id="addCourse"><i class="fa-solid fa-book"></i> Add course</button>
+      </div>
+      <div class="list" id="eduList"></div>
+    `;
+    const list = body.querySelector('#eduList');
+    const refresh = ()=>{
+      list.innerHTML='';
+      S.edu.forEach((it, i)=>{
+        const row = document.createElement('div');
+        row.className='mini-row';
+        row.innerHTML = `
+          <input class="wipt" value="${it.title||''}" placeholder="${it.type==='course'?'Course':'Degree'} title">
+          <div class="pill">
+            <span>${it.type==='course'?'Course':'Degree'}</span>
+            <button data-i="${i}" class="rm">Remove</button>
+          </div>`;
+        row.querySelector('input').oninput = (e)=>{ S.edu[i].title = e.target.value; };
+        row.querySelector('.rm').onclick = ()=>{ S.edu.splice(i,1); refresh(); };
+        list.appendChild(row);
+      });
+    };
+    body.querySelector('#addDegree').onclick = ()=>{ S.edu.push({type:'degree', title:''}); refresh(); };
+    body.querySelector('#addCourse').onclick = ()=>{ S.edu.push({type:'course', title:''}); refresh(); };
+    refresh();
+  }
+
+  if (s === 'experience'){
+    if (!Array.isArray(S.exp)) S.exp = [];
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add positions you want to show.</div>
+      <div><button class="rowbtn" id="addExp"><i class="fa-solid fa-plus"></i> Add experience</button></div>
+      <div class="list" id="expList"></div>
+    `;
+    const list = body.querySelector('#expList');
+    const refresh = ()=>{
+      list.innerHTML='';
+      S.exp.forEach((it, i)=>{
+        const row = document.createElement('div');
+        row.className='mini-row';
+        row.innerHTML = `
+          <input class="wipt" value="${it.title||''}" placeholder="Job title @ Company">
+          <div class="pill">
+            <span>${(it.start||'').toString().slice(0,7)}–${(it.end||'').toString().slice(0,7) || ''}</span>
+            <button data-i="${i}" class="rm">Remove</button>
+          </div>`;
+        row.querySelector('input').oninput = (e)=>{ S.exp[i].title = e.target.value; };
+        row.querySelector('.rm').onclick = ()=>{ S.exp.splice(i,1); refresh(); };
+        list.appendChild(row);
+      });
+    };
+    body.querySelector('#addExp').onclick = ()=>{ S.exp.push({title:'', start:'', end:'', summary:''}); refresh(); };
+    refresh();
+  }
 
   if (s === 'bio'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
       <textarea id="bioText" class="wipt" rows="6" placeholder="Short profile…" style="width:100%;min-height:120px"></textarea>`;
     const t = body.querySelector('#bioText');
     t.value = S.bio || '';
@@ -284,10 +380,12 @@ function renderStep(){
 
 function advance(){
   const cur = STEPS[stepIdx].k;
-  if (cur === 'skills')     renderSkills();
-  if (cur === 'education')  renderEdu();
-  if (cur === 'experience') renderExp();
-  if (cur === 'bio')        renderBio();
+
+  // Only render if the user actually added something
+  if (cur === 'skills'     && Array.isArray(S.skills) && S.skills.length)         renderSkills();
+  if (cur === 'education'  && Array.isArray(S.edu)    && S.edu.length)            renderEdu();
+  if (cur === 'experience' && Array.isArray(S.exp)    && S.exp.length)            renderExp();
+  if (cur === 'bio'        && typeof S.bio === 'string' && S.bio.trim().length)   renderBio();
 
   if (cur === 'done'){
     document.getElementById('wizard').style.display = 'none';
@@ -306,7 +404,7 @@ function openGradientModal(){
     ovl.id = 'grad-ovl';
     ovl.className = 'wiz-ovl';
     ovl.innerHTML = `
-      <div class="wiz-dlg">
+      <div class="wiz-dlg" role="dialog" aria-modal="true">
         <div class="title">Customize gradient</div>
         <div class="pad-wrap" id="padWrap">
           <canvas id="gradPad" width="560" height="220"></canvas>
@@ -321,13 +419,15 @@ function openGradientModal(){
       </div>`;
     document.body.appendChild(ovl);
 
+    // backdrop click closes
+    ovl.addEventListener('click', (e)=>{ if (e.target === ovl) ovl.classList.remove('open'); });
+
     // draw pad once
-    const pad = $('#gradPad', ovl);
+    const pad = ovl.querySelector('#gradPad');
     const ctx = pad.getContext('2d');
     const w = pad.width, h = pad.height;
 
     function renderPad(){
-      // horizontal: hue, vertical: saturation; fixed lightness ~ 0.55
       const img = ctx.createImageData(w, h);
       for (let y=0; y<h; y++){
         for (let x=0; x<w; x++){
@@ -343,10 +443,9 @@ function openGradientModal(){
     renderPad();
 
     // handles + drag
-    const wrap = $('#padWrap', ovl);
-    const h1 = $('#h1', ovl), h2 = $('#h2', ovl), prev = $('#gradPrev', ovl);
+    const wrap = ovl.querySelector('#padWrap');
+    const h1 = ovl.querySelector('#h1'), h2 = ovl.querySelector('#h2'), prev = ovl.querySelector('#gradPrev');
 
-    // init from current vars
     const root = getComputedStyle(document.documentElement);
     let c1 = S.customAccent1 || root.getPropertyValue('--accent').trim() || '#8b5cf6';
     let c2 = S.customAccent2 || root.getPropertyValue('--accent2').trim() || '#d946ef';
@@ -363,13 +462,12 @@ function openGradientModal(){
     placeFromColor(h2, c2);
     prev.style.background = `linear-gradient(135deg, ${c2}, ${c1})`;
 
-    function updateFromHandle(el, assign){
-      const rect = wrap.getBoundingClientRect();
+    function attachDrag(el, assign){
       function move(ev){
-        const x = Math.max(0, Math.min(rect.width, (ev.clientX - rect.left)));
-        const y = Math.max(0, Math.min(rect.height, (ev.clientY - rect.top)));
+        const rect = wrap.getBoundingClientRect();
+        const x = Math.max(0, Math.min(rect.width,  ev.clientX - rect.left));
+        const y = Math.max(0, Math.min(rect.height, ev.clientY - rect.top));
         el.style.left = x + 'px'; el.style.top = y + 'px';
-        // sample color from canvas
         const px = Math.round((x/rect.width) * w);
         const py = Math.round((y/rect.height)* h);
         const data = ctx.getImageData(Math.max(0,Math.min(w-1,px)), Math.max(0,Math.min(h-1,py)), 1,1).data;
@@ -379,31 +477,29 @@ function openGradientModal(){
         prev.style.background = `linear-gradient(135deg, ${c2}, ${c1})`;
       }
       function up(){ window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); }
-      window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
+      return (e)=>{ e.preventDefault(); window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); };
     }
 
-    h1.onpointerdown = (e)=>{ e.preventDefault(); updateFromHandle(h1, hex=>{ c1 = hex; }); };
-    h2.onpointerdown = (e)=>{ e.preventDefault(); updateFromHandle(h2, hex=>{ c2 = hex; }); };
+    h1.onpointerdown = attachDrag(h1, hex=>{ c1 = hex; });
+    h2.onpointerdown = attachDrag(h2, hex=>{ c2 = hex; });
 
-    $('#gradCancel', ovl).onclick = ()=> ovl.classList.remove('open');
-    $('#gradApply',  ovl).onclick = ()=>{
-      // write vars + state + re-tint chips
+    ovl.querySelector('#gradCancel').onclick = ()=> ovl.classList.remove('open');
+    ovl.querySelector('#gradApply').onclick  = ()=>{
       document.documentElement.style.setProperty('--accent',  c1);
       document.documentElement.style.setProperty('--accent2', c2);
-      S.theme = 'custom';
-      S.customAccent1 = c1; S.customAccent2 = c2;
+      S.theme = 'custom'; S.customAccent1=c1; S.customAccent2=c2;
       restyleContactChips();
       ovl.classList.remove('open');
     };
   }
-  ovl.classList.add('open');
+  document.getElementById('grad-ovl').classList.add('open');
 }
 
 /* ---------- helpers ------------------------------------------------ */
 const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
+/* KEEPING YOUR MOCK EXACT LOOK — not touching layout visuals */
 function mock(layoutKey){
   const kind = layoutKey.split('-')[1];
   const hero = (kind==='side')
@@ -427,7 +523,7 @@ function mock(layoutKey){
          <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
          <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
        </div>`;
-  return `<div class="mock ${kind}" data-layout="${layoutKey}" style="position:relative;min-height:158px;border:1px solid #1f2540;border-radius:14px;padding:10px;background:#0c1324">${hero}</div>`;
+  return `<div class="mock ${kind}" data-layout="${layoutKey}">${hero}</div>`;
 }
 
 /* color helpers */
