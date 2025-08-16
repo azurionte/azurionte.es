@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.9 (mock visuals only)
-console.log('[wizard.js] v2.9');
+// [wizard.js] v2.9.1 (mock visuals only)
+console.log('[wizard.js] v2.9.1');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact, restyleContactChips } from '../layouts/layouts.js';
@@ -323,12 +323,12 @@ function mock(layoutKey){
   }
 
   if (kind === 'fancy'){
-    /* hero 74px tall, circle 76px; circle center sits a bit ABOVE hero bottom (top:80 with translate(-50%,-50%));
+    /* hero 74px tall, circle 76px; circle center sits a bit ABOVE hero bottom (top:25 with translate(-50%,-50%));
        lines live below the circle */
     return `
       <div class="mock fancy" data-layout="${layoutKey}">
         <div class="hero" style="height:74px;margin:10px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-        <div class="pp"   style="position:absolute;left:50%;top:80px;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
+        <div class="pp"   style="position:absolute;left:50%;top:25px;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
         <div class="txt"  style="position:absolute;left:24px;right:24px;top:118px;display:grid;gap:10px">
           <div style="height:10px;border-radius:999px;background:#2b375f;width:32%;margin:0 auto"></div>
           <div style="height:10px;border-radius:999px;background:#2b375f;width:70%;margin:0 auto"></div>
