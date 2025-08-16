@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.2
-console.log('[layouts.js] v2.2');
+// [layouts.js] v2.2.1
+console.log('[layouts.js] v2.2.1');
 
 import { S } from '../app/state.js';
 
@@ -34,6 +34,13 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
     .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
     .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
+
+    .sidebar-layout [data-zone="main"]{
+  display:grid;
+  gap:14px;
+  align-content:start;
+  min-width:0;   /* allow children to stretch */
+}
 
     /* ---- Right side column becomes a mini canvas grid ---- */
     .sidebar-layout [data-zone="main"]{
