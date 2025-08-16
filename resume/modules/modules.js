@@ -1,219 +1,341 @@
-// /resume/modules/modules.js
-// Sections + Add menu + re-placement logic for sidebar layout
-// v1.0
-console.log('[modules.js] v1.0');
+// resume/modules/modules.js
+// v1.3 — sections (Skills/Education/Experience/Bio) with styling + Sidebar-aware insertion
+import { ensureCanvas, isSidebarActive, getSideMain, getRailHolder, ensureAddAnchor } from '../layouts/layouts.js';
 
-import { S } from '../app/state.js';
-import { ensureCanvas, getHeaderNode } from '../layouts/layouts.js';
+console.log('%c[modules.js] v1.3 loaded', 'color:#22c1c3');
 
-/* ------------------------------ host helpers ----------------------------- */
-function hostForContent(){
-  const header = getHeaderNode();
-  if (S.layout === 'side' && header) {
-    return header.querySelector('[data-zone="main"]');
-  }
-  return ensureCanvas().stack;
-}
-function hostForSidebarRail(){
-  return getHeaderNode()?.querySelector('[data-rail-sections]') || null;
-}
-function clearSection(key){
-  document.querySelectorAll(`[data-section="${key}"]`).forEach(el=>{
-    const n = el.closest('.node');
-    (n && n.parentNode) ? n.remove() : el.remove();
+const $ = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+
+// ---- inject section styles (ported from single-file) ----
+(function injectModulesCSS(){
+  if (document.getElementById('modules-css')) return;
+  const css = `
+  .section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative}
+  [data-dark="1"] .section{background:#0f1420;border-color:#1f2a44}
+  .title-item{margin:-4px -4px 8px -4px;background:#f3f6ff;border-radius:12px;padding:10px 10px 12px;position:relative}
+  .title-item .trow{display:flex;justify-content:center;align-items:center;gap:8px;font-weight:800}
+  .title-item h2{margin:0;font-size:20px}
+  .title-item .u{height:4px;border-radius:999px;margin:8px auto 0;background:linear-gradient(90deg,var(--accent2),var(--accent));width:160px}
+  .sec-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+  .rm,.handle{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .handle{display:inline-grid;place-items:center;width:26px;height:26px;cursor:grab;user-select:none}
+  .handle::before{content:"⋮⋮";font-weight:900;line-height:1}
+  .grid-skills{display:grid;gap:12px;min-width:0}
+  .grid-skills.cols-1{grid-template-columns:1fr;max-width:520px;margin:0 auto}
+  .grid-skills.cols-2{grid-template-columns:1fr 1fr}
+  .grid-skills.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .skill{display:grid;grid-template-columns:auto minmax(0,1fr) 160px auto;align-items:center;gap:12px;margin:6px 0;min-width:0}
+  .skill > span[contenteditable]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:40px}
+  .skill .stars{display:inline-flex;gap:6px;justify-content:flex-end;width:160px;margin-left:auto}
+  .skill .stars .star{cursor:pointer;width:16px;height:16px;fill:#d1d5db;transition:transform .08s ease}
+  .skill .stars .star.active{fill:#f59e0b}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:160px;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));justify-self:end;margin-left:auto}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+  .ctrl-mini{display:flex;justify-content:center;gap:8px;margin-top:6px}
+  .ctrl-mini .mini{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;padding:6px 9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+  .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .edu-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;position:relative;display:grid;gap:6px}
+  .edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+  .edu-line1{display:flex;align-items:center;gap:8px;font-weight:800}
+  .edu-title-icon.course{color:var(--accent2)}
+  .edu-title-icon.degree{color:var(--accent)}
+  .badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, #fff);color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+  .exp-list{display:grid;gap:12px}
+  .exp-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;display:grid;gap:6px;position:relative}
+  .exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+  `;
+  const tag = document.createElement('style');
+  tag.id = 'modules-css';
+  tag.textContent = css;
+  document.head.appendChild(tag);
+})();
+
+// ---- generic DnD (via handle) ----
+function attachDnd(container, itemSel){
+  if(!container || container._dndAttached) return;
+  container._dndAttached = true;
+  let dragEl=null, ph=null;
+
+  container.addEventListener('dragstart', (e)=>{
+    const it = e.target.closest(itemSel); if(!it) return;
+    if(!e.target.closest('.handle')){ e.preventDefault(); return; }
+    dragEl = it; e.dataTransfer.effectAllowed='move';
+    try{ e.dataTransfer.setData('text/plain',''); }catch(_){}
+    ph = document.createElement('div'); ph.style.height = it.offsetHeight+'px'; ph.className='drop-ph';
+    setTimeout(()=>{ it.style.opacity='0.35'; },0);
   });
+  container.addEventListener('dragend', ()=>{
+    if(dragEl){ dragEl.style.opacity=''; ph && ph.remove(); dragEl=null; ph=null; }
+  });
+  container.addEventListener('dragover', (e)=>{
+    if(!dragEl) return; e.preventDefault();
+    const after = getAfter(container, e.clientY);
+    if(after==null) container.appendChild(ph);
+    else container.insertBefore(ph, after);
+  });
+  container.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    if(!dragEl||!ph) return;
+    container.insertBefore(dragEl, ph);
+    ph.remove(); dragEl.style.opacity='';
+  });
+
+  function getAfter(cont, y){
+    const els = $$(itemSel+':not(.drop-ph)', cont).filter(el => el!==dragEl);
+    return els.reduce((closest,child)=>{
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height/2;
+      if(offset<0 && offset>closest.offset) return {offset, element:child};
+      return closest;
+    },{offset:-Infinity}).element;
+  }
 }
 
-/* --------------------------------- SKILLS -------------------------------- */
+// ---- utility: where to insert content? ----
+function contentHost(){
+  return isSidebarActive() ? (getSideMain() || ensureCanvas().stack) : ensureCanvas().stack;
+}
+
+// ---- title helper ----
+function mkTitle(icon, text, onDelete, withHandle=true){
+  const t = document.createElement('div');
+  t.className = 'title-item';
+  t.innerHTML = `<div class="trow">${icon?`<i class="fa-solid ${icon}"></i>`:''}<h2>${text}</h2></div><div class="u"></div>`;
+  const tools = document.createElement('div');
+  tools.className = 'sec-tools';
+  if(withHandle){ const h=document.createElement('button'); h.className='handle'; h.title='Drag section'; tools.appendChild(h); }
+  const del=document.createElement('button'); del.className='rm'; del.type='button'; del.textContent='×';
+  del.title='Delete section';
+  del.onclick = ()=>{ if(confirm(`Delete "${text}" section?`)){ t.parentElement.parentElement.remove(); ensureAddAnchor(); }};
+  tools.appendChild(del); t.appendChild(tools);
+  return t;
+}
+
+// ---- SKILLS ----
+function starRow(label='Skill'){
+  const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.dataset.type='star';
+  d.innerHTML = `
+    <span class="handle" title="Drag"></span>
+    <span contenteditable>${label}</span>
+    <span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span>
+    <button class="rm" title="Remove" type="button">×</button>
+  `;
+  d.querySelectorAll('.star').forEach(s=>{
+    s.addEventListener('click', e=>{
+      const n = +e.currentTarget.dataset.i;
+      d.querySelectorAll('.star').forEach((el,ix)=> el.classList.toggle('active', ix<n));
+    });
+  });
+  d.querySelector('.rm').onclick = (e)=>{ e.stopPropagation(); d.remove(); };
+  return d;
+}
+function sliderRow(label='Skill'){
+  const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.dataset.type='slider';
+  d.innerHTML = `
+    <span class="handle" title="Drag"></span>
+    <span contenteditable>${label}</span>
+    <input type="range" min="0" max="100" value="60">
+    <button class="rm" title="Remove" type="button">×</button>
+  `;
+  d.querySelector('.rm').onclick = (e)=>{ e.stopPropagation(); d.remove(); };
+  return d;
+}
+function groupSkills(grid){
+  const rows = $$('.skill', grid);
+  const stars = rows.filter(r=>r.dataset.type==='star');
+  const sliders = rows.filter(r=>r.dataset.type!=='star');
+  rows.forEach(r=>r.remove());
+  [...stars, ...sliders].forEach(r=> grid.appendChild(r));
+}
+function sizeSkillsGrid(grid){
+  const n = grid.querySelectorAll('.skill').length;
+  grid.classList.remove('cols-1','cols-2','cols-3');
+  const inRail = !!grid.closest('.rail');
+  const inMain = !!grid.closest('.sidebar-layout [data-zone="main"]');
+  if(inRail) grid.classList.add('cols-1');
+  else if(inMain) grid.classList.add(n>=2?'cols-2':'cols-1');
+  else grid.classList.add(n>=3?'cols-3':n===2?'cols-2':'cols-1');
+  attachDnd(grid,'.skill');
+}
+
 export function renderSkills(){
-  clearSection('skills');
-  if (!S.skills || !S.skills.length) return;
-
-  // if user wants skills in the sidebar (and we *are* on sidebar)
-  const rail = (S.layout==='side' && S.skillsInSidebar) ? hostForSidebarRail() : null;
-  const host = rail || hostForContent();
-
-  if (!host) return;
-
-  const outer = document.createElement('div');
-  outer.className = 'node';
-  outer.dataset.section = 'skills';
-  outer.innerHTML = `
-    <div class="sec">
-      <div class="stitle"><i class="fa-solid fa-layer-group"></i><div>Skills</div></div>
-      <div class="u"></div>
-      <div class="tip">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
-      <div class="grid-skills ${rail? '' : 'cols-2'}" data-sgrid></div>
-      ${(S.layout==='side') ? '<div class="center" style="margin-top:8px"><button class="mbtn" id="togglePlace">'+(S.skillsInSidebar?'Move to canvas':'Move to sidebar')+'</button></div>' : ''}
+  // if Skills already exists, do nothing
+  if ($('#stack .grid-skills')) { ensureAddAnchor(); return; }
+  const wrap = document.createElement('div'); wrap.className='node';
+  const sec = document.createElement('div'); sec.className='section';
+  sec.appendChild(mkTitle('fa-layer-group','Skills', ()=> wrap.remove()));
+  sec.innerHTML += `
+    <div class="help">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
+    <div class="grid-skills cols-1"></div>
+    <div class="ctrl-mini">
+      <button class="mini" type="button" data-add-star>+ ★</button>
+      <button class="mini" type="button" data-add-slider>+ <i class="fa-solid fa-sliders"></i></button>
+      ${isSidebarActive()? `<button class="mini" type="button" data-move-out>Move to canvas</button>` : `<button class="mini" type="button" data-move-in>Move to sidebar</button>`}
     </div>
   `;
-  const grid = outer.querySelector('[data-sgrid]');
+  wrap.appendChild(sec);
 
-  S.skills.forEach(it=>{
-    const row = document.createElement('div');
-    row.className = 'skill';
-    row.innerHTML = `<div class="label"><span>${it.label||'Skill'}</span></div><div class="right"></div>`;
-    const R = row.querySelector('.right');
-
-    if (it.type==='star'){
-      const s = document.createElement('div'); s.className='stars';
-      for (let i=1;i<=5;i++){
-        const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-        svg.setAttribute('viewBox','0 0 24 24'); svg.classList.add('star');
-        if (i <= (+it.value||0)) svg.classList.add('active');
-        svg.innerHTML = '<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>';
-        svg.onclick=()=>{ it.value=i; s.querySelectorAll('.star').forEach((e,ix)=>e.classList.toggle('active',ix<i)); };
-        s.appendChild(svg);
-      }
-      R.appendChild(s);
-    }else{
-      const r=document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=+it.value||50;
-      r.oninput=()=> it.value=r.value; R.appendChild(r);
-    }
-    grid.appendChild(row);
-  });
-
-  host.appendChild(outer);
-
-  const t = outer.querySelector('#togglePlace');
-  if (t) t.onclick = ()=>{ S.skillsInSidebar = !S.skillsInSidebar; renderSkills(); updatePlusMenu(); };
-}
-
-/* --------------------------------- EDU ----------------------------------- */
-export function renderEdu(){
-  clearSection('edu');
-  if (!S.edu || !S.edu.length) return;
-
-  const host = hostForContent();
-  const outer = document.createElement('div');
-  outer.className='node';
-  outer.dataset.section='edu';
-  outer.innerHTML=`
-    <div class="sec">
-      <div class="stitle"><i class="fa-solid fa-graduation-cap"></i><div>Education</div></div>
-      <div class="u"></div>
-      <div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div>
-    </div>
-  `;
-  const grid = outer.querySelector('[data-egrid]');
-  S.edu.forEach(card=>{
-    const c=document.createElement('div'); c.className='sec';
-    const icon = card.kind==='degree'
-      ? '<i class="fa-solid fa-graduation-cap" style="color:var(--accent)"></i>'
-      : '<i class="fa-solid fa-scroll" style="color:var(--accent2)"></i>';
-    c.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;font-weight:700">${icon}<span>${card.title||'Title'}</span></div>
-      <div><span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(card.year||'2018–2022').slice(0,9)}</span></div>
-      <div style="margin-top:6px">${card.academy||'Academy name (wraps to two lines if needed)'}</div>
-    `;
-    grid.appendChild(c);
-  });
-  host.appendChild(outer);
-}
-
-/* --------------------------------- EXP ----------------------------------- */
-export function renderExp(){
-  clearSection('exp');
-  if (!S.exp || !S.exp.length) return;
-
-  const host = hostForContent();
-  const outer=document.createElement('div');
-  outer.className='node';
-  outer.dataset.section='exp';
-  outer.innerHTML=`
-    <div class="sec">
-      <div class="stitle"><i class="fa-solid fa-briefcase"></i><div>Work experience</div></div>
-      <div class="u"></div>
-      <div class="exp-list" style="display:grid;gap:12px" data-xgrid></div>
-    </div>
-  `;
-  const grid=outer.querySelector('[data-xgrid]');
-  S.exp.forEach(x=>{
-    const c=document.createElement('div'); c.className='sec';
-    c.style.background='color-mix(in srgb, var(--accent) 12%, #fff)';
-    c.innerHTML=`
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="badge" style="display:inline-block;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--accent) 16%, #fff);border:1px solid color-mix(in srgb, var(--accent) 40%, #0000)">${(x.dates||'Jan 2022').slice(0,16)}</span>
-        <div style="font-weight:800;margin-left:6px">${x.role||'Job title'}</div>
-      </div>
-      <div style="font-weight:700;color:#374151;margin-top:4px">${x.org||'@Company'}</div>
-      <div style="margin-top:6px">${x.desc||'Describe impact, scale and results.'}</div>
-    `;
-    grid.appendChild(c);
-  });
-  host.appendChild(outer);
-}
-
-/* ---------------------------------- BIO ---------------------------------- */
-export function renderBio(){
-  clearSection('bio');
-  if (!S.bio || !S.bio.trim()) return;
-
-  const host = hostForContent();
-  const outer = document.createElement('div');
-  outer.className='node';
-  outer.dataset.section='bio';
-  outer.innerHTML=`
-    <div class="sec">
-      <div class="stitle"><i class="fa-solid fa-id-card-clip"></i><div>Profile</div></div>
-      <div class="u"></div>
-      <div style="white-space:pre-wrap">${S.bio}</div>
-    </div>
-  `;
-  host.appendChild(outer);
-}
-
-/* ------------------------------- ADD MENU ------------------------------- */
-export function openAddMenu(btn){
-  const { addMenu, addTray } = ensureCanvas();
-  addTray.innerHTML = '';
-  const header = getHeaderNode();
-
-  if (!header){
-    addTray.innerHTML = `
-      <div class="sq" data-add="header-side"  title="Sidebar"><i class="fa-solid fa-table-columns"></i></div>
-      <div class="sq" data-add="header-fancy" title="Top fancy"><i class="fa-solid fa-sparkles"></i></div>
-      <div class="sq" data-add="header-top"   title="Top bar"><i class="fa-solid fa-grip-lines"></i></div>`;
-  }else{
-    if (!S.skills?.length) addTray.innerHTML += `<div class="sq" data-add="skills" title="Skills"><i class="fa-solid fa-layer-group"></i></div>`;
-    if (!S.edu?.length)   addTray.innerHTML += `<div class="sq" data-add="edu"    title="Education"><i class="fa-solid fa-user-graduate"></i></div>`;
-    if (!S.exp?.length)   addTray.innerHTML += `<div class="sq" data-add="exp"    title="Experience"><i class="fa-solid fa-briefcase"></i></div>`;
-    if (!S.bio?.length)   addTray.innerHTML += `<div class="sq" data-add="bio"    title="Bio"><i class="fa-solid fa-id-card-clip"></i></div>`;
+  const host = contentHost();
+  // Sidebar: allow placing skills inside the left rail instead (sec-holder)
+  if (isSidebarActive()){
+    getRailHolder().appendChild(sec);
+  } else {
+    host.insertBefore(wrap, ensureCanvas().addWrap);
   }
-  if (!addTray.children.length){ addMenu.classList.remove('open'); return; }
 
-  // position near button
-  const r = btn.getBoundingClientRect();
-  const below = (window.innerHeight - r.bottom) > 160;
-  addMenu.style.left = (r.left + window.scrollX) + 'px';
-  addMenu.style.top  = (below ? (r.bottom+10) : (r.top - 10 - (addMenu.offsetHeight||120))) + 'px';
-  addMenu.classList.add('open');
+  const grid = sec.querySelector('.grid-skills');
+  const addStar = sec.querySelector('[data-add-star]');
+  const addSlider = sec.querySelector('[data-add-slider]');
+  addStar.onclick = ()=>{ grid.appendChild(starRow()); groupSkills(grid); sizeSkillsGrid(grid); };
+  addSlider.onclick = ()=>{ grid.appendChild(sliderRow()); groupSkills(grid); sizeSkillsGrid(grid); };
+  grid.appendChild(starRow()); grid.appendChild(sliderRow());
+  groupSkills(grid); sizeSkillsGrid(grid);
 
-  const close = (e)=>{ if (!addMenu.contains(e.target) && e.target!==btn){ addMenu.classList.remove('open'); document.removeEventListener('click',close); } };
-  setTimeout(()=> document.addEventListener('click',close), 0);
+  // move controls
+  const moveIn = sec.querySelector('[data-move-in]');
+  const moveOut = sec.querySelector('[data-move-out]');
+  moveIn && (moveIn.onclick = ()=>{
+    getRailHolder().appendChild(sec);
+    const h = sec.querySelector('.handle'); if (h) h.style.display='none';
+    ensureAddAnchor();
+  });
+  moveOut && (moveOut.onclick = ()=>{
+    // wrap into node when moving to canvas
+    const w = document.createElement('div'); w.className='node'; w.appendChild(sec);
+    contentHost().insertBefore(w, ensureCanvas().addWrap);
+    const h = sec.querySelector('.handle'); if (h) h.style.removeProperty('display');
+    ensureAddAnchor();
+  });
 
-  addTray.onclick = (e)=>{
+  ensureAddAnchor();
+}
+
+// ---- EDUCATION ----
+export function renderEdu(){
+  if ($('#stack .edu-grid')) { ensureAddAnchor(); return; }
+  const wrap = document.createElement('div'); wrap.className='node';
+  const sec = document.createElement('div'); sec.className='section';
+  sec.appendChild(mkTitle('fa-user-graduate','Education', ()=> wrap.remove()));
+  sec.innerHTML += `
+    <div class="edu-grid"></div>
+    <div class="ctrl-mini">
+      <button class="mini" type="button" data-add-course>+ Add course</button>
+      <button class="mini" type="button" data-add-degree>+ Add degree</button>
+    </div>`;
+  wrap.appendChild(sec);
+  contentHost().insertBefore(wrap, ensureCanvas().addWrap);
+
+  const grid = sec.querySelector('.edu-grid');
+  const mkCard = (kind='course')=>{
+    const icon = kind==='degree' ? 'fa-graduation-cap degree' : 'fa-scroll course';
+    const c = document.createElement('div'); c.className='edu-card'; c.setAttribute('draggable','true');
+    c.innerHTML = `
+      <div class="edu-tools"><span class="handle" title="Drag"></span><button class="rm" type="button">×</button></div>
+      <div class="edu-line1"><i class="fa-solid ${icon} edu-title-icon"></i><span class="editable" contenteditable>Title</span></div>
+      <span class="badge" contenteditable>2018–2022</span>
+      <span class="editable edu-academy" contenteditable>Academy name (wraps to two lines if needed)</span>`;
+    c.querySelector('.rm').onclick = e=>{ e.stopPropagation(); c.remove(); };
+    return c;
+  };
+  sec.querySelector('[data-add-course]').onclick = ()=>{ grid.appendChild(mkCard('course')); attachDnd(grid,'.edu-card'); };
+  sec.querySelector('[data-add-degree]').onclick = ()=>{ grid.appendChild(mkCard('degree')); attachDnd(grid,'.edu-card'); };
+  grid.appendChild(mkCard('course'));
+  attachDnd(grid,'.edu-card');
+  ensureAddAnchor();
+}
+
+// ---- EXPERIENCE ----
+export function renderExp(){
+  if ($('#stack .exp-list')) { ensureAddAnchor(); return; }
+  const wrap = document.createElement('div'); wrap.className='node';
+  const sec = document.createElement('div'); sec.className='section';
+  sec.appendChild(mkTitle('fa-briefcase','Work experience', ()=> wrap.remove()));
+  sec.innerHTML += `
+    <div class="exp-list"></div>
+    <div class="ctrl-mini"><button class="mini" type="button" data-add-exp>+ Add role</button></div>`;
+  wrap.appendChild(sec);
+  contentHost().insertBefore(wrap, ensureCanvas().addWrap);
+
+  const grid = sec.querySelector('.exp-list');
+  const mk = (dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.')=>{
+    const c = document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
+    c.innerHTML = `
+      <div class="exp-tools"><span class="handle" title="Drag"></span><button class="rm" type="button">×</button></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="badge" contenteditable>${dates.slice(0,32)}</span>
+        <div style="font-weight:800" contenteditable>${role}</div>
+      </div>
+      <div style="font-weight:700;color:#374151" contenteditable>${org}</div>
+      <div contenteditable>${desc}</div>`;
+    c.querySelector('.rm').onclick = e=>{ e.stopPropagation(); c.remove(); };
+    return c;
+  };
+  sec.querySelector('[data-add-exp]').onclick = ()=>{ grid.appendChild(mk()); attachDnd(grid,'.exp-card'); };
+  grid.appendChild(mk()); attachDnd(grid,'.exp-card');
+  ensureAddAnchor();
+}
+
+// ---- BIO ----
+export function renderBio(){
+  if ($('#stack [data-bio]')) { ensureAddAnchor(); return; }
+  const wrap = document.createElement('div'); wrap.className='node';
+  const sec = document.createElement('div'); sec.className='section'; sec.setAttribute('data-bio','1');
+  sec.appendChild(mkTitle('fa-user','Profile', ()=> wrap.remove()));
+  const body = document.createElement('div');
+  body.contentEditable = 'true';
+  body.textContent = 'Add a short summary of your profile, strengths and what you’re looking for.';
+  sec.appendChild(body);
+  wrap.appendChild(sec);
+  contentHost().insertBefore(wrap, ensureCanvas().addWrap);
+  ensureAddAnchor();
+}
+
+// ---- Add menu exposed to editor ----
+export function openAddMenu(anchorBtn){
+  const { addWrap } = ensureCanvas();
+  let menu = $('#addMenu'); let tray = $('#addTray');
+  if(!menu || !tray) return;
+  tray.innerHTML = '';
+
+  const already = {
+    skills: !!$('#stack .grid-skills'),
+    edu:    !!$('#stack .edu-grid'),
+    exp:    !!$('#stack .exp-list'),
+    bio:    !!$('#stack [data-bio]')
+  };
+
+  const addSq = (k, icon, title) => {
+    if(already[k]) return;
+    const b = document.createElement('div');
+    b.className='sq'; b.dataset.add=k; b.title=title;
+    b.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+    tray.appendChild(b);
+  };
+
+  addSq('skills','fa-layer-group','Skills');
+  addSq('edu','fa-user-graduate','Education');
+  addSq('exp','fa-briefcase','Experience');
+  addSq('bio','fa-user','Bio');
+
+  if(!tray.children.length){ addWrap.style.display='none'; return; }
+
+  // position the floating pop near the "+" anchor
+  const r = anchorBtn.getBoundingClientRect();
+  menu.style.left = (r.left + window.scrollX) + 'px';
+  menu.style.top  = (r.top + window.scrollY - (menu.offsetHeight||120) - 12) + 'px';
+  menu.classList.add('open');
+
+  const close = (ev)=>{ if(!menu.contains(ev.target) && ev.target!==anchorBtn){ menu.classList.remove('open'); document.removeEventListener('click', close); } };
+  setTimeout(()=> document.addEventListener('click', close), 0);
+
+  tray.onclick = (e)=>{
     const k = e.target.closest('.sq')?.dataset.add; if(!k) return;
-    addMenu.classList.remove('open');
-
-    if (k==='skills' && !S.skills?.length){ S.skills=[{type:'star',label:'Skill',value:3},{type:'slider',label:'Skill',value:50}]; renderSkills(); }
-    if (k==='edu'    && !S.edu?.length)  { S.edu=[{kind:'course',year:'2018–2022',academy:'Academy name (wraps to two lines if needed)',title:'Title'}]; renderEdu(); }
-    if (k==='exp'    && !S.exp?.length)  { S.exp=[{dates:'Jan 2022',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]; renderExp(); }
-    if (k==='bio'    && !S.bio)          { S.bio='Short professional summary…'; renderBio(); }
+    menu.classList.remove('open');
+    if(k==='skills') renderSkills();
+    if(k==='edu')    renderEdu();
+    if(k==='exp')    renderExp();
+    if(k==='bio')    renderBio();
+    ensureAddAnchor();
   };
 }
-
-/* --------------------------- util for the “+” --------------------------- */
-export function updatePlusMenu(){
-  const haveSkills = !!document.querySelector('[data-section="skills"]');
-  const haveEdu    = !!document.querySelector('[data-section="edu"]');
-  const haveExp    = !!document.querySelector('[data-section="exp"]');
-
-  const { addWrap } = ensureCanvas();
-  addWrap.style.display = (haveSkills && haveEdu && haveExp) ? 'none' : 'flex';
-}
-
-/* --------- when layout changes, re-place sections automatically --------- */
-document.addEventListener('layout:changed', ()=>{
-  renderSkills(); renderEdu(); renderExp(); renderBio(); updatePlusMenu();
-});
