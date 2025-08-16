@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v1.8
-console.log('[layouts.js] v1.8');
+// [layouts.js] v1.9
+console.log('[layouts.js] v1.9');
 
 import { S } from '../app/state.js';
 
@@ -31,7 +31,13 @@ export function ensureCanvas(){
 export function getHeaderNode(){ return $('[data-header]'); }
 function getHeaderNodeWrapper(){ return getHeaderNode()?.closest('.node') || null; }
 
-/* NEW: where to put sidebar sections (left rail) */
+/* NEW: explicit sidebar state for other modules */
+export function isSidebarActive(){
+  const head = getHeaderNode();
+  return (S.layout === 'side') || !!head?.closest('.sidebar-layout');
+}
+
+/* Where to put sidebar sections (left rail) */
 export function getRailHolder(){
   const head = getHeaderNode();
   if (!head) return null;
@@ -39,10 +45,10 @@ export function getRailHolder(){
   return null;
 }
 
-/* NEW: where to put main content when sidebar layout is active */
+/* Where to put main content when sidebar layout is active */
 export function getSideMain(){
   const head = getHeaderNode();
-  if (head?.closest('.sidebar-layout')){
+  if (isSidebarActive() && head){
     return head.querySelector('[data-zone="main"]');
   }
   // Fallback: in non-sidebar layouts modules live on the main stack
