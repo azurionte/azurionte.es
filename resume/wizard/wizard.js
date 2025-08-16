@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.2
-console.log('[wizard.js] v2.2');
+// [wizard.js] v2.3
+console.log('[wizard.js] v2.3');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
@@ -23,12 +23,12 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     }
     #wizard .wz-mock.sel{ outline:2px solid #ffb86c; }
 
-    /* inner gradient panel all mocks share */
+    /* inner gradient panel */
     #wizard .wz-card{
       position:absolute; inset:0; border-radius:16px; padding:12px;
       background:linear-gradient(135deg,#5d71b4,#2e3c79);
       box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);
-      overflow:hidden; /* prevents bleed */
+      overflow:hidden;
     }
 
     /* tiny shapes */
@@ -38,7 +38,7 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
       border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35);
     }
 
-    /* ===== Sidebar ====================================================== */
+    /* ===== Sidebar (unchanged) ========================================= */
     #wizard .wz-mock--side .wz-left{
       position:absolute; left:12px; top:12px; bottom:12px; width:162px;
       border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93);
@@ -52,34 +52,37 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     #wizard .wz-mock--side .wz-right .wz-l2{ width:56%; }
     #wizard .wz-mock--side .wz-left .wz-under{ width:72%; }
 
-    /* ===== Top Fancy (band + overlapping center avatar + 3 pills) ====== */
+    /* ===== Top Fancy (fixed per request) =============================== */
     #wizard .wz-mock--fancy .wz-hero{
       position:absolute; left:12px; right:12px; top:12px; height:68px;
       border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
       box-shadow:inset 0 1px 0 #ffffff14;
     }
+    /* center of the circle sits ABOVE the band bottom (band bottom y=80) */
     #wizard .wz-mock--fancy .wz-pp{
       position:absolute; left:50%; transform:translateX(-50%);
-      top:58px; width:92px; height:92px; z-index:1;
+      top:28px; /* was 58px; 28+37=65 < 80 => center above band bottom */
+      width:92px; height:92px; z-index:1;
     }
-    /* stack of pills below avatar (short → long → short), anchored to bottom */
+    /* lines now strictly below the avatar */
     #wizard .wz-mock--fancy .wz-b1,
     #wizard .wz-mock--fancy .wz-b2,
     #wizard .wz-mock--fancy .wz-b3{
       position:absolute; left:50%; transform:translateX(-50%); z-index:0;
     }
-    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:46px; }
-    #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:28px; }
-    #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:12px; }
+    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px; } /* below circle */
+    #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px; }
+    #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px; }
 
-    /* ===== Top Bar (right avatar, 2 lines on band + 3 lines below) ===== */
+    /* ===== Top Bar (avatar smaller and inside band) ==================== */
     #wizard .wz-mock--top .wz-hero{
       position:absolute; left:12px; right:12px; top:12px; height:66px;
       border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
       box-shadow:inset 0 1px 0 #ffffff14;
     }
     #wizard .wz-mock--top .wz-pp{
-      position:absolute; right:26px; top:26px; width:84px; height:84px;
+      position:absolute; right:26px; top:15px; /* inside the 66px band */
+      width:60px; height:60px; /* smaller to fit */
     }
     #wizard .wz-mock--top .wz-txt{
       position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px;
