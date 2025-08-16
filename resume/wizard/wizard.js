@@ -1,26 +1,45 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.1
-// Builds the Welcome modal and the multi-step Wizard (layout, theme, profile, skills, edu, exp, bio, done)
-
-console.log('[wizard.js] v1.1');
+// [wizard.js] v1.2
+console.log('[wizard.js] v1.2');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
+/* ---------- inject minimal wizard styles (hover/selected) ---------- */
+(function ensureWizardStyle(){
+  if (document.getElementById('wizard-style')) return;
+  const st = document.createElement('style');
+  st.id = 'wizard-style';
+  st.textContent = `
+    #wizard .mock{
+      position:relative;min-height:130px;border:1px solid #1f2540;border-radius:14px;
+      padding:10px;background:#0c1324;cursor:pointer;
+      transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
+    }
+    #wizard .mock:hover{
+      transform:translateY(-2px);
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff inset;
+    }
+    #wizard .mock.sel{
+      outline:2px solid #ffb86c;
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset;
+    }
+  `;
+  document.head.appendChild(st);
+})();
+
 /* ---------- Public API -------------------------------------------------- */
 export function mountWelcome() {
-  if (document.getElementById('welcome')) return; // already mounted
+  if (document.getElementById('welcome')) return;
 
   const wrap = document.createElement('div');
   wrap.id = 'welcome';
-  wrap.setAttribute('data-overlay', ''); // hidden by print
-  wrap.style.position = 'fixed';
-  wrap.style.inset = '0';
-  wrap.style.display = 'grid';
-  wrap.style.placeItems = 'center';
-  wrap.style.background = 'rgba(0,0,0,.45)';
-  wrap.style.zIndex = '20000';
+  wrap.setAttribute('data-overlay', '');
+  Object.assign(wrap.style, {
+    position:'fixed', inset:'0', display:'grid', placeItems:'center',
+    background:'rgba(0,0,0,.45)', zIndex:'20000'
+  });
 
   wrap.innerHTML = `
     <div class="wcard" style="
@@ -47,16 +66,13 @@ export function mountWelcome() {
       </div>
     </div>
   `;
-
   document.body.appendChild(wrap);
 
-  // wire buttons
   wrap.querySelector('#startWizard').addEventListener('click', () => {
     wrap.style.display = 'none';
-    mountWizard(); // ensure shell exists
-    openWizard();  // show + render first step
+    mountWizard();
+    openWizard();
   });
-
   wrap.querySelector('#startBlank').addEventListener('click', () => {
     wrap.remove();
     const plus = document.getElementById('canvasAdd');
@@ -71,12 +87,10 @@ export function mountWizard() {
   modal.id = 'wizard';
   modal.className = 'modal';
   modal.setAttribute('data-overlay', '');
-  modal.style.position = 'fixed';
-  modal.style.inset = '0';
-  modal.style.display = 'none';
-  modal.style.placeItems = 'center';
-  modal.style.background = 'rgba(0,0,0,.55)';
-  modal.style.zIndex = '21000';
+  Object.assign(modal.style, {
+    position:'fixed', inset:'0', display:'none', placeItems:'center',
+    background:'rgba(0,0,0,.55)', zIndex:'21000'
+  });
 
   modal.innerHTML = `
     <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;
@@ -96,10 +110,7 @@ export function mountWizard() {
       </div>
     </div>
   `;
-
   document.body.appendChild(modal);
-
-  // build stepper once
   buildWizard();
 }
 
@@ -119,8 +130,6 @@ let stepIdx = 0;
 let backCount = 0;
 
 function openWizard(){ 
-  const w = document.getElementById('wizard');
-  if (!w) mountWizard();
   renderStep();
   document.getElementById('wizard').style.display = 'grid';
 }
@@ -132,12 +141,7 @@ function buildWizard(){
     const el = document.createElement('div');
     el.className = 'step';
     el.dataset.i = i;
-    el.style.display = 'flex';
-    el.style.alignItems = 'center';
-    el.style.gap = '8px';
-    el.style.padding = '8px 10px';
-    el.style.borderRadius = '10px';
-    el.style.color = '#c9d1ff80';
+    el.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;color:#c9d1ff80';
     el.innerHTML = `<div class="dot" style="width:8px;height:8px;border-radius:50%;background:#2e3b66"></div><div>${s.label}</div>`;
     list.appendChild(el);
   });
@@ -179,17 +183,20 @@ function renderStep(){
       </div>
       <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
     `;
+
     const row = body.querySelector('#mockRow');
+
+    // pre-select current layout
+    const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
+    if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
+
     row.addEventListener('click', e=>{
       const m = e.target.closest('.mock'); if(!m) return;
       row.querySelectorAll('.mock').forEach(x=>x.classList.remove('sel'));
       m.classList.add('sel');
-      morphTo(m.dataset.layout);
+      morphTo(m.dataset.layout); // moves/updates header & stack correctly
     });
-    body.querySelector('#wizAddPhoto').onclick = () => {
-      const ipt = getHeaderNode()?.querySelector('[data-avatar] input');
-      if (ipt) ipt.click();
-    };
+    body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
 
   if (s === 'theme'){
@@ -205,12 +212,7 @@ function renderStep(){
     `;
     body.querySelectorAll('.swatch').forEach(swatch=>{
       const k = swatch.dataset.k;
-      applyTheme(k);
-      swatch.onclick = ()=> applyTheme(k);
-      function applyTheme(themeKey){
-        document.body.setAttribute('data-theme', themeKey);
-        S.theme = themeKey;
-      }
+      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; };
     });
     body.querySelector('#wizDark').onclick = e=>{
       e.currentTarget.classList.toggle('on');
@@ -226,14 +228,11 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Only filled fields will appear.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
-        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
-        <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
-        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
-        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center">
-          <span style="opacity:.7">linkedin.com/in/</span>
-          <input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}">
-        </div>
+        <input class="wipt" id="nm" placeholder="Full name" value="\${S.contact.name||''}">
+        <input class="wipt" id="ph" placeholder="Phone" value="\${S.contact.phone||''}">
+        <input class="wipt" id="em" placeholder="Email" value="\${S.contact.email||''}">
+        <input class="wipt" id="ad" placeholder="City, Country" value="\${S.contact.address||''}">
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="\${S.contact.linkedin||''}"></div>
       </div>`;
     ['nm','ph','em','ad','ln'].forEach(id=>{
       body.querySelector('#'+id).oninput = ()=>{
@@ -244,51 +243,37 @@ function renderStep(){
           address: body.querySelector('#ad').value,
           linkedin: body.querySelector('#ln').value
         };
-        if (typeof applyContact === 'function') applyContact();
+        applyContact?.();
       };
     });
   }
 
   if (s === 'skills'){
-    // Render to canvas when leaving this step (in advance()).
-    body.innerHTML = `
-      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Use stars or a slider.</div>
-      <div id="wsTips" style="opacity:.7">Use the canvas to reorder and edit after finishing.</div>
-    `;
+    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Use stars or a slider; you can fine-tune on the canvas later.</div>`;
   }
 
   if (s === 'education'){
-    body.innerHTML = `
-      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add courses and/or degrees.</div>
-      <div style="opacity:.7">Use the add menu (+) on the canvas or continue and edit later.</div>
-    `;
+    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`;
   }
 
   if (s === 'experience'){
-    body.innerHTML = `
-      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add roles; you can always edit on the canvas.</div>
-    `;
+    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">You can keep adding/editing from the canvas.</div>`;
   }
 
   if (s === 'bio'){
-    body.innerHTML = `
-      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
-      <textarea id="bioText" class="wipt" rows="6" placeholder="Short profile…"
-        style="width:100%;min-height:120px"></textarea>
-    `;
+    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
+      <textarea id="bioText" class="wipt" rows="6" placeholder="Short profile…" style="width:100%;min-height:120px"></textarea>`;
     const t = body.querySelector('#bioText');
     t.value = S.bio || '';
     t.oninput = ()=>{ S.bio = t.value; };
   }
 
   if (s === 'done'){
-    body.innerHTML = `
-      <div class="wtitle" style="text-align:center">All set ✨</div>
-      <div class="wsub" style="opacity:.85;text-align:center">You can keep editing on the canvas.</div>
-    `;
+    body.innerHTML = `<div class="wtitle" style="text-align:center">All set ✨</div>
+      <div class="wsub" style="opacity:.85;text-align:center">Continue on the canvas.</div>`;
     document.getElementById('wizNext').textContent = 'Finish';
   } else {
     document.getElementById('wizNext').textContent = 'Next';
@@ -297,17 +282,15 @@ function renderStep(){
 
 function advance(){
   const cur = STEPS[stepIdx].k;
-
-  // Apply side effects when leaving a step
-  if (cur === 'skills')   { renderSkills(); }
-  if (cur === 'education'){ renderEdu();    }
-  if (cur === 'experience'){ renderExp();   }
-  if (cur === 'bio')      { renderBio();    }
+  if (cur === 'skills')     renderSkills();
+  if (cur === 'education')  renderEdu();
+  if (cur === 'experience') renderExp();
+  if (cur === 'bio')        renderBio();
 
   if (cur === 'done'){
     document.getElementById('wizard').style.display = 'none';
-    const w = document.getElementById('welcome'); if (w) w.remove();
-    const plus = document.getElementById('canvasAdd'); if (plus) plus.style.display = 'flex';
+    document.getElementById('welcome')?.remove();
+    document.getElementById('canvasAdd')?.style && (document.getElementById('canvasAdd').style.display = 'flex');
     return;
   }
   if (stepIdx < STEPS.length-1){ stepIdx++; renderStep(); }
@@ -319,7 +302,7 @@ const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c02
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
 function mock(layoutKey){
-  const kind = layoutKey.split('-')[1]; // side / fancy / top
+  const kind = layoutKey.split('-')[1];
   const hero = (kind==='side')
     ? `<div class="hero" style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
        <div class="pp" style="position:absolute;left:30px;top:30px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
@@ -340,12 +323,5 @@ function mock(layoutKey){
          <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
          <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
        </div>`;
-
-  return `<div class="mock ${kind}" data-layout="${layoutKey}"
-            style="position:relative;min-height:130px;border:1px solid #1f2540;border-radius:14px;padding:10px;background:#0c1324;cursor:pointer;transition:transform .15s ease">
-            ${hero}
-          </div>`;
+  return `<div class="mock ${kind}" data-layout="${layoutKey}">${hero}</div>`;
 }
-
-// expose for tests if needed
-export const __steps = STEPS;
