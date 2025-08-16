@@ -1,81 +1,72 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.4
-console.log('[wizard.js] v2.4');
+// [wizard.js] v2.5
+console.log('[wizard.js] v2.5');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact, restyleContactChips } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- wizard mock + inputs + picker styles (scoped) ------------- */
+/* ---------- inject minimal wizard styles (hover/selected + inputs + modal) ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    /* interactive mocks */
-    #wizard .wz-mock{
-      width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;
-      border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
+    #wizard .mock{
+      position:relative;min-height:130px;border:1px solid #1f2540;border-radius:14px;
+      padding:10px;background:#0c1324;cursor:pointer;
+      transition:transform .15s ease, box-shadow .15s ease, outline .15s ease, background .15s ease;
     }
-    #wizard .wz-mock:hover{
+    #wizard .mock:hover{
       transform:translateY(-2px);
-      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset;
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff inset;
     }
-    #wizard .wz-mock.sel{ outline:2px solid #ffb86c; }
-    #wizard .wz-card{position:absolute;inset:0;border-radius:16px;padding:12px;
-      background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);overflow:hidden}
-    #wizard .wz-pill{height:10px;border-radius:999px;background:#2b375f}
-    #wizard .wz-pp{width:74px;height:74px;border-radius:50%;background:#cfd6ff;border:4px solid #ffffffc0;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+    #wizard .mock.sel{
+      outline:2px solid #ffb86c;
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset;
+      background:#0f1420;
+    }
 
-    /* sidebar mock (unchanged) */
-    #wizard .wz-mock--side .wz-left{position:absolute;left:12px;top:12px;bottom:12px;width:162px;border-radius:14px;
-      background:linear-gradient(160deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-    #wizard .wz-mock--side .wz-right{position:absolute;left:192px;right:20px;top:24px;display:grid;row-gap:12px}
-    #wizard .wz-mock--side .wz-right .wz-l1{width:72%} #wizard .wz-mock--side .wz-right .wz-l2{width:56%}
-    #wizard .wz-mock--side .wz-left .wz-under{width:72%}
-
-    /* top fancy mock (final) */
-    #wizard .wz-mock--fancy .wz-hero{position:absolute;left:12px;right:12px;top:12px;height:68px;border-radius:14px;
-      background:linear-gradient(135deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14}
-    #wizard .wz-mock--fancy .wz-pp{position:absolute;left:50%;transform:translateX(-50%);top:28px;width:92px;height:92px;z-index:1}
-    #wizard .wz-mock--fancy .wz-b1,#wizard .wz-mock--fancy .wz-b2,#wizard .wz-mock--fancy .wz-b3{position:absolute;left:50%;transform:translateX(-50%);z-index:0}
-    #wizard .wz-mock--fancy .wz-b1{width:140px;bottom:26px}
-    #wizard .wz-mock--fancy .wz-b2{width:78%;bottom:14px}
-    #wizard .wz-mock--fancy .wz-b3{width:160px;bottom:6px}
-
-    /* top bar mock (avatar smaller & inside band) */
-    #wizard .wz-mock--top .wz-hero{position:absolute;left:12px;right:12px;top:12px;height:66px;border-radius:14px;
-      background:linear-gradient(135deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14}
-    #wizard .wz-mock--top .wz-pp{position:absolute;right:26px;top:15px;width:60px;height:60px}
-    #wizard .wz-mock--top .wz-txt{position:absolute;left:32px;right:130px;top:30px;display:grid;row-gap:12px}
-    #wizard .wz-mock--top .wz-t1{width:52%} #wizard .wz-mock--top .wz-t2{width:70%}
-    #wizard .wz-mock--top .wz-b1,#wizard .wz-mock--top .wz-b2,#wizard .wz-mock--top .wz-b3{position:absolute;left:50%;transform:translateX(-50%)}
-    #wizard .wz-mock--top .wz-b1{width:160px;bottom:42px} #wizard .wz-mock--top .wz-b2{width:78%;bottom:24px} #wizard .wz-mock--top .wz-b3{width:170px;bottom:8px}
-
-    /* nicer wizard inputs */
+    /* nicer inputs for contact step */
     #wizard .wipt{
-      background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;
+      background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;
+      border-radius:10px;padding:10px 12px;width:100%;
       box-shadow:0 4px 14px rgba(0,0,0,.25);
     }
-    #wizard .wipt::placeholder{color:#95a0c7}
-    #wizard .wipt:focus{border-color:#4e62c9;box-shadow:0 0 0 2px #4e62c944 inset}
+    #wizard .wipt::placeholder{ color:#95a0c7 }
 
-    /* animated "Customize" swatch */
-    #wizard .swatch.custom{
-      display:grid;place-items:center;font-weight:800;color:#111;border:1px solid #2b324b;border-radius:12px;height:42px;cursor:pointer;
-      background:linear-gradient(135deg,#ff0080,#ff8c00,#ffd200,#00f260,#0575e6,#8a2be2);
-      background-size:300% 300%; animation:wiz-rainbow 6s linear infinite; text-shadow:0 1px 0 #ffffffaa
+    /* Customize swatch animation */
+    #wizard .swatch.customize{
+      position:relative; overflow:hidden; border:1px solid #2b324b; border-radius:12px; height:42px; cursor:pointer;
+      background-size: 300% 300%;
+      background-image: linear-gradient(135deg,#ff005b,#ffb628,#08f7fe,#09fbd3,#f5d300,#f538ff);
+      animation: wizRainbow 6s linear infinite;
+      display:grid; place-items:center; font-weight:800; color:#111;
+      text-shadow: 0 1px 0 #fff8;
     }
-    @keyframes wiz-rainbow{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+    @keyframes wizRainbow { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
 
-    /* mini modal for gradient picker */
-    #wizard .mini-overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:22000}
-    #wizard .mini-card{width:360px;max-width:92vw;background:#0f1420;border:1px solid #1f2540;border-radius:16px;padding:16px;color:#e6e8ef;
-      box-shadow:0 30px 100px rgba(0,0,0,.6);display:grid;gap:10px}
-    #wizard .mini-row{display:flex;gap:10px;align-items:center}
-    #wizard .mini-row input[type=color]{width:36px;height:36px;border:0;border-radius:8px;cursor:pointer}
-    #wizard .mini-prev{height:40px;border-radius:10px;border:1px solid #2b324b}
-    #wizard .mini-actions{display:flex;gap:8px;justify-content:flex-end}
+    /* Gradient modal */
+    #gradModal{
+      position:fixed; inset:0; display:none; place-items:center; z-index:22000;
+      background:rgba(0,0,0,.55);
+    }
+    #gradPanel{
+      width:min(560px,94vw); background:#0f1420; color:#e6e8ef; border:1px solid #1f2540;
+      border-radius:16px; padding:18px; box-shadow:0 40px 140px rgba(0,0,0,.6);
+    }
+    #hueWrap{ position:relative; height:32px; border-radius:10px; overflow:hidden; border:1px solid #263055 }
+    #hueBar{ width:100%; height:100%; display:block }
+    .stop{
+      position:absolute; top:50%; transform:translate(-50%,-50%);
+      width:22px; height:22px; border-radius:50%; border:2px solid #fff; box-shadow:0 6px 14px rgba(0,0,0,.35);
+      cursor:grab;
+    }
+    #gradSample{
+      height:42px; border-radius:10px; border:1px solid #2b324b; margin-top:12px;
+    }
+    .gline{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px }
+    .gline .mbtn{ padding:8px 12px }
   `;
   document.head.appendChild(st);
 })();
@@ -160,8 +151,23 @@ export function mountWizard() {
         </div>
       </div>
     </div>
+    <div id="gradModal">
+      <div id="gradPanel">
+        <div style="font-weight:800;margin-bottom:8px">Customize gradient</div>
+        <div id="hueWrap"><canvas id="hueBar" width="520" height="32"></canvas>
+          <div id="stop1" class="stop" style="left:20%"></div>
+          <div id="stop2" class="stop" style="left:80%"></div>
+        </div>
+        <div id="gradSample"></div>
+        <div class="gline">
+          <button class="mbtn" id="gCancel">Cancel</button>
+          <button class="mbtn" id="gApply" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Apply</button>
+        </div>
+      </div>
+    </div>
   `;
   document.body.appendChild(modal);
+  initGradientEditor();     // wire once
   buildWizard();
 }
 
@@ -227,7 +233,7 @@ function renderStep(){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Pick a starting header style.</div>
-      <div id="mockRow" style="display:grid;gap:22px">
+      <div id="mockRow" style="display:grid;gap:14px">
         ${mock('header-side')}
         ${mock('header-fancy')}
         ${mock('header-top')}
@@ -236,12 +242,14 @@ function renderStep(){
     `;
 
     const row = body.querySelector('#mockRow');
+
+    // pre-select current layout
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
 
     row.addEventListener('click', e=>{
-      const m = e.target.closest('.wz-mock'); if(!m) return;
-      row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel'));
+      const m = e.target.closest('.mock'); if(!m) return;
+      row.querySelectorAll('.mock').forEach(x=>x.classList.remove('sel'));
       m.classList.add('sel');
       morphTo(m.dataset.layout);
     });
@@ -252,27 +260,29 @@ function renderStep(){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
       <div class="theme-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
-          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"
-               data-a1="${A1[k]||'#8b5cf6'}" data-a2="${A2[k]||'#d946ef'}"></div>`).join('')}
-        <div class="swatch custom" id="openCustom">Customize</div>
+        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack','custom']
+          .map(k => (k==='custom')
+            ? `<div class="swatch customize" id="customizeSw" title="Customize">Customize</div>`
+            : `<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,${A1[k]},${A2[k]})"></div>`
+          ).join('')}
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
     `;
-    body.querySelectorAll('.swatch:not(.custom)').forEach(swatch=>{
+    body.querySelectorAll('.swatch[data-k]').forEach(swatch=>{
       const k = swatch.dataset.k;
-      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; document.dispatchEvent(new CustomEvent('ui:theme-updated')); };
+      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; restyleContactChips(); };
     });
+    body.querySelector('#customizeSw').onclick = ()=> openGradModal();
+
     body.querySelector('#wizDark').onclick = e=>{
       e.currentTarget.classList.toggle('on');
       S.dark = e.currentTarget.classList.contains('on');
       document.body.setAttribute('data-dark', S.dark ? '1' : '0');
-      document.dispatchEvent(new CustomEvent('ui:theme-updated'));
+      restyleContactChips();
     };
-    body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); document.dispatchEvent(new CustomEvent('ui:theme-updated')); };
-    body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); document.dispatchEvent(new CustomEvent('ui:theme-updated')); };
-    body.querySelector('#openCustom').onclick = openGradientModal;
+    body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); restyleContactChips(); };
+    body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); restyleContactChips(); };
   }
 
   if (s === 'contact'){
@@ -280,11 +290,11 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Only filled fields will appear.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
-        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
-        <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
-        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
-        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
+        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact?.name||''}">
+        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact?.phone||''}">
+        <input class="wipt" id="em" placeholder="Email" value="${S.contact?.email||''}">
+        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact?.address||''}">
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact?.linkedin||''}"></div>
       </div>`;
     ['nm','ph','em','ad','ln'].forEach(id=>{
       body.querySelector('#'+id).oninput = ()=>{
@@ -349,92 +359,154 @@ function advance(){
 }
 
 /* ---------- helpers ---------------------------------------------------- */
+
 const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
 function mock(layoutKey){
   const kind = layoutKey.split('-')[1];
-
-  if (kind === 'side'){
-    return `
-      <div class="wz-mock wz-mock--side" data-layout="${layoutKey}">
-        <div class="wz-card">
-          <div class="wz-left">
-            <div class="wz-pp"></div>
-            <div class="wz-pill wz-under"></div>
-          </div>
-          <div class="wz-right">
-            <div class="wz-pill wz-l1"></div>
-            <div class="wz-pill wz-l2"></div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  if (kind === 'fancy'){
-    return `
-      <div class="wz-mock wz-mock--fancy" data-layout="${layoutKey}">
-        <div class="wz-card">
-          <div class="wz-hero"></div>
-          <div class="wz-pp"></div>
-          <div class="wz-pill wz-b1"></div>
-          <div class="wz-pill wz-b2"></div>
-          <div class="wz-pill wz-b3"></div>
-        </div>
-      </div>`;
-  }
-
-  // top bar
-  return `
-    <div class="wz-mock wz-mock--top" data-layout="${layoutKey}">
-      <div class="wz-card">
-        <div class="wz-hero"></div>
-        <div class="wz-pp"></div>
-        <div class="wz-txt">
-          <div class="wz-pill wz-t1"></div>
-          <div class="wz-pill wz-t2"></div>
-        </div>
-        <div class="wz-pill wz-b1"></div>
-        <div class="wz-pill wz-b2"></div>
-        <div class="wz-pill wz-b3"></div>
-      </div>
-    </div>`;
+  const hero = (kind==='side')
+    ? `<div class="hero" style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div class="pp" style="position:absolute;left:30px;top:26px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
+       <div class="txt" style="position:absolute;left:40%;right:20px;top:24px;display:grid;gap:8px">
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:58%"></div>
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:42%"></div>
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:64%"></div>
+       </div>`
+    : kind==='fancy'
+    ? `<div class="hero" style="height:74px;margin:10px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div class="pp" style="position:absolute;left:50%;transform:translate(-50%,-50%);top:84px;width:76px;height:76px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
+       <div class="txt" style="position:absolute;left:24px;right:24px;top:120px;display:grid;gap:10px">
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:32%;margin:0 auto"></div>
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:70%;margin:0 auto"></div>
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:46%;margin:0 auto"></div>
+       </div>`
+    : `<div class="hero" style="height:74px;margin:10px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div class="pp" style="position:absolute;right:24px;top:18px;width:64px;height:64px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
+       <div class="txt" style="position:absolute;left:24px;right:110px;top:28px;display:grid;gap:10px">
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:38%"></div>
+         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:56%"></div>
+       </div>`;
+  return `<div class="mock ${kind}" data-layout="${layoutKey}" style="width:450px;height:158px"></div>`.replace('></div>', `>${hero}</div>`);
 }
 
-/* gradient picker modal */
-function openGradientModal(){
-  const overlay = document.createElement('div');
-  overlay.className = 'mini-overlay';
-  overlay.innerHTML = `
-    <div class="mini-card">
-      <div style="font-weight:800">Customize gradient</div>
-      <div class="mini-prev" id="miniPrev"></div>
-      <div class="mini-row">
-        <input type="color" id="g1" value="${S.custom?.a1 || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#8b5cf6'}">
-        <input type="color" id="g2" value="${S.custom?.a2 || getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim() || '#d946ef'}">
-        <div style="flex:1"></div>
-      </div>
-      <div class="mini-actions">
-        <button class="mbtn" id="miniCancel">Cancel</button>
-        <button class="mbtn" id="miniApply" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Apply</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
+/* ---------- Gradient editor ----------------------------------------- */
+let gState = { a:'#8b5cf6', b:'#d946ef' };
 
-  const prev = overlay.querySelector('#miniPrev');
-  const g1 = overlay.querySelector('#g1');
-  const g2 = overlay.querySelector('#g2');
-  const paint = ()=> prev.style.background = `linear-gradient(135deg, ${g1.value}, ${g2.value})`;
-  paint();
-  g1.oninput = g2.oninput = paint;
+function openGradModal(){
+  const overlay = document.getElementById('gradModal');
+  if (!overlay) return;
+  // restore last or current vars
+  const cs = getComputedStyle(document.documentElement);
+  gState.a = cs.getPropertyValue('--accent').trim() || gState.a;
+  gState.b = cs.getPropertyValue('--accent2').trim() || gState.b;
+  updateGradSample();
+  overlay.style.display = 'grid';
+}
 
-  overlay.querySelector('#miniCancel').onclick = () => overlay.remove();
-  overlay.querySelector('#miniApply').onclick = () => {
-    document.documentElement.style.setProperty('--accent', g1.value);
-    document.documentElement.style.setProperty('--accent2', g2.value);
-    S.theme = 'custom'; S.custom = { a1: g1.value, a2: g2.value };
-    document.dispatchEvent(new CustomEvent('ui:theme-updated'));
-    overlay.remove();
+function closeGradModal(){ document.getElementById('gradModal').style.display = 'none'; }
+
+function setGradientVars(a,b){
+  document.documentElement.style.setProperty('--accent',  a);
+  document.documentElement.style.setProperty('--accent2', b);
+  S.theme = 'custom';
+  S.custom = { a, b };
+  restyleContactChips();
+}
+
+function hslToHex(h, s=100, l=60){
+  // h in [0,360)
+  const c = (1 - Math.abs(2*l/100 - 1)) * (s/100);
+  const x = c * (1 - Math.abs((h/60)%2 - 1));
+  const m = l/100 - c/2;
+  let r=0,g=0,b=0;
+  if (0<=h && h<60)   { r=c; g=x; b=0; }
+  else if (60<=h&&h<120){ r=x; g=c; b=0; }
+  else if (120<=h&&h<180){ r=0; g=c; b=x; }
+  else if (180<=h&&h<240){ r=0; g=x; b=c; }
+  else if (240<=h&&h<300){ r=x; g=0; b=c; }
+  else                   { r=c; g=0; b=x; }
+  const toHex=v=>('0'+Math.round((v+m)*255).toString(16)).slice(-2);
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function initGradientEditor(){
+  const hue = document.getElementById('hueBar');
+  const ctx = hue.getContext('2d');
+  const overlay = document.getElementById('gradModal');
+
+  // draw hue strip
+  const paintHue=()=>{
+    const {width:w,height:h}=hue;
+    const grd = ctx.createLinearGradient(0,0,w,0);
+    for(let i=0;i<=360;i+=6){ grd.addColorStop(i/360, hslToHex(i,100,50)); }
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0,w,h);
   };
+  paintHue();
+
+  const s1 = document.getElementById('stop1');
+  const s2 = document.getElementById('stop2');
+  const sample = document.getElementById('gradSample');
+
+  let drag = null;
+  const posToHue = x => Math.max(0, Math.min(1, x / hue.getBoundingClientRect().width)) * 360;
+
+  function updateFromStops(){
+    const r = hue.getBoundingClientRect();
+    const x1 = parseFloat(s1.style.left) / 100 * r.width;
+    const x2 = parseFloat(s2.style.left) / 100 * r.width;
+    const h1 = posToHue(x1);
+    const h2 = posToHue(x2);
+    gState.a = hslToHex(h1,100,60);
+    gState.b = hslToHex(h2,100,60);
+    updateGradSample();
+  }
+  function updateGradSample(){
+    sample.style.background = `linear-gradient(135deg, ${gState.a}, ${gState.b})`;
+  }
+
+  function onDown(e){
+    const t = e.target;
+    if (t===s1 || t===s2){
+      drag = t;
+      drag.style.cursor = 'grabbing';
+      e.preventDefault();
+    }
+  }
+  function onMove(e){
+    if (!drag) return;
+    const r = hue.getBoundingClientRect();
+    const x = (e.touches?e.touches[0].clientX:e.clientX) - r.left;
+    const pct = Math.max(0, Math.min(100, (x / r.width) * 100));
+    drag.style.left = pct + '%';
+    updateFromStops();
+  }
+  function onUp(){
+    if (!drag) return;
+    drag.style.cursor = 'grab';
+    drag = null;
+  }
+
+  hue.addEventListener('mousedown', onDown);
+  hue.addEventListener('touchstart', onDown);
+  window.addEventListener('mousemove', onMove, { passive:false });
+  window.addEventListener('touchmove', onMove, { passive:false });
+  window.addEventListener('mouseup', onUp);
+  window.addEventListener('touchend', onUp);
+
+  document.getElementById('gApply').onclick = ()=>{ setGradientVars(gState.a,gState.b); closeGradModal(); };
+  document.getElementById('gCancel').onclick = ()=> closeGradModal();
+
+  // also allow clicking hue bar to reposition nearest stop
+  hue.addEventListener('click', (e)=>{
+    const r = hue.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width * 100;
+    const t = Math.abs(x - parseFloat(s1.style.left)) < Math.abs(x - parseFloat(s2.style.left)) ? s1 : s2;
+    t.style.left = Math.max(0, Math.min(100, x)) + '%';
+    updateFromStops();
+  });
+
+  // initial sample fill
+  updateGradSample();
 }
