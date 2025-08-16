@@ -1,102 +1,47 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.9.1
-console.log('[wizard.js] v2.9.1');
+// [wizard.js] v2.9.2
+console.log('[wizard.js] v2.9.2');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
-import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
+import {
+  renderSkills, renderEdu, renderExp, renderBio,
+  ensureSkillsSection, addSkillStar, addSkillSlider,
+  ensureEduSection, addEduCourse, addEduDegree,
+  ensureExpSection, addExpRole
+} from '../modules/modules.js';
 
-/* ---------- wizard mock styles (hard sizes, namespaced) ---------------- */
+/* ---------- mock styles (unchanged) ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    /* card shell + interactions */
-    #wizard .wz-mock{
-      width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;
-      border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
-    }
-    #wizard .wz-mock:hover{
-      transform:translateY(-2px);
-      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset;
-    }
+    #wizard .wz-mock{ width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease; }
+    #wizard .wz-mock:hover{ transform:translateY(-2px); box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset; }
     #wizard .wz-mock.sel{ outline:2px solid #ffb86c; }
-
-    /* inner gradient panel */
-    #wizard .wz-card{
-      position:absolute; inset:0; border-radius:16px; padding:12px;
-      background:linear-gradient(135deg,#5d71b4,#2e3c79);
-      box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);
-      overflow:hidden;
-    }
-
-    /* tiny shapes */
+    #wizard .wz-card{ position:absolute; inset:0; border-radius:16px; padding:12px; background:linear-gradient(135deg,#5d71b4,#2e3c79); box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38); overflow:hidden; }
     #wizard .wz-pill{ height:10px; border-radius:999px; background:#2b375f; }
-    #wizard .wz-pp{
-      width:74px;height:74px;border-radius:50%; background:#cfd6ff;
-      border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35);
-    }
+    #wizard .wz-pp{ width:74px;height:74px;border-radius:50%; background:#cfd6ff; border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35); }
 
-    /* ===== Sidebar (kept as in v2.3) =================================== */
-    #wizard .wz-mock--side .wz-left{
-      position:absolute; left:12px; top:12px; bottom:12px; width:162px;
-      border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
-      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
-    }
-    #wizard .wz-mock--side .wz-right{
-      position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px;
-    }
-    #wizard .wz-mock--side .wz-right .wz-l1{ width:72%; }
-    #wizard .wz-mock--side .wz-right .wz-l2{ width:56%; }
-    #wizard .wz-mock--side .wz-left .wz-under{ width:72%; }
+    /* Sidebar */
+    #wizard .wz-mock--side .wz-left{ position:absolute; left:12px; top:12px; bottom:12px; width:162px; border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+    #wizard .wz-mock--side .wz-right{ position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px; }
+    #wizard .wz-mock--side .wz-right .wz-l1{ width:72%; } #wizard .wz-mock--side .wz-right .wz-l2{ width:56%; } #wizard .wz-mock--side .wz-left .wz-under{ width:72%; }
 
-    /* ===== Top Fancy (restored exactly like your v2.3) ================= */
-    #wizard .wz-mock--fancy .wz-hero{
-      position:absolute; left:12px; right:12px; top:12px; height:68px;
-      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
-    }
-    /* Center of circle sits ABOVE band bottom (band bottom y = 80).
-       top:28 + radius(46) = 74 → 6px above 80, so it hangs over nicely. */
-    #wizard .wz-mock--fancy .wz-pp{
-      position:absolute; left:50%; transform:translateX(-50%);
-      top:28px; width:92px; height:92px; z-index:1;
-    }
-    /* Lines strictly below the avatar */
-    #wizard .wz-mock--fancy .wz-b1,
-    #wizard .wz-mock--fancy .wz-b2,
-    #wizard .wz-mock--fancy .wz-b3{
-      position:absolute; left:50%; transform:translateX(-50%); z-index:0;
-    }
-    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px; }
-    #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px; }
-    #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px; }
+    /* Top fancy (restored) */
+    #wizard .wz-mock--fancy .wz-hero{ position:absolute; left:12px; right:12px; top:12px; height:68px; border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; }
+    #wizard .wz-mock--fancy .wz-pp{ position:absolute; left:50%; transform:translateX(-50%); top:28px; width:92px; height:92px; z-index:1; }
+    #wizard .wz-mock--fancy .wz-b1, #wizard .wz-mock--fancy .wz-b2, #wizard .wz-mock--fancy .wz-b3{ position:absolute; left:50%; transform:translateX(-50%); z-index:0; }
+    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px; } #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px; } #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px; }
 
-    /* ===== Top Bar (avatar smaller & inside band) ====================== */
-    #wizard .wz-mock--top .wz-hero{
-      position:absolute; left:12px; right:12px; top:12px; height:66px;
-      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
-    }
-    #wizard .wz-mock--top .wz-pp{
-      position:absolute; right:26px; top:15px;
-      width:60px; height:60px;
-    }
-    #wizard .wz-mock--top .wz-txt{
-      position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px;
-    }
-    #wizard .wz-mock--top .wz-t1{ width:52%; height:10px; }
-    #wizard .wz-mock--top .wz-t2{ width:70%; height:10px; }
-    #wizard .wz-mock--top .wz-b1,
-    #wizard .wz-mock--top .wz-b2,
-    #wizard .wz-mock--top .wz-b3{
-      position:absolute; left:50%; transform:translateX(-50%);
-    }
-    #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px; }
-    #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px; }
-    #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px; }
+    /* Top bar */
+    #wizard .wz-mock--top .wz-hero{ position:absolute; left:12px; right:12px; top:12px; height:66px; border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; }
+    #wizard .wz-mock--top .wz-pp{ position:absolute; right:26px; top:15px; width:60px; height:60px; }
+    #wizard .wz-mock--top .wz-txt{ position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px; }
+    #wizard .wz-mock--top .wz-t1{ width:52%; height:10px; } #wizard .wz-mock--top .wz-t2{ width:70%; height:10px; }
+    #wizard .wz-mock--top .wz-b1, #wizard .wz-mock--top .wz-b2, #wizard .wz-mock--top .wz-b3{ position:absolute; left:50%; transform:translateX(-50%); }
+    #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px; } #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px; } #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px; }
   `;
   document.head.appendChild(st);
 })();
@@ -104,52 +49,28 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
 /* ---------- Public API -------------------------------------------------- */
 export function mountWelcome() {
   if (document.getElementById('welcome')) return;
-
   const wrap = document.createElement('div');
   wrap.id = 'welcome';
   wrap.setAttribute('data-overlay', '');
-  Object.assign(wrap.style, {
-    position:'fixed', inset:'0', display:'grid', placeItems:'center',
-    background:'rgba(0,0,0,.45)', zIndex:'20000'
-  });
-
+  Object.assign(wrap.style, { position:'fixed', inset:'0', display:'grid', placeItems:'center', background:'rgba(0,0,0,.45)', zIndex:'20000' });
   wrap.innerHTML = `
-    <div class="wcard" style="
-      width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;
-      border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);
-      display:grid;justify-items:center;gap:16px">
+    <div class="wcard" style="width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;justify-items:center;gap:16px">
       <div class="wtitle" style="font-weight:900;font-size:22px">Welcome to the Easy Resume Builder</div>
       <div class="wgrid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end;justify-items:center">
         <div class="wcol" style="display:grid;justify-items:center;gap:8px;width:300px;height:70px">
-          <button class="wbtn primary" id="startWizard" type="button"
-            style="appearance:none;border:none;border-radius:12px;padding:12px 16px;
-            background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;font-weight:700">
-            Wizard
-          </button>
+          <button class="wbtn primary" id="startWizard" type="button" style="appearance:none;border:none;border-radius:12px;padding:12px 16px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;font-weight:700">Wizard</button>
           <div style="opacity:.8">Guided step-by-step set-up.</div>
         </div>
         <div class="wcol" style="display:grid;justify-items:center;gap:8px;width:300px;height:70px">
-          <button class="wbtn" id="startBlank" type="button"
-            style="appearance:none;border:1px solid #2b324b;border-radius:12px;padding:12px 16px;background:#12182a;color:#e6e8ef;font-weight:700">
-            Manual mode
-          </button>
+          <button class="wbtn" id="startBlank" type="button" style="appearance:none;border:1px solid #2b324b;border-radius:12px;padding:12px 16px;background:#12182a;color:#e6e8ef;font-weight:700">Manual mode</button>
           <div style="opacity:.8">Start from scratch, arrange freely.</div>
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(wrap);
 
-  wrap.querySelector('#startWizard').addEventListener('click', () => {
-    wrap.style.display = 'none';
-    mountWizard();
-    openWizard();
-  });
-  wrap.querySelector('#startBlank').addEventListener('click', () => {
-    wrap.remove();
-    const plus = document.getElementById('canvasAdd');
-    if (plus) plus.style.display = 'flex';
-  });
+  wrap.querySelector('#startWizard').addEventListener('click', () => { wrap.style.display = 'none'; mountWizard(); openWizard(); });
+  wrap.querySelector('#startBlank').addEventListener('click', () => { wrap.remove(); const plus = document.getElementById('canvasAdd'); if (plus) plus.style.display = 'flex'; });
 }
 
 export function mountWizard() {
@@ -159,15 +80,10 @@ export function mountWizard() {
   modal.id = 'wizard';
   modal.className = 'modal';
   modal.setAttribute('data-overlay', '');
-  Object.assign(modal.style, {
-    position:'fixed', inset:'0', display:'none', placeItems:'center',
-    background:'rgba(0,0,0,.55)', zIndex:'21000'
-  });
+  Object.assign(modal.style, { position:'fixed', inset:'0', display:'none', placeItems:'center', background:'rgba(0,0,0,.55)', zIndex:'21000' });
 
   modal.innerHTML = `
-    <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;
-      background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;
-      box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden">
+    <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden">
       <div class="wiz-left" style="background:#0c111f;border-right:1px solid #1b2340;padding:16px">
         <div class="step-list" id="stepList" style="display:grid;gap:8px"></div>
       </div>
@@ -176,12 +92,10 @@ export function mountWizard() {
         <div class="navline" style="display:flex;gap:10px;justify-content:flex-end">
           <button class="mbtn" id="wizStartOver" style="margin-right:auto;display:none" type="button">Start over</button>
           <button class="mbtn" id="wizBack" type="button">Back</button>
-          <button class="mbtn" id="wizNext" type="button"
-            style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Next</button>
+          <button class="mbtn" id="wizNext" type="button" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Next</button>
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(modal);
   buildWizard();
 }
@@ -201,10 +115,7 @@ const STEPS = [
 let stepIdx = 0;
 let backCount = 0;
 
-function openWizard(){ 
-  renderStep();
-  document.getElementById('wizard').style.display = 'grid';
-}
+function openWizard(){ renderStep(); document.getElementById('wizard').style.display = 'grid'; }
 
 function buildWizard(){
   const list = document.getElementById('stepList');
@@ -233,8 +144,7 @@ function markSteps(){
     el.classList.toggle('done', i<stepIdx);
     el.style.color   = i===stepIdx ? '#e8ecff' : (i<stepIdx ? '#a7ffcf' : '#c9d1ff80');
     el.style.background = i===stepIdx ? '#131a31' : 'transparent';
-    const dot = el.querySelector('.dot');
-    if(dot) dot.style.background = i<stepIdx ? '#26d07c' : '#2e3b66';
+    const dot = el.querySelector('.dot'); if(dot) dot.style.background = i<stepIdx ? '#26d07c' : '#2e3b66';
   });
 }
 
@@ -253,19 +163,11 @@ function renderStep(){
         ${mock('header-fancy')}
         ${mock('header-top')}
       </div>
-      <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
-    `;
-
+      <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>`;
     const row = body.querySelector('#mockRow');
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
-
-    row.addEventListener('click', e=>{
-      const m = e.target.closest('.wz-mock'); if(!m) return;
-      row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel'));
-      m.classList.add('sel');
-      morphTo(m.dataset.layout);
-    });
+    row.addEventListener('click', e=>{ const m = e.target.closest('.wz-mock'); if(!m) return; row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); morphTo(m.dataset.layout); });
     body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
 
@@ -274,21 +176,12 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
       <div class="theme-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
         ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
-          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))"
-               data-a1="${A1[k]||'#8b5cf6'}" data-a2="${A2[k]||'#d946ef'}"></div>`).join('')}
+          .map(k=>`<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,var(--a1),var(--a2))" data-a1="${A1[k]||'#8b5cf6'}" data-a2="${A2[k]||'#d946ef'}"></div>`).join('')}
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
-      <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
-    `;
-    body.querySelectorAll('.swatch').forEach(swatch=>{
-      const k = swatch.dataset.k;
-      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; };
-    });
-    body.querySelector('#wizDark').onclick = e=>{
-      e.currentTarget.classList.toggle('on');
-      S.dark = e.currentTarget.classList.contains('on');
-      document.body.setAttribute('data-dark', S.dark ? '1' : '0');
-    };
+      <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>`;
+    body.querySelectorAll('.swatch').forEach(swatch=>{ const k = swatch.dataset.k; swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; }; });
+    body.querySelector('#wizDark').onclick = e=>{ e.currentTarget.classList.toggle('on'); S.dark = e.currentTarget.classList.contains('on'); document.body.setAttribute('data-dark', S.dark ? '1' : '0'); };
     body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); };
     body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); };
   }
@@ -319,18 +212,40 @@ function renderStep(){
   }
 
   if (s === 'skills'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Use stars or a slider; you can fine-tune on the canvas later.</div>`;
+    ensureSkillsSection(); // create empty section once
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:12px">Use stars or a slider; you can fine-tune on the canvas later.</div>
+      <div class="ctrl-mini" style="display:flex;gap:8px">
+        <button class="mbtn" id="wAddStar">+ ★</button>
+        <button class="mbtn" id="wAddSlider">+ Slider</button>
+      </div>`;
+    body.querySelector('#wAddStar').onclick   = addSkillStar;
+    body.querySelector('#wAddSlider').onclick = addSkillSlider;
   }
 
   if (s === 'education'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`;
+    ensureEduSection();
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:12px">Add items now or later from the canvas.</div>
+      <div class="ctrl-mini" style="display:flex;gap:8px">
+        <button class="mbtn" id="wAddCourse">+ Add course</button>
+        <button class="mbtn" id="wAddDegree">+ Add degree</button>
+      </div>`;
+    body.querySelector('#wAddCourse').onclick = ()=>{ ensureEduSection(); document.querySelector('.section .ctrl-mini [data-add-course]')?.click(); };
+    body.querySelector('#wAddDegree').onclick = ()=>{ ensureEduSection(); document.querySelector('.section .ctrl-mini [data-add-degree]')?.click(); };
   }
 
   if (s === 'experience'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">You can keep adding/editing from the canvas.</div>`;
+    ensureExpSection();
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:12px">You can keep adding/editing from the canvas.</div>
+      <div class="ctrl-mini" style="display:flex;gap:8px">
+        <button class="mbtn" id="wAddRole">+ Add role</button>
+      </div>`;
+    body.querySelector('#wAddRole').onclick = addExpRole;
   }
 
   if (s === 'bio'){
@@ -342,8 +257,7 @@ function renderStep(){
   }
 
   if (s === 'done'){
-    body.innerHTML = `<div class="wtitle" style="text-align:center">All set ✨</div>
-      <div class="wsub" style="opacity:.85;text-align:center">Continue on the canvas.</div>`;
+    body.innerHTML = `<div class="wtitle" style="text-align:center">All set ✨</div><div class="wsub" style="opacity:.85;text-align:center">Continue on the canvas.</div>`;
     document.getElementById('wizNext').textContent = 'Finish';
   } else {
     document.getElementById('wizNext').textContent = 'Next';
@@ -402,7 +316,6 @@ function mock(layoutKey){
       </div>`;
   }
 
-  // top bar
   return `
     <div class="wz-mock wz-mock--top" data-layout="${layoutKey}">
       <div class="wz-card">
