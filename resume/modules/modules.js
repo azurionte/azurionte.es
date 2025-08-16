@@ -1,18 +1,24 @@
 // /resume/modules/modules.js
-// v1.7 — fix add-to-canvas: use ensureCanvas().add (not addWrap) everywhere,
-//        and insert sections before the + inside the correct host.
-//        Also hide drag handle when a section lives in Sidebar.
+// v1.8 — fixes:
+//  • Skills/Edu/Exp/Bio can be added from wizard and + menu again
+//  • Safe insertion even if the "+" is not in the right host yet
+//  • Forces full width on canvas so cards aren’t narrow
+//  • Hides drag handle when a section sits inside the sidebar rail
+
 import { ensureCanvas, isSidebarActive, getSideMain, getRailHolder, ensureAddAnchor } from '../layouts/layouts.js';
+console.log('%c[modules.js] v1.8 loaded', 'color:#22c1c3');
 
-console.log('%c[modules.js] v1.7 loaded', 'color:#22c1c3');
-
-const $ = (s,r)=> (r||document).querySelector(s);
+const $  = (s,r)=> (r||document).querySelector(s);
 const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
 
-/* ---------- styles (same as before, with width:100% on blocks) ---------- */
+/* ---------- CSS (adds full-width overrides on canvas) ---------- */
 (function injectModulesCSS(){
   if (document.getElementById('modules-css')) return;
   const css = `
+  /* full width on canvas */
+  #sheet .stack .node{ width:100%; }
+  #sheet .stack .node > *{ width:100%; max-width:100%; }
+
   .section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative;width:100%}
   [data-dark="1"] .section{background:#0f1420;border-color:#1f2a44}
   .title-item{margin:-4px -4px 8px -4px;background:#f3f6ff;border-radius:12px;padding:10px 10px 12px;position:relative}
@@ -23,6 +29,7 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   .rm,.handle{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
   .handle{display:inline-grid;place-items:center;width:26px;height:26px;cursor:grab;user-select:none}
   .handle::before{content:"⋮⋮";font-weight:900;line-height:1}
+
   .grid-skills{display:grid;gap:12px;min-width:0}
   .grid-skills.cols-1{grid-template-columns:1fr;max-width:520px;margin:0 auto}
   .grid-skills.cols-2{grid-template-columns:1fr 1fr}
@@ -36,6 +43,7 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
   .ctrl-mini{display:flex;justify-content:center;gap:8px;margin-top:6px}
   .ctrl-mini .mini{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;padding:6px 9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+
   .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
   .edu-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;position:relative;display:grid;gap:6px;width:100%}
   .edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
@@ -43,6 +51,7 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   .edu-title-icon.course{color:var(--accent2)}
   .edu-title-icon.degree{color:var(--accent)}
   .badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, #fff);color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+
   .exp-list{display:grid;gap:12px;width:100%}
   .exp-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;display:grid;gap:6px;position:relative;width:100%}
   `;
@@ -52,7 +61,7 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   document.head.appendChild(tag);
 })();
 
-/* ---------- generic DnD (same as before) ---------- */
+/* ---------- tiny helpers ---------- */
 function attachDnd(container, itemSel){
   if(!container || container._dndAttached) return;
   container._dndAttached = true;
@@ -93,18 +102,22 @@ function attachDnd(container, itemSel){
   }
 }
 
-/* ---------- where to place content + keep the + with the host ---------- */
 function contentHost(){
   return isSidebarActive() ? (getSideMain() || ensureCanvas().stack) : ensureCanvas().stack;
 }
-function hostAndAdd() {
+function hostAndAdd(){
   const host = contentHost();
-  const { add: addEl } = ensureCanvas();
-  if (addEl && addEl.parentElement !== host) host.appendChild(addEl);
-  return { host, addEl };
+  const { add } = ensureCanvas();
+  // keep the + inside the current host
+  if (add && add.parentElement !== host) host.appendChild(add);
+  return { host, add };
+}
+function insertBeforeSafe(host, node, anchor){
+  if (anchor && anchor.parentElement === host) host.insertBefore(node, anchor);
+  else host.appendChild(node);
 }
 
-/* ---------- title helper ---------- */
+/* ---------- title builder ---------- */
 function mkTitle(icon, text, onDelete, withHandle=true){
   const t = document.createElement('div');
   t.className = 'title-item';
@@ -112,14 +125,13 @@ function mkTitle(icon, text, onDelete, withHandle=true){
   const tools = document.createElement('div');
   tools.className = 'sec-tools';
   if(withHandle){ const h=document.createElement('button'); h.className='handle'; h.title='Drag section'; tools.appendChild(h); }
-  const del=document.createElement('button'); del.className='rm'; del.type='button'; del.textContent='×';
-  del.title='Delete section';
+  const del=document.createElement('button'); del.className='rm'; del.type='button'; del.textContent='×'; del.title='Delete section';
   del.onclick = ()=>{ if(confirm(`Delete "${text}" section?`)){ t.parentElement?.parentElement?.remove(); ensureAddAnchor(); }};
   tools.appendChild(del); t.appendChild(tools);
   return t;
 }
 
-/* ---------- SKILLS ---------- */
+/* ===================== SKILLS ===================== */
 function starRow(label='Skill'){
   const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.dataset.type='star';
   d.innerHTML = `
@@ -180,46 +192,43 @@ export function renderSkills(){
     </div>
   `;
 
-  const { host, addEl } = hostAndAdd();
+  const { host, add } = hostAndAdd();
 
   if (isSidebarActive()){
-    // by default, Skills goes into the left rail in sidebar layout
     const rail = getRailHolder();
-    (rail || host).insertBefore(sec, addEl);
-    // not draggable inside the rail
+    insertBeforeSafe(rail || host, sec, add);
     const h = sec.querySelector('.handle'); if (h) h.style.display='none';
   } else {
     const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    host.insertBefore(wrap, addEl);
+    insertBeforeSafe(host, wrap, add);
   }
 
   const grid = sec.querySelector('.grid-skills');
-  const addStar = sec.querySelector('[data-add-star]');
-  const addSlider = sec.querySelector('[data-add-slider]');
-  addStar.onclick = ()=>{ grid.appendChild(starRow()); groupSkills(grid); sizeSkillsGrid(grid); };
-  addSlider.onclick = ()=>{ grid.appendChild(sliderRow()); groupSkills(grid); sizeSkillsGrid(grid); };
-  grid.appendChild(starRow()); grid.appendChild(sliderRow());
-  groupSkills(grid); sizeSkillsGrid(grid);
+  sec.querySelector('[data-add-star]').onclick   = ()=>{ grid.appendChild(starRow()); groupSkills(grid); sizeSkillsGrid(grid); };
+  sec.querySelector('[data-add-slider]').onclick = ()=>{ grid.appendChild(sliderRow()); groupSkills(grid); sizeSkillsGrid(grid); };
+  // start empty – per your request (no default row if user didn’t add)
+  sizeSkillsGrid(grid);
 
-  const moveIn = sec.querySelector('[data-move-in]');
+  const moveIn  = sec.querySelector('[data-move-in]');
   const moveOut = sec.querySelector('[data-move-out]');
   moveIn && (moveIn.onclick = ()=>{
-    (getRailHolder() || host).insertBefore(sec, addEl);
-    const h = sec.querySelector('.handle'); if (h) h.style.display='none';
+    const { host: h, add: a } = hostAndAdd();
+    insertBeforeSafe(getRailHolder() || h, sec, a);
+    const hh = sec.querySelector('.handle'); if (hh) hh.style.display='none';
     ensureAddAnchor();
   });
   moveOut && (moveOut.onclick = ()=>{
     const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    const { host: h2, addEl: add2 } = hostAndAdd();
-    h2.insertBefore(wrap, add2);
-    const h = sec.querySelector('.handle'); if (h) h.style.removeProperty('display');
+    const { host: h2, add: a2 } = hostAndAdd();
+    insertBeforeSafe(h2, wrap, a2);
+    const hh = sec.querySelector('.handle'); if (hh) hh.style.removeProperty('display');
     ensureAddAnchor();
   });
 
   ensureAddAnchor();
 }
 
-/* ---------- EDUCATION ---------- */
+/* ===================== EDUCATION ===================== */
 export function renderEdu(){
   if (document.querySelector('.edu-grid')) { ensureAddAnchor(); return; }
 
@@ -232,14 +241,14 @@ export function renderEdu(){
       <button class="mini" type="button" data-add-degree>+ Add degree</button>
     </div>`;
 
-  const { host, addEl } = hostAndAdd();
+  const { host, add } = hostAndAdd();
 
   if (isSidebarActive()){
-    host.insertBefore(sec, addEl);
+    insertBeforeSafe(host, sec, add);
     const h = sec.querySelector('.handle'); if (h) h.style.display='none';
   } else {
     const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    host.insertBefore(wrap, addEl);
+    insertBeforeSafe(host, wrap, add);
   }
 
   const grid = sec.querySelector('.edu-grid');
@@ -260,7 +269,7 @@ export function renderEdu(){
   ensureAddAnchor();
 }
 
-/* ---------- EXPERIENCE ---------- */
+/* ===================== EXPERIENCE ===================== */
 export function renderExp(){
   if (document.querySelector('.exp-list')) { ensureAddAnchor(); return; }
 
@@ -270,14 +279,14 @@ export function renderExp(){
     <div class="exp-list"></div>
     <div class="ctrl-mini"><button class="mini" type="button" data-add-exp>+ Add role</button></div>`;
 
-  const { host, addEl } = hostAndAdd();
+  const { host, add } = hostAndAdd();
 
   if (isSidebarActive()){
-    host.insertBefore(sec, addEl);
+    insertBeforeSafe(host, sec, add);
     const h = sec.querySelector('.handle'); if (h) h.style.display='none';
   } else {
     const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    host.insertBefore(wrap, addEl);
+    insertBeforeSafe(host, wrap, add);
   }
 
   const grid = sec.querySelector('.exp-list');
@@ -299,7 +308,7 @@ export function renderExp(){
   ensureAddAnchor();
 }
 
-/* ---------- BIO ---------- */
+/* ===================== BIO ===================== */
 export function renderBio(){
   if (document.querySelector('[data-bio]')) { ensureAddAnchor(); return; }
 
@@ -310,26 +319,25 @@ export function renderBio(){
   body.textContent = 'Add a short summary of your profile, strengths and what you’re looking for.';
   sec.appendChild(body);
 
-  const { host, addEl } = hostAndAdd();
+  const { host, add } = hostAndAdd();
 
   if (isSidebarActive()){
-    host.insertBefore(sec, addEl);
+    insertBeforeSafe(host, sec, add);
     const h = sec.querySelector('.handle'); if (h) h.style.display='none';
   } else {
     const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    host.insertBefore(wrap, addEl);
+    insertBeforeSafe(host, wrap, add);
   }
   ensureAddAnchor();
 }
 
-/* ---------- Add menu ---------- */
+/* ---------- + menu ---------- */
 export function openAddMenu(anchorBtn){
-  const { add: addEl } = ensureCanvas();   // <-- fixed
-  let menu = $('#addMenu'); let tray = $('#addTray');
-  if(!menu || !tray || !addEl) return;
+  const { add } = ensureCanvas();
+  const menu = $('#addMenu'); const tray = $('#addTray');
+  if(!menu || !tray) return;
 
   tray.innerHTML = '';
-
   const already = {
     skills: !!document.querySelector('.grid-skills'),
     edu:    !!document.querySelector('.edu-grid'),
@@ -350,7 +358,7 @@ export function openAddMenu(anchorBtn){
   addSq('exp','fa-briefcase','Experience');
   addSq('bio','fa-user','Bio');
 
-  if(!tray.children.length){ addEl.style.display='none'; return; }
+  if(!tray.children.length){ add && (add.style.display='none'); return; }
 
   const r = anchorBtn.getBoundingClientRect();
   menu.style.left = (r.left + window.scrollX) + 'px';
