@@ -1,11 +1,9 @@
 // /resume/modules/modules.js
 // Renders Skills, Education, Experience (and stub Bio) + "+" add menu.
-// Handles correct host placement for Sidebar vs Top/Fancy layouts.
+// Places sections correctly for Sidebar vs Top/Fancy and survives layout morphs.
+
 import { S } from '../app/state.js';
 import { ensureCanvas, getHeaderNode } from '../layouts/layouts.js';
-
-const $  = (s,r=document)=>r.querySelector(s);
-const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
 /* ---------------- host helpers ---------------- */
 function hosts(){
@@ -16,8 +14,7 @@ function hosts(){
   return { root, page, sheet, stack, addWrap, addMenu, addTray, dotAdd, rail, main };
 }
 
-// insert before the canvas "+" only when we are inserting into the stack.
-// for sidebar main/rail, just append.
+// Insert before the canvas "+" only when host is the stack; otherwise append.
 function insertInto(hostEl, node){
   const { stack, addWrap } = hosts();
   if(hostEl === stack){
@@ -92,7 +89,7 @@ export function openAddMenu(anchor){
 /* ---------------- SKILLS ---------------- */
 export function renderSkills(){
   // remove previous wherever they are
-  $$/('[data-section="skills"]').forEach(n=>n.remove());
+  document.querySelectorAll('[data-section="skills"]').forEach(n=>n.remove());
   if(!S.skills.length){ updatePlusMenu(); return; }
 
   const { stack, rail, main } = hosts();
@@ -113,12 +110,13 @@ export function renderSkills(){
       </div>`:''}
     </div>`;
 
-  const grid = $('[data-sgrid]', wrap);
+  const grid = wrap.querySelector('[data-sgrid]');
+
   S.skills.forEach(it=>{
     const row = document.createElement('div');
     row.className = 'skill';
     row.innerHTML = `<div class="label"><span>${it.label||'Skill'}</span></div><div class="right"></div>`;
-    const R = $('.right', row);
+    const R = row.querySelector('.right');
 
     if(it.type==='star'){
       const s=document.createElement('div'); s.className='stars';
@@ -144,15 +142,14 @@ export function renderSkills(){
 
   insertInto(host, wrap);
 
-  const t = $('#togglePlace', wrap);
+  const t = wrap.querySelector('#togglePlace');
   if(t) t.onclick = ()=>{ S.skillsInSidebar = !inSidebar; renderSkills(); };
   updatePlusMenu();
 }
 
 /* ---------------- EDUCATION ---------------- */
 export function renderEdu(){
-  // remove previous wherever they are
-  $$/('[data-section="edu"]').forEach(n=> n.remove());
+  document.querySelectorAll('[data-section="edu"]').forEach(n=> n.remove());
   if(!S.edu.length){ updatePlusMenu(); return; }
 
   const { stack, main } = hosts();
@@ -168,7 +165,7 @@ export function renderEdu(){
       <div class="edu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px" data-egrid></div>
     </div>`;
 
-  const grid = $('[data-egrid]', wrap);
+  const grid = wrap.querySelector('[data-egrid]');
 
   S.edu.forEach(card=>{
     const c=document.createElement('div'); c.className='sec';
@@ -188,8 +185,7 @@ export function renderEdu(){
 
 /* ---------------- EXPERIENCE ---------------- */
 export function renderExp(){
-  // remove previous wherever they are
-  $$/('[data-section="exp"]').forEach(n=> n.remove());
+  document.querySelectorAll('[data-section="exp"]').forEach(n=> n.remove());
   if(!S.exp.length){ updatePlusMenu(); return; }
 
   const { stack, main } = hosts();
@@ -205,7 +201,7 @@ export function renderExp(){
       <div class="exp-list" style="display:grid;gap:12px" data-xgrid></div>
     </div>`;
 
-  const grid = $('[data-xgrid]', wrap);
+  const grid = wrap.querySelector('[data-xgrid]');
 
   S.exp.forEach(x=>{
     const c=document.createElement('div'); c.className='sec';
@@ -224,9 +220,9 @@ export function renderExp(){
   updatePlusMenu();
 }
 
-/* ---------------- BIO (stub, exported for API stability) ---------------- */
+/* ---------------- BIO (stub) ---------------- */
 export function renderBio(){
-  // Implement when ready. Kept as a no-op so imports don't break.
+  // Implement later; exported for API stability.
 }
 
 /* ---------------- re-render on layout morph ---------------- */
