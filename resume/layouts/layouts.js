@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v1.6
-console.log('[layouts.js] v1.6');
+// [layouts.js] v1.7
+console.log('[layouts.js] v1.7');
 
 import { S } from '../app/state.js';
 
@@ -10,18 +10,12 @@ import { S } from '../app/state.js';
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-function stackEl(){
-  // By default we use the global #stack that editor builds.
-  // If you later want to route to a layout-specific stack, do it here.
-  return $('#stack');
-}
+function stackEl(){ return $('#stack'); }
 
 /* ------------------------------------------------------------------ */
 /* public: ensureCanvas                                                */
 /* ------------------------------------------------------------------ */
 export function ensureCanvas(){
-  // Editor normally builds the page + stack. This is a safety net so calls
-  // from app.js don’t blow up if editor hasn’t run yet.
   if (!$('#stack')){
     const root = $('#canvas-root') || document.body;
     const wrap = document.createElement('div');
@@ -34,7 +28,6 @@ export function ensureCanvas(){
       </div>`;
     root.appendChild(wrap);
   }
-  // Always keep the + anchor at the end
   ensureAddAnchor();
   return { stack: $('#stack'), add: $('#canvasAdd') };
 }
@@ -42,17 +35,19 @@ export function ensureCanvas(){
 /* ------------------------------------------------------------------ */
 /* header detection                                                    */
 /* ------------------------------------------------------------------ */
-export function getHeaderNode(){
-  // Return the inner element marked as data-header (easier for wizard).
-  return $('[data-header]');
-}
-function getHeaderNodeWrapper(){
-  // The .node wrapper that contains the header.
-  return $('[data-header]')?.closest('.node') || null;
+export function getHeaderNode(){ return $('[data-header]'); }
+function getHeaderNodeWrapper(){ return $('[data-header]')?.closest('.node') || null; }
+
+/* NEW: return the sidebar sections holder when in sidebar layout */
+export function getRailHolder(){
+  const head = getHeaderNode();
+  if (!head) return null;
+  if (head.closest('.sidebar-layout')) return head.querySelector('[data-rail-sections]');
+  return null;
 }
 
 /* ------------------------------------------------------------------ */
-/* avatar loader (re-usable)                                           */
+/* avatar loader                                                       */
 /* ------------------------------------------------------------------ */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
@@ -62,11 +57,7 @@ function initAvatars(root){
     w.appendChild(canvas);
 
     const ctx = canvas.getContext('2d', { willReadFrequently:true });
-    w.addEventListener('click', e=>{
-      // avoid clicking when user clicks the hidden input directly
-      if (e.target !== input) input.click();
-    });
-
+    w.addEventListener('click', e=>{ if (e.target !== input) input.click(); });
     input.addEventListener('change', ()=>{
       const f = input.files?.[0]; if (!f) return;
       const img = new Image();
@@ -96,7 +87,6 @@ function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
   el.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
-  // Theme-aware tinting (very light touch; your app.css handles most)
   el.style.borderRadius = '999px';
   return el;
 }
@@ -106,7 +96,6 @@ function setChips(containerList, items){
   if (containerList.length === 1){
     items.forEach(it => containerList[0].appendChild(it));
   } else if (containerList.length >= 2){
-    // Alternate left/right if we have two columns
     items.forEach((it, i) => containerList[i % 2].appendChild(it));
   }
 }
@@ -118,11 +107,9 @@ export function applyContact(){
   const head = getHeaderNode();
   if (!head) return;
 
-  // name
   const nameEl = head.querySelector('.name');
   if (nameEl) nameEl.textContent = S?.contact?.name || 'YOUR NAME';
 
-  // chips
   const chips = [];
   const c = S.contact || {};
   if (c.phone)    chips.push(chip('fa-solid fa-phone',        c.phone));
@@ -158,9 +145,7 @@ function buildHeader(kind){
           <div class="chips" data-info></div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
-        <div data-zone="main">
-          <!-- You can place a local + here if you want -->
-        </div>
+        <div data-zone="main"></div>
       </div>`;
   }
 
@@ -200,45 +185,32 @@ function buildHeader(kind){
       </div>`;
   }
 
-  // Insert before the + anchor
   const s = stackEl();
   s.insertBefore(node, $('#canvasAdd'));
-
-  // Init avatar uploaders
   initAvatars(node);
 
-  // Persist layout flag
   S.layout = (kind==='header-side') ? 'side' : (kind==='header-fancy') ? 'fancy' : 'top';
-
-  // Apply current theme flags to body (so header looks right)
   if (S.theme) document.body.setAttribute('data-theme', S.theme);
   document.body.setAttribute('data-dark', S.dark ? '1':'0');
   document.body.setAttribute('data-mat',  S.mat  || 'paper');
 
-  // Make sure the add anchor remains at the end
   ensureAddAnchor(true);
-
-  // Fill contact chips if we have data
   applyContact();
 
   return node;
 }
 
 /* ------------------------------------------------------------------ */
-/* public: morphTo (FLIP-ish)                                          */
+/* public: morphTo                                                     */
 /* ------------------------------------------------------------------ */
 export function morphTo(kind){
-  const s = stackEl();
   const oldWrapper = getHeaderNodeWrapper();
   const before = oldWrapper?.getBoundingClientRect();
 
-  // Create new header node first (hidden) to get a target box
   const temp = buildHeader(kind);
   const after = temp.getBoundingClientRect();
 
-  // If we had an old one, animate FLIP and remove it
   if (before){
-    // Position new at the old one's geometry first
     const dx = before.left - after.left;
     const dy = before.top  - after.top;
     const sx = before.width  / after.width;
@@ -248,20 +220,15 @@ export function morphTo(kind){
     temp.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
     temp.style.opacity = '0.6';
 
-    // Remove old after we inserted the new (so flow is correct)
     oldWrapper.remove();
 
-    // Let the browser paint, then transition to identity
     requestAnimationFrame(()=>{
       temp.style.transition = 'transform .35s ease, opacity .35s ease';
       temp.style.transform  = 'translate(0,0) scale(1,1)';
       temp.style.opacity    = '1';
-      // cleanup transition styles
       setTimeout(()=>{ temp.style.transition=''; temp.style.transform=''; }, 380);
     });
   } else {
-    // No previous header, just ensure + anchor sits last
-    s.insertBefore(temp, $('#canvasAdd'));
     ensureAddAnchor(true);
   }
 }
