@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Easy Resume Builder</title>
+
+  <!-- App-level styles only (modules add their own styles dynamically) -->
+  <link rel="stylesheet" href="./app/app.css">
+
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Top bar gets mounted by editor.js -->
+  <div id="topbar-root"></div>
+
+  <!-- Canvas -->
+  <main id="canvas-root"></main>
+
+  <!-- Welcome & Wizard get mounted here -->
+  <div id="overlay-root"></div>
+
+  <!-- App entry -->
+  <script type="module" src="./app/app.js"></script>
+</body>
+</html>
