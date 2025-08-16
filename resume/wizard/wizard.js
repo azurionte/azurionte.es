@@ -1,29 +1,69 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.3
-console.log('[wizard.js] v1.3');
+// [wizard.js] v1.4  — restores classic mockup visuals
+console.log('[wizard.js] v1.4');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- inject minimal wizard styles (hover/selected) ---------- */
+/* ---------- inject wizard styles (classic mocks + hover/selected) ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
+    /* container */
     #wizard .mock{
-      position:relative;min-height:130px;border:1px solid #1f2540;border-radius:14px;
-      padding:10px;background:#0c1324;cursor:pointer;
+      flex:1; min-width:220px; min-height:130px;
+      background:#0c1324;border:1px solid #1f2540;border-radius:18px;
+      padding:14px; cursor:pointer; position:relative;
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
     #wizard .mock:hover{
       transform:translateY(-2px);
-      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff inset;
+      box-shadow:0 18px 40px rgba(0,0,0,.35);
     }
     #wizard .mock.sel{
       outline:2px solid #ffb86c;
-      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset;
+    }
+    /* generic bits */
+    #wizard .mock .hero{
+      border-radius:12px;
+      background:linear-gradient(135deg,#5b6fb7,#2f3d7a);
+    }
+    #wizard .mock .line{
+      height:8px;border-radius:999px;background:#2b375f;
+    }
+    /* sidebar mock */
+    #wizard .mock.sidebar .hero{
+      position:absolute; inset:14px auto 14px 14px; width:30%;
+    }
+    #wizard .mock.sidebar .pp{
+      position:absolute; left:34px; top:34px; width:42px; height:42px;
+      border-radius:50%; background:#cfd6ff; border:3px solid #fff;
+      box-shadow:0 4px 12px rgba(0,0,0,.35);
+    }
+    #wizard .mock.sidebar .txt{
+      position:absolute; left:38%; right:20px; top:26px; display:grid; gap:10px;
+    }
+    /* fancy mock */
+    #wizard .mock.fancy .hero{ height:64px; margin:8px; }
+    #wizard .mock.fancy .pp{
+      position:absolute; left:50%; transform:translateX(-50%);
+      top:58px; width:56px; height:56px; border-radius:50%;
+      background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
+    }
+    #wizard .mock.fancy .txt{
+      position:absolute; left:26px; right:26px; top:120px; display:grid; gap:10px;
+    }
+    /* topbar mock */
+    #wizard .mock.topbar .hero{ height:64px; margin:8px; }
+    #wizard .mock.topbar .pp{
+      position:absolute; right:31px; top:22px; width:56px; height:56px; border-radius:50%;
+      background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
+    }
+    #wizard .mock.topbar .txt{
+      position:absolute; left:26px; right:120px; top:28px; display:grid; gap:10px;
     }
   `;
   document.head.appendChild(st);
@@ -176,7 +216,7 @@ function renderStep(){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Pick a starting header style.</div>
-      <div id="mockRow" style="display:grid;gap:14px">
+      <div id="mockRow" class="wrow" style="display:grid;gap:14px;flex-wrap:wrap">
         ${mock('header-side')}
         ${mock('header-fancy')}
         ${mock('header-top')}
@@ -186,7 +226,7 @@ function renderStep(){
 
     const row = body.querySelector('#mockRow');
 
-    // pre-select current layout
+    // pre-select current
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
 
@@ -296,30 +336,39 @@ function advance(){
 }
 
 /* ---------- helpers ---------------------------------------------------- */
-const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
-const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
-
 function mock(layoutKey){
   const kind = layoutKey.split('-')[1];
-  const hero = (kind==='side')
-    ? `<div class="hero" style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-       <div class="pp" style="position:absolute;left:30px;top:30px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
-       <div class="txt" style="position:absolute;left:40%;right:20px;top:24px;display:grid;gap:8px">
-         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
-         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
-       </div>`
-    : kind==='fancy'
-    ? `<div class="hero" style="height:60px;margin:8px;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-       <div class="pp" style="position:absolute;left:50%;transform:translateX(-50%);top:58px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
-       <div class="txt" style="position:absolute;left:24px;right:24px;top:120px;display:grid;gap:8px">
-         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:70%"></div>
-         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:48%"></div>
-       </div>`
-    : `<div class="hero" style="height:60px;margin:8px;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-       <div class="pp" style="position:absolute;right:31px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
-       <div class="txt" style="position:absolute;left:24px;right:120px;top:28px;display:grid;gap:8px">
-         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
-         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
-       </div>`;
-  return `<div class="mock ${kind}" data-layout="${layoutKey}">${hero}</div>`;
+  if (kind === 'side'){
+    return `
+      <div class="mock sidebar" data-layout="${layoutKey}">
+        <div class="hero"></div>
+        <div class="pp"></div>
+        <div class="txt">
+          <div class="line" style="width:60%"></div>
+          <div class="line" style="width:40%"></div>
+          <div class="line" style="width:56%"></div>
+        </div>
+      </div>`;
+  }
+  if (kind === 'fancy'){
+    return `
+      <div class="mock fancy" data-layout="${layoutKey}">
+        <div class="hero"></div>
+        <div class="pp"></div>
+        <div class="txt">
+          <div class="line" style="width:70%"></div>
+          <div class="line" style="width:48%"></div>
+        </div>
+      </div>`;
+  }
+  // topbar
+  return `
+    <div class="mock topbar" data-layout="${layoutKey}">
+      <div class="hero"></div>
+      <div class="pp"></div>
+      <div class="txt">
+        <div class="line" style="width:60%"></div>
+        <div class="line" style="width:40%"></div>
+      </div>
+    </div>`;
 }
