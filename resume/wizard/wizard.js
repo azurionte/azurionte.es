@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.9
-console.log('[wizard.js] v1.9');
+// [wizard.js] v2.0
+console.log('[wizard.js] v2.0');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
@@ -14,7 +14,7 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
   st.textContent = `
     #wizard .mockRow{ display:grid; gap:26px; }
 
-    /* card shell */
+    /* card shell (fixed size) */
     #wizard .mock{
       width:450px;height:158px;
       position:relative;
@@ -23,7 +23,8 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
       background:linear-gradient(135deg,#5564a4,#2e3a73);
       box-shadow:0 12px 28px rgba(0,0,0,.35);
       border:1px solid #1f2540;
-      cursor:pointer; overflow:visible;
+      cursor:pointer;
+      overflow:hidden; /* keep everything inside the 158px card */
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
     #wizard .mock:hover{
@@ -310,19 +311,20 @@ function advance(){
   if (stepIdx < STEPS.length-1){ stepIdx++; renderStep(); }
 }
 
-/* ---------- layout mock templates (match your drawings) ---------- */
+/* ---------- layout mock templates (fit exactly into 450×158) ---------- */
 function mock(layoutKey){
   const type = layoutKey.split('-')[1]; // side|fancy|top
+  const PAD = 14;
 
   if (type === 'side'){
-    // Sidebar: left hero column + avatar, right text stack + a pill inside hero
+    // Sidebar: left hero column + avatar, pill inside hero; lines on right.
     return `
       <div class="mock sidebar" data-layout="${layoutKey}">
-        <div class="hero" style="position:absolute;left:14px;top:14px;bottom:14px;width:150px"></div>
+        <div class="hero" style="position:absolute;left:${PAD}px;top:${PAD}px;bottom:${PAD}px;width:150px"></div>
         <div class="dot"  style="position:absolute;left:48px;top:28px;width:64px;height:64px"></div>
-        <div class="line" style="position:absolute;left:38px;bottom:48px;width:120px;height:16px;opacity:.85"></div>
+        <div class="line" style="position:absolute;left:38px;bottom:38px;width:120px;height:16px;opacity:.85"></div>
 
-        <div class="txt"  style="position:absolute;left:190px;right:24px;top:26px;display:grid;row-gap:12px">
+        <div class="txt"  style="position:absolute;left:${PAD+160}px;right:${PAD}px;top:${PAD+12}px;display:grid;row-gap:12px">
           <div class="line" style="width:68%"></div>
           <div class="line" style="width:52%"></div>
           <div class="line" style="width:84%"></div>
@@ -332,36 +334,38 @@ function mock(layoutKey){
   }
 
   if (type === 'fancy'){
-    // Top Fancy: wide hero, centered pill inside hero, avatar overlapping bottom center,
-    // then (below hero) small pill, long line, small pill, long line
-    const heroH = 96, pp = 104, gap = 18;
-    const belowTop = 14 + heroH + (pp/2) + gap;
+    // Top Fancy (all inside 158px):
+    // hero band (72px), centered pill in hero, avatar (68px) overlapping hero bottom,
+    // below: small pill + long line + small pill (fits).
+    const heroH = 72, dot = 68;
+    const dotTop = PAD + heroH - dot/2;         // overlap hero bottom by half
+    const below1 = PAD + heroH + dot/2 + 10;    // first small pill
+    const below2 = below1 + 16;                 // long line
+    const below3 = below2 + 16;                 // second small pill (kept short to fit)
     return `
       <div class="mock fancy" data-layout="${layoutKey}">
-        <div class="hero" style="position:absolute;left:14px;right:14px;top:14px;height:${heroH}px"></div>
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${14 + 20}px;width:36%;height:14px;opacity:.95"></div>
-        <div class="dot"  style="position:absolute;left:50%;transform:translateX(-50%);top:${14 + heroH - pp/2}px;width:${pp}px;height:${pp}px"></div>
+        <div class="hero" style="position:absolute;left:${PAD}px;right:${PAD}px;top:${PAD}px;height:${heroH}px"></div>
+        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${PAD + 18}px;width:36%;height:12px;opacity:.95"></div>
+        <div class="dot"  style="position:absolute;left:50%;transform:translateX(-50%);top:${dotTop}px;width:${dot}px;height:${dot}px"></div>
 
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${belowTop}px;width:26%;height:10px;opacity:.95"></div>
-        <div class="line" style="position:absolute;left:12%;right:12%;top:${belowTop + 20}px"></div>
-        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${belowTop + 42}px;width:26%;height:10px;opacity:.95"></div>
-        <div class="line" style="position:absolute;left:12%;right:12%;top:${belowTop + 62}px"></div>
+        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${below1}px;width:28%;height:10px;opacity:.95"></div>
+        <div class="line" style="position:absolute;left:12%;right:12%;top:${below2}px;height:8px"></div>
+        <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${below3}px;width:28%;height:10px;opacity:.95"></div>
       </div>`;
   }
 
-  // Top Bar: hero band, left pill inside hero, right avatar inside hero,
-  // then (below) small pill, long line, small pill, long line
-  const heroH = 96, pp = 96;
-  const base = 14 + heroH + 18;
+  // Top Bar: hero band (80px), left pill inside hero, right avatar inside hero,
+  // below: small pill + long line + small pill (all inside).
+  const heroH = 80, dot = 72;
+  const base = PAD + heroH + 10; // first pill below
   return `
     <div class="mock topbar" data-layout="${layoutKey}">
-      <div class="hero" style="position:absolute;left:14px;right:14px;top:14px;height:${heroH}px"></div>
-      <div class="line" style="position:absolute;left:34px;top:${14 + 26}px;width:32%;height:14px;opacity:.95"></div>
-      <div class="dot"  style="position:absolute;right:34px;top:${14 + (heroH - pp)/2}px;width:${pp}px;height:${pp}px"></div>
+      <div class="hero" style="position:absolute;left:${PAD}px;right:${PAD}px;top:${PAD}px;height:${heroH}px"></div>
+      <div class="line" style="position:absolute;left:${PAD+20}px;top:${PAD + 22}px;width:34%;height:12px;opacity:.95"></div>
+      <div class="dot"  style="position:absolute;right:${PAD+20}px;top:${PAD + (heroH - dot)/2}px;width:${dot}px;height:${dot}px"></div>
 
-      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base}px;width:26%;height:10px;opacity:.95"></div>
-      <div class="line" style="position:absolute;left:12%;right:12%;top:${base + 20}px"></div>
-      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base + 42}px;width:26%;height:10px;opacity:.95"></div>
-      <div class="line" style="position:absolute;left:12%;right:12%;top:${base + 62}px"></div>
+      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base}px;width:28%;height:10px;opacity:.95"></div>
+      <div class="line" style="position:absolute;left:12%;right:12%;top:${base + 18}px;height:8px"></div>
+      <div class="line" style="position:absolute;left:50%;transform:translateX(-50%);top:${base + 36}px;width:28%;height:10px;opacity:.95"></div>
     </div>`;
 }
