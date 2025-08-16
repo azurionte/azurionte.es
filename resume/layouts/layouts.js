@@ -1,44 +1,37 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v1.7
-console.log('[layouts.js] v1.7');
+// [layouts.js] v1.8
+console.log('[layouts.js] v1.8');
 
 import { S } from '../app/state.js';
 
-/* ------------------------------------------------------------------ */
-/* tiny helpers                                                        */
-/* ------------------------------------------------------------------ */
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
 function stackEl(){ return $('#stack'); }
 
-/* ------------------------------------------------------------------ */
-/* public: ensureCanvas                                                */
-/* ------------------------------------------------------------------ */
+/* --------------------------- Canvas shell --------------------------- */
 export function ensureCanvas(){
   if (!$('#stack')){
     const root = $('#canvas-root') || document.body;
-    const wrap = document.createElement('div');
-    wrap.className = 'page';
-    wrap.innerHTML = `
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.innerHTML = `
       <div id="sheet">
         <div id="stack" class="stack">
           <div class="add-squircle" id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
         </div>
       </div>`;
-    root.appendChild(wrap);
+    root.appendChild(page);
   }
   ensureAddAnchor();
   return { stack: $('#stack'), add: $('#canvasAdd') };
 }
 
-/* ------------------------------------------------------------------ */
-/* header detection                                                    */
-/* ------------------------------------------------------------------ */
+/* ---------------------------- Header find --------------------------- */
 export function getHeaderNode(){ return $('[data-header]'); }
-function getHeaderNodeWrapper(){ return $('[data-header]')?.closest('.node') || null; }
+function getHeaderNodeWrapper(){ return getHeaderNode()?.closest('.node') || null; }
 
-/* NEW: return the sidebar sections holder when in sidebar layout */
+/* NEW: where to put sidebar sections (left rail) */
 export function getRailHolder(){
   const head = getHeaderNode();
   if (!head) return null;
@@ -46,17 +39,25 @@ export function getRailHolder(){
   return null;
 }
 
-/* ------------------------------------------------------------------ */
-/* avatar loader                                                       */
-/* ------------------------------------------------------------------ */
+/* NEW: where to put main content when sidebar layout is active */
+export function getSideMain(){
+  const head = getHeaderNode();
+  if (head?.closest('.sidebar-layout')){
+    return head.querySelector('[data-zone="main"]');
+  }
+  // Fallback: in non-sidebar layouts modules live on the main stack
+  return $('#stack');
+}
+
+/* ---------------------------- Avatar load --------------------------- */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
     const input = w.querySelector('input[type=file]');
     const canvas = document.createElement('canvas');
     canvas.width = 140; canvas.height = 140;
     w.appendChild(canvas);
-
     const ctx = canvas.getContext('2d', { willReadFrequently:true });
+
     w.addEventListener('click', e=>{ if (e.target !== input) input.click(); });
     input.addEventListener('change', ()=>{
       const f = input.files?.[0]; if (!f) return;
@@ -64,13 +65,11 @@ function initAvatars(root){
       img.onload = ()=>{
         const s = Math.max(canvas.width/img.width, canvas.height/img.height);
         const dw = img.width*s, dh = img.height*s;
-        const dx = (canvas.width-dw)/2, dy=(canvas.height-dh)/2;
+        const dx = (canvas.width-dw)/2, dy = (canvas.height-dh)/2;
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.save();
-        ctx.beginPath();
+        ctx.save(); ctx.beginPath();
         ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, Math.PI*2);
-        ctx.clip();
-        ctx.imageSmoothingQuality = 'high';
+        ctx.clip(); ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, dx, dy, dw, dh);
         ctx.restore();
         w.setAttribute('data-empty','0');
@@ -80,9 +79,7 @@ function initAvatars(root){
   });
 }
 
-/* ------------------------------------------------------------------ */
-/* chip helpers                                                        */
-/* ------------------------------------------------------------------ */
+/* ------------------------------ Chips ------------------------------- */
 function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
@@ -95,27 +92,24 @@ function setChips(containerList, items){
   if (!items.length) return;
   if (containerList.length === 1){
     items.forEach(it => containerList[0].appendChild(it));
-  } else if (containerList.length >= 2){
-    items.forEach((it, i) => containerList[i % 2].appendChild(it));
+  } else {
+    items.forEach((it,i)=> containerList[i%2].appendChild(it));
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* public: applyContact                                                */
-/* ------------------------------------------------------------------ */
+/* --------------------------- Contact apply -------------------------- */
 export function applyContact(){
-  const head = getHeaderNode();
-  if (!head) return;
+  const head = getHeaderNode(); if (!head) return;
 
   const nameEl = head.querySelector('.name');
   if (nameEl) nameEl.textContent = S?.contact?.name || 'YOUR NAME';
 
-  const chips = [];
   const c = S.contact || {};
-  if (c.phone)    chips.push(chip('fa-solid fa-phone',        c.phone));
-  if (c.email)    chips.push(chip('fa-solid fa-envelope',     c.email));
-  if (c.address)  chips.push(chip('fa-solid fa-location-dot', c.address));
-  if (c.linkedin) chips.push(chip('fa-brands fa-linkedin',    'linkedin.com/in/' + c.linkedin));
+  const items = [];
+  if (c.phone)    items.push(chip('fa-solid fa-phone',        c.phone));
+  if (c.email)    items.push(chip('fa-solid fa-envelope',     c.email));
+  if (c.address)  items.push(chip('fa-solid fa-location-dot', c.address));
+  if (c.linkedin) items.push(chip('fa-brands fa-linkedin',    'linkedin.com/in/' + c.linkedin));
 
   const holders = [
     head.querySelector('[data-info]'),
@@ -123,12 +117,10 @@ export function applyContact(){
     head.querySelector('[data-info-right]')
   ].filter(Boolean);
 
-  setChips(holders, chips);
+  setChips(holders, items);
 }
 
-/* ------------------------------------------------------------------ */
-/* header builders                                                     */
-/* ------------------------------------------------------------------ */
+/* --------------------------- Header builders ------------------------ */
 function buildHeader(kind){
   const node = document.createElement('div');
   node.className = 'node';
@@ -196,13 +188,10 @@ function buildHeader(kind){
 
   ensureAddAnchor(true);
   applyContact();
-
   return node;
 }
 
-/* ------------------------------------------------------------------ */
-/* public: morphTo                                                     */
-/* ------------------------------------------------------------------ */
+/* ------------------------------ Morphing ---------------------------- */
 export function morphTo(kind){
   const oldWrapper = getHeaderNodeWrapper();
   const before = oldWrapper?.getBoundingClientRect();
@@ -233,11 +222,9 @@ export function morphTo(kind){
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* public: ensureAddAnchor                                             */
-/* ------------------------------------------------------------------ */
+/* ---------------------------- Add anchor ---------------------------- */
 export function ensureAddAnchor(show){
-  const s   = stackEl();
+  const s = stackEl();
   const add = $('#canvasAdd');
   if (!s || !add) return null;
   if (add.parentElement !== s) s.appendChild(add);
