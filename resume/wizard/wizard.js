@@ -1,106 +1,99 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.1
-console.log('[wizard.js] v2.1');
+// [wizard.js] v2.2
+console.log('[wizard.js] v2.2');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- inject wizard mock styles (exact sizes + layout) ---------- */
+/* ---------- wizard mock styles (hard sizes, namespaced) ---------------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    /* card shell / interactions */
-    #wizard .mock{
-      width:450px;height:158px;position:relative;cursor:pointer;
-      border-radius:18px;padding:10px; margin:6px 0;
-      transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
-      background:transparent; /* container only, the inner .card draws visuals */
+    /* card shell + interactions */
+    #wizard .wz-mock{
+      width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;
+      border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
-    #wizard .mock:hover{
+    #wizard .wz-mock:hover{
       transform:translateY(-2px);
       box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset;
     }
-    #wizard .mock.sel{ outline:2px solid #ffb86c; }
+    #wizard .wz-mock.sel{ outline:2px solid #ffb86c; }
 
-    /* gradient “card” that all mock content sits on */
-    #wizard .mock .card{
+    /* inner gradient panel all mocks share */
+    #wizard .wz-card{
       position:absolute; inset:0; border-radius:16px; padding:12px;
       background:linear-gradient(135deg,#5d71b4,#2e3c79);
       box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);
+      overflow:hidden; /* prevents bleed */
     }
 
-    /* shared tiny shapes */
-    #wizard .pill{ height:10px; border-radius:999px; background:#2b375f; opacity:.95; }
-    #wizard .pp{
+    /* tiny shapes */
+    #wizard .wz-pill{ height:10px; border-radius:999px; background:#2b375f; }
+    #wizard .wz-pp{
       width:74px;height:74px;border-radius:50%; background:#cfd6ff;
       border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35);
     }
 
-    /* ===== Sidebar mock ================================================= */
-    #wizard .mock.sidebar .left{
+    /* ===== Sidebar ====================================================== */
+    #wizard .wz-mock--side .wz-left{
       position:absolute; left:12px; top:12px; bottom:12px; width:162px;
       border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93);
       box-shadow:inset 0 1px 0 #ffffff14;
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
     }
-    #wizard .mock.sidebar .right{
-      position:absolute; left:192px; right:20px; top:24px;
-      display:grid; row-gap:12px;
+    #wizard .wz-mock--side .wz-right{
+      position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px;
     }
-    #wizard .mock.sidebar .right .l1{ width:72%; }
-    #wizard .mock.sidebar .right .l2{ width:56%; }
-    #wizard .mock.sidebar .left .under{ width:72%; }
+    #wizard .wz-mock--side .wz-right .wz-l1{ width:72%; }
+    #wizard .wz-mock--side .wz-right .wz-l2{ width:56%; }
+    #wizard .wz-mock--side .wz-left .wz-under{ width:72%; }
 
-    /* ===== Top Fancy mock ============================================== */
-    #wizard .mock.fancy .hero{
+    /* ===== Top Fancy (band + overlapping center avatar + 3 pills) ====== */
+    #wizard .wz-mock--fancy .wz-hero{
+      position:absolute; left:12px; right:12px; top:12px; height:68px;
+      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
+      box-shadow:inset 0 1px 0 #ffffff14;
+    }
+    #wizard .wz-mock--fancy .wz-pp{
+      position:absolute; left:50%; transform:translateX(-50%);
+      top:58px; width:92px; height:92px; z-index:1;
+    }
+    /* stack of pills below avatar (short → long → short), anchored to bottom */
+    #wizard .wz-mock--fancy .wz-b1,
+    #wizard .wz-mock--fancy .wz-b2,
+    #wizard .wz-mock--fancy .wz-b3{
+      position:absolute; left:50%; transform:translateX(-50%); z-index:0;
+    }
+    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:46px; }
+    #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:28px; }
+    #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:12px; }
+
+    /* ===== Top Bar (right avatar, 2 lines on band + 3 lines below) ===== */
+    #wizard .wz-mock--top .wz-hero{
       position:absolute; left:12px; right:12px; top:12px; height:66px;
       border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
       box-shadow:inset 0 1px 0 #ffffff14;
     }
-    /* center avatar overlapping the band */
-    #wizard .mock.fancy .pp{
-      position:absolute; left:50%; transform:translateX(-50%);
-      top:52px; width:84px; height:84px;  /* larger than sidebar/topbar */
+    #wizard .wz-mock--top .wz-pp{
+      position:absolute; right:26px; top:26px; width:84px; height:84px;
     }
-    /* below stack: short → long → short (anchored from bottom so it never overflows) */
-    #wizard .mock.fancy .b1,
-    #wizard .mock.fancy .b2,
-    #wizard .mock.fancy .b3{
-      position:absolute; left:50%; transform:translateX(-50%);
+    #wizard .wz-mock--top .wz-txt{
+      position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px;
     }
-    #wizard .mock.fancy .b1{ width:120px; bottom:44px; }
-    #wizard .mock.fancy .b2{ width:72%;   bottom:26px; }
-    #wizard .mock.fancy .b3{ width:140px; bottom:10px; }
-
-    /* ===== Top Bar mock ================================================= */
-    #wizard .mock.top .hero{
-      position:absolute; left:12px; right:12px; top:12px; height:66px;
-      border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93);
-      box-shadow:inset 0 1px 0 #ffffff14;
-    }
-    #wizard .mock.top .pp{
-      position:absolute; right:26px; top:26px;
-      width:84px; height:84px;
-    }
-    #wizard .mock.top .txt{
-      position:absolute; left:32px; right:130px; top:30px;
-      display:grid; row-gap:12px;
-    }
-    #wizard .mock.top .t1{ width:52%; height:10px; }
-    #wizard .mock.top .t2{ width:70%; height:10px; }
-
-    /* group below hero: short → long → short */
-    #wizard .mock.top .b1,
-    #wizard .mock.top .b2,
-    #wizard .mock.top .b3{
+    #wizard .wz-mock--top .wz-t1{ width:52%; height:10px; }
+    #wizard .wz-mock--top .wz-t2{ width:70%; height:10px; }
+    #wizard .wz-mock--top .wz-b1,
+    #wizard .wz-mock--top .wz-b2,
+    #wizard .wz-mock--top .wz-b3{
       position:absolute; left:50%; transform:translateX(-50%);
     }
-    #wizard .mock.top .b1{ width:160px; bottom:42px; }
-    #wizard .mock.top .b2{ width:78%;  bottom:24px; }
-    #wizard .mock.top .b3{ width:170px; bottom:8px; }
+    #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px; }
+    #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px; }
+    #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px; }
   `;
   document.head.appendChild(st);
 })();
@@ -257,17 +250,16 @@ function renderStep(){
         ${mock('header-fancy')}
         ${mock('header-top')}
       </div>
-      <div class="k-row" style="margin-top:14px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
+      <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
     `;
 
     const row = body.querySelector('#mockRow');
-
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
 
     row.addEventListener('click', e=>{
-      const m = e.target.closest('.mock'); if(!m) return;
-      row.querySelectorAll('.mock').forEach(x=>x.classList.remove('sel'));
+      const m = e.target.closest('.wz-mock'); if(!m) return;
+      row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel'));
       m.classList.add('sel');
       morphTo(m.dataset.layout);
     });
@@ -372,25 +364,23 @@ function advance(){
 }
 
 /* ---------- helpers ---------------------------------------------------- */
-
 const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
-/* precise 450x158 mocks matching your drawings */
 function mock(layoutKey){
-  const kind = layoutKey.split('-')[1]; // side | fancy | top
+  const kind = layoutKey.split('-')[1];
 
   if (kind === 'side'){
     return `
-      <div class="mock sidebar" data-layout="${layoutKey}">
-        <div class="card">
-          <div class="left">
-            <div class="pp"></div>
-            <div class="pill under"></div>
+      <div class="wz-mock wz-mock--side" data-layout="${layoutKey}">
+        <div class="wz-card">
+          <div class="wz-left">
+            <div class="wz-pp"></div>
+            <div class="wz-pill wz-under"></div>
           </div>
-          <div class="right">
-            <div class="pill l1"></div>
-            <div class="pill l2"></div>
+          <div class="wz-right">
+            <div class="wz-pill wz-l1"></div>
+            <div class="wz-pill wz-l2"></div>
           </div>
         </div>
       </div>`;
@@ -398,30 +388,30 @@ function mock(layoutKey){
 
   if (kind === 'fancy'){
     return `
-      <div class="mock fancy" data-layout="${layoutKey}">
-        <div class="card">
-          <div class="hero"></div>
-          <div class="pp"></div>
-          <div class="pill b1"></div>
-          <div class="pill b2"></div>
-          <div class="pill b3"></div>
+      <div class="wz-mock wz-mock--fancy" data-layout="${layoutKey}">
+        <div class="wz-card">
+          <div class="wz-hero"></div>
+          <div class="wz-pp"></div>
+          <div class="wz-pill wz-b1"></div>
+          <div class="wz-pill wz-b2"></div>
+          <div class="wz-pill wz-b3"></div>
         </div>
       </div>`;
   }
 
   // top bar
   return `
-    <div class="mock top" data-layout="${layoutKey}">
-      <div class="card">
-        <div class="hero"></div>
-        <div class="pp"></div>
-        <div class="txt">
-          <div class="pill t1"></div>
-          <div class="pill t2"></div>
+    <div class="wz-mock wz-mock--top" data-layout="${layoutKey}">
+      <div class="wz-card">
+        <div class="wz-hero"></div>
+        <div class="wz-pp"></div>
+        <div class="wz-txt">
+          <div class="wz-pill wz-t1"></div>
+          <div class="wz-pill wz-t2"></div>
         </div>
-        <div class="pill b1"></div>
-        <div class="pill b2"></div>
-        <div class="pill b3"></div>
+        <div class="wz-pill wz-b1"></div>
+        <div class="wz-pill wz-b2"></div>
+        <div class="wz-pill wz-b3"></div>
       </div>
     </div>`;
 }
