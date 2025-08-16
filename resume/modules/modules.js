@@ -1,17 +1,17 @@
-// resume/modules/modules.js
-// v1.3 — sections (Skills/Education/Experience/Bio) with styling + Sidebar-aware insertion
+// /resume/modules/modules.js
+// v1.4 — Sidebar-aware insertion + width fixes (no app.css changes)
 import { ensureCanvas, isSidebarActive, getSideMain, getRailHolder, ensureAddAnchor } from '../layouts/layouts.js';
 
-console.log('%c[modules.js] v1.3 loaded', 'color:#22c1c3');
+console.log('%c[modules.js] v1.4 loaded', 'color:#22c1c3');
 
 const $ = (s,r)=> (r||document).querySelector(s);
 const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
 
-// ---- inject section styles (ported from single-file) ----
+/* ------------ styles (same as before) ------------- */
 (function injectModulesCSS(){
   if (document.getElementById('modules-css')) return;
   const css = `
-  .section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative}
+  .section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative;width:100%}
   [data-dark="1"] .section{background:#0f1420;border-color:#1f2a44}
   .title-item{margin:-4px -4px 8px -4px;background:#f3f6ff;border-radius:12px;padding:10px 10px 12px;position:relative}
   .title-item .trow{display:flex;justify-content:center;align-items:center;gap:8px;font-weight:800}
@@ -34,16 +34,15 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
   .ctrl-mini{display:flex;justify-content:center;gap:8px;margin-top:6px}
   .ctrl-mini .mini{background:#0f1420;border:1px solid #1f2540;color:#e6e8ef;border-radius:12px;padding:6px 9px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35)}
-  .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .edu-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;position:relative;display:grid;gap:6px}
+  .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+  .edu-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;position:relative;display:grid;gap:6px;width:100%}
   .edu-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
   .edu-line1{display:flex;align-items:center;gap:8px;font-weight:800}
   .edu-title-icon.course{color:var(--accent2)}
   .edu-title-icon.degree{color:var(--accent)}
   .badge{display:inline-block;background:color-mix(in srgb, var(--accent) 18%, #fff);color:color-mix(in srgb, var(--accent) 70%, #000);border:1px solid color-mix(in srgb, var(--accent) 35%, #0000);padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis}
-  .exp-list{display:grid;gap:12px}
-  .exp-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;display:grid;gap:6px;position:relative}
-  .exp-tools{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+  .exp-list{display:grid;gap:12px;width:100%}
+  .exp-card{background:color-mix(in srgb, var(--accent) 12%, #fff);border:1px solid color-mix(in srgb, var(--accent) 22%, #0000);border-radius:14px;padding:12px 14px;display:grid;gap:6px;position:relative;width:100%}
   `;
   const tag = document.createElement('style');
   tag.id = 'modules-css';
@@ -51,7 +50,7 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   document.head.appendChild(tag);
 })();
 
-// ---- generic DnD (via handle) ----
+/* ------------ generic DnD ------------ */
 function attachDnd(container, itemSel){
   if(!container || container._dndAttached) return;
   container._dndAttached = true;
@@ -92,12 +91,13 @@ function attachDnd(container, itemSel){
   }
 }
 
-// ---- utility: where to insert content? ----
+/* ------------ where to insert content? ------------ */
 function contentHost(){
-  return isSidebarActive() ? (getSideMain() || ensureCanvas().stack) : ensureCanvas().stack;
+  const main = isSidebarActive() ? getSideMain() : null;
+  return main || ensureCanvas().stack;
 }
 
-// ---- title helper ----
+/* ------------ title helper ------------ */
 function mkTitle(icon, text, onDelete, withHandle=true){
   const t = document.createElement('div');
   t.className = 'title-item';
@@ -112,7 +112,7 @@ function mkTitle(icon, text, onDelete, withHandle=true){
   return t;
 }
 
-// ---- SKILLS ----
+/* ------------ SKILLS ------------ */
 function starRow(label='Skill'){
   const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.dataset.type='star';
   d.innerHTML = `
@@ -160,7 +160,6 @@ function sizeSkillsGrid(grid){
 }
 
 export function renderSkills(){
-  // if Skills already exists, do nothing
   if ($('#stack .grid-skills')) { ensureAddAnchor(); return; }
   const wrap = document.createElement('div'); wrap.className='node';
   const sec = document.createElement('div'); sec.className='section';
@@ -176,11 +175,10 @@ export function renderSkills(){
   `;
   wrap.appendChild(sec);
 
-  const host = contentHost();
-  // Sidebar: allow placing skills inside the left rail instead (sec-holder)
-  if (isSidebarActive()){
+  if (isSidebarActive() && getRailHolder()){
     getRailHolder().appendChild(sec);
   } else {
+    const host = contentHost();
     host.insertBefore(wrap, ensureCanvas().addWrap);
   }
 
@@ -201,9 +199,9 @@ export function renderSkills(){
     ensureAddAnchor();
   });
   moveOut && (moveOut.onclick = ()=>{
-    // wrap into node when moving to canvas
     const w = document.createElement('div'); w.className='node'; w.appendChild(sec);
-    contentHost().insertBefore(w, ensureCanvas().addWrap);
+    const host = contentHost();
+    host.insertBefore(w, ensureCanvas().addWrap);
     const h = sec.querySelector('.handle'); if (h) h.style.removeProperty('display');
     ensureAddAnchor();
   });
@@ -211,7 +209,7 @@ export function renderSkills(){
   ensureAddAnchor();
 }
 
-// ---- EDUCATION ----
+/* ------------ EDUCATION ------------ */
 export function renderEdu(){
   if ($('#stack .edu-grid')) { ensureAddAnchor(); return; }
   const wrap = document.createElement('div'); wrap.className='node';
@@ -224,7 +222,9 @@ export function renderEdu(){
       <button class="mini" type="button" data-add-degree>+ Add degree</button>
     </div>`;
   wrap.appendChild(sec);
-  contentHost().insertBefore(wrap, ensureCanvas().addWrap);
+
+  const host = contentHost();
+  host.insertBefore(wrap, ensureCanvas().addWrap);
 
   const grid = sec.querySelector('.edu-grid');
   const mkCard = (kind='course')=>{
@@ -240,12 +240,11 @@ export function renderEdu(){
   };
   sec.querySelector('[data-add-course]').onclick = ()=>{ grid.appendChild(mkCard('course')); attachDnd(grid,'.edu-card'); };
   sec.querySelector('[data-add-degree]').onclick = ()=>{ grid.appendChild(mkCard('degree')); attachDnd(grid,'.edu-card'); };
-  grid.appendChild(mkCard('course'));
   attachDnd(grid,'.edu-card');
   ensureAddAnchor();
 }
 
-// ---- EXPERIENCE ----
+/* ------------ EXPERIENCE ------------ */
 export function renderExp(){
   if ($('#stack .exp-list')) { ensureAddAnchor(); return; }
   const wrap = document.createElement('div'); wrap.className='node';
@@ -255,7 +254,9 @@ export function renderExp(){
     <div class="exp-list"></div>
     <div class="ctrl-mini"><button class="mini" type="button" data-add-exp>+ Add role</button></div>`;
   wrap.appendChild(sec);
-  contentHost().insertBefore(wrap, ensureCanvas().addWrap);
+
+  const host = contentHost();
+  host.insertBefore(wrap, ensureCanvas().addWrap);
 
   const grid = sec.querySelector('.exp-list');
   const mk = (dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.')=>{
@@ -276,7 +277,7 @@ export function renderExp(){
   ensureAddAnchor();
 }
 
-// ---- BIO ----
+/* ------------ BIO ------------ */
 export function renderBio(){
   if ($('#stack [data-bio]')) { ensureAddAnchor(); return; }
   const wrap = document.createElement('div'); wrap.className='node';
@@ -287,11 +288,12 @@ export function renderBio(){
   body.textContent = 'Add a short summary of your profile, strengths and what you’re looking for.';
   sec.appendChild(body);
   wrap.appendChild(sec);
-  contentHost().insertBefore(wrap, ensureCanvas().addWrap);
+  const host = contentHost();
+  host.insertBefore(wrap, ensureCanvas().addWrap);
   ensureAddAnchor();
 }
 
-// ---- Add menu exposed to editor ----
+/* ------------ Add menu exposed to editor ------------ */
 export function openAddMenu(anchorBtn){
   const { addWrap } = ensureCanvas();
   let menu = $('#addMenu'); let tray = $('#addTray');
