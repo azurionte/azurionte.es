@@ -1,7 +1,7 @@
 // resume/editor/editor.js
 // Builds top bar, theme menu, preview/print and the canvas shell
 import { S, save } from '../app/state.js';
-import { getHeaderNode, morphTo } from '../layouts/layouts.js';
+import { morphTo } from '../layouts/layouts.js';
 import { openAddMenu } from '../modules/modules.js';
 
 export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCustomGradient }){
@@ -100,10 +100,13 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     document.body.classList.add('preview'); setTimeout(() => { window.print(); if(!was) document.body.classList.remove('preview'); }, 60);
   };
 
-  // quick layout switch
+  // quick layout switch (keeps morphing)
   top.querySelector('#layoutQuick').addEventListener('click', e => {
     const k = e.target.closest('[data-layout]')?.dataset.layout; if(!k) return;
-    morphTo(k);
+    const prevHeaderRect = document.querySelector('[data-header]')?.getBoundingClientRect();
+    morphTo(k); // implemented in layouts/layouts.js
+    // fallback: if layouts.js doesn't dispatch an event, still nudge the + after morph
+    setTimeout(ensurePlusAtEnd, prevHeaderRect ? 380 : 50);
     top.querySelector('#ddLayout').classList.remove('open');
   });
 
@@ -120,8 +123,36 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
 
   // add menu
   root.querySelector('#dotAdd').onclick = (e) => openAddMenu(e.currentTarget);
+
+  // --- PLUS BUTTON HOSTING (Sidebar support) ------------------------------
+  const addWrap = root.querySelector('#canvasAdd');
+  const stackEl = root.querySelector('#stack');
+
+  function currentHost(){
+    // if Sidebar layout, place sections on the right side of the rail
+    const main = document.querySelector('[data-header] [data-zone="main"]');
+    return (S.layout === 'side' && main) ? main : stackEl;
+  }
+
+  function ensurePlusAtEnd(){
+    const host = currentHost();
+    if (!host) return;
+    if (addWrap.parentElement !== host) host.appendChild(addWrap);
+    addWrap.style.display = 'flex';
+  }
+
+  // initial placement
+  ensurePlusAtEnd();
+
+  // listen for layout changes if layouts.js emits a custom event
+  document.addEventListener('layout:changed', ensurePlusAtEnd);
+
+  // robust fallback: observe header insertion/replacement (works even without events)
+  const mo = new MutationObserver(() => ensurePlusAtEnd());
+  mo.observe(stackEl, { childList:true, subtree:true });
 }
 
+// ---- tiny helper to render the small layout mocks in the dropdown --------
 function mock(layoutKey,label){
   const kind = layoutKey.split('-')[1]; // side/fancy/top
   const hero = (kind==='side')
