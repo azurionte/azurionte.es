@@ -1,12 +1,12 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.5
-console.log('[wizard.js] v2.5');
+// [wizard.js] v2.6
+console.log('[wizard.js] v2.6');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact, restyleContactChips } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- inject minimal wizard styles (hover/selected + inputs + modal) ---------- */
+/* ---------- styles: hover/selected & modal & inputs --------------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
@@ -15,63 +15,49 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     #wizard .mock{
       position:relative;min-height:130px;border:1px solid #1f2540;border-radius:14px;
       padding:10px;background:#0c1324;cursor:pointer;
-      transition:transform .15s ease, box-shadow .15s ease, outline .15s ease, background .15s ease;
+      transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
     #wizard .mock:hover{
       transform:translateY(-2px);
       box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff inset;
     }
-    #wizard .mock.sel{
-      outline:2px solid #ffb86c;
-      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset;
-      background:#0f1420;
-    }
+    #wizard .mock.sel{ outline:2px solid #ffb86c; box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset; }
 
-    /* nicer inputs for contact step */
-    #wizard .wipt{
-      background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;
-      border-radius:10px;padding:10px 12px;width:100%;
-      box-shadow:0 4px 14px rgba(0,0,0,.25);
+    /* theme swatches */
+    #wizard .swatch{height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;position:relative;overflow:hidden}
+    #wizard .swatch.custom{
+      background: linear-gradient(135deg,#ff7a7a,#ffd25a,#58f0a7,#5cc0ff,#b98cff);
+      background-size: 400% 400%;
+      animation: wiz-rainbow 8s linear infinite;
+      display:grid;place-items:center;color:#111;font-weight:800;
     }
-    #wizard .wipt::placeholder{ color:#95a0c7 }
+    @keyframes wiz-rainbow{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 
-    /* Customize swatch animation */
-    #wizard .swatch.customize{
-      position:relative; overflow:hidden; border:1px solid #2b324b; border-radius:12px; height:42px; cursor:pointer;
-      background-size: 300% 300%;
-      background-image: linear-gradient(135deg,#ff005b,#ffb628,#08f7fe,#09fbd3,#f5d300,#f538ff);
-      animation: wizRainbow 6s linear infinite;
-      display:grid; place-items:center; font-weight:800; color:#111;
-      text-shadow: 0 1px 0 #fff8;
-    }
-    @keyframes wizRainbow { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
+    /* gradient modal */
+    .wiz-ovl{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:22000}
+    .wiz-ovl.open{display:grid}
+    .wiz-dlg{width:min(680px,96vw);background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);padding:18px 18px 16px}
+    .wiz-dlg .title{font-weight:900;margin-bottom:8px}
+    .pad-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid #243057}
+    .pad-wrap canvas{display:block;width:100%;height:220px}
+    .pad-handle{position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);transform:translate(-50%,-50%);pointer-events:auto}
+    .pad-handle.h1{outline:2px solid #8b5cf6}
+    .pad-handle.h2{outline:2px solid #d946ef}
+    .grad-preview{height:36px;border-radius:10px;border:1px solid #243057;margin-top:10px}
+    .dlg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .dlg-actions .mbtn{padding:8px 12px}
 
-    /* Gradient modal */
-    #gradModal{
-      position:fixed; inset:0; display:none; place-items:center; z-index:22000;
-      background:rgba(0,0,0,.55);
+    /* nicer wizard inputs */
+    .wipt{
+      background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;
+      box-shadow:0 4px 14px rgba(0,0,0,.25)
     }
-    #gradPanel{
-      width:min(560px,94vw); background:#0f1420; color:#e6e8ef; border:1px solid #1f2540;
-      border-radius:16px; padding:18px; box-shadow:0 40px 140px rgba(0,0,0,.6);
-    }
-    #hueWrap{ position:relative; height:32px; border-radius:10px; overflow:hidden; border:1px solid #263055 }
-    #hueBar{ width:100%; height:100%; display:block }
-    .stop{
-      position:absolute; top:50%; transform:translate(-50%,-50%);
-      width:22px; height:22px; border-radius:50%; border:2px solid #fff; box-shadow:0 6px 14px rgba(0,0,0,.35);
-      cursor:grab;
-    }
-    #gradSample{
-      height:42px; border-radius:10px; border:1px solid #2b324b; margin-top:12px;
-    }
-    .gline{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px }
-    .gline .mbtn{ padding:8px 12px }
+    .wipt::placeholder{color:#95a0c7}
   `;
   document.head.appendChild(st);
 })();
 
-/* ---------- Public API -------------------------------------------------- */
+/* ---------- Public API -------------------------------------------- */
 export function mountWelcome() {
   if (document.getElementById('welcome')) return;
 
@@ -84,25 +70,15 @@ export function mountWelcome() {
   });
 
   wrap.innerHTML = `
-    <div class="wcard" style="
-      width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;
-      border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);
-      display:grid;justify-items:center;gap:16px">
+    <div class="wcard" style="width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;justify-items:center;gap:16px">
       <div class="wtitle" style="font-weight:900;font-size:22px">Welcome to the Easy Resume Builder</div>
       <div class="wgrid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end;justify-items:center">
         <div class="wcol" style="display:grid;justify-items:center;gap:8px;width:300px;height:70px">
-          <button class="wbtn primary" id="startWizard" type="button"
-            style="appearance:none;border:none;border-radius:12px;padding:12px 16px;
-            background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;font-weight:700">
-            Wizard
-          </button>
+          <button class="wbtn primary" id="startWizard" type="button" style="appearance:none;border:none;border-radius:12px;padding:12px 16px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;font-weight:700">Wizard</button>
           <div style="opacity:.8">Guided step-by-step set-up.</div>
         </div>
         <div class="wcol" style="display:grid;justify-items:center;gap:8px;width:300px;height:70px">
-          <button class="wbtn" id="startBlank" type="button"
-            style="appearance:none;border:1px solid #2b324b;border-radius:12px;padding:12px 16px;background:#12182a;color:#e6e8ef;font-weight:700">
-            Manual mode
-          </button>
+          <button class="wbtn" id="startBlank" type="button" style="appearance:none;border:1px solid #2b324b;border-radius:12px;padding:12px 16px;background:#12182a;color:#e6e8ef;font-weight:700">Manual mode</button>
           <div style="opacity:.8">Start from scratch, arrange freely.</div>
         </div>
       </div>
@@ -135,9 +111,7 @@ export function mountWizard() {
   });
 
   modal.innerHTML = `
-    <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;
-      background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;
-      box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden">
+    <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden">
       <div class="wiz-left" style="background:#0c111f;border-right:1px solid #1b2340;padding:16px">
         <div class="step-list" id="stepList" style="display:grid;gap:8px"></div>
       </div>
@@ -146,32 +120,16 @@ export function mountWizard() {
         <div class="navline" style="display:flex;gap:10px;justify-content:flex-end">
           <button class="mbtn" id="wizStartOver" style="margin-right:auto;display:none" type="button">Start over</button>
           <button class="mbtn" id="wizBack" type="button">Back</button>
-          <button class="mbtn" id="wizNext" type="button"
-            style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Next</button>
-        </div>
-      </div>
-    </div>
-    <div id="gradModal">
-      <div id="gradPanel">
-        <div style="font-weight:800;margin-bottom:8px">Customize gradient</div>
-        <div id="hueWrap"><canvas id="hueBar" width="520" height="32"></canvas>
-          <div id="stop1" class="stop" style="left:20%"></div>
-          <div id="stop2" class="stop" style="left:80%"></div>
-        </div>
-        <div id="gradSample"></div>
-        <div class="gline">
-          <button class="mbtn" id="gCancel">Cancel</button>
-          <button class="mbtn" id="gApply" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Apply</button>
+          <button class="mbtn" id="wizNext" type="button" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Next</button>
         </div>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
-  initGradientEditor();     // wire once
   buildWizard();
 }
 
-/* ---------- Wizard internals ------------------------------------------ */
+/* ---------- Wizard internals -------------------------------------- */
 const STEPS = [
   { k: 'layout',    label: 'Layout' },
   { k: 'theme',     label: 'Theme' },
@@ -183,8 +141,7 @@ const STEPS = [
   { k: 'done',      label: 'Done' },
 ];
 
-let stepIdx = 0;
-let backCount = 0;
+let stepIdx = 0, backCount = 0;
 
 function openWizard(){ 
   renderStep();
@@ -233,20 +190,16 @@ function renderStep(){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Pick a starting header style.</div>
-      <div id="mockRow" style="display:grid;gap:14px">
+      <div id="mockRow" style="display:grid;gap:18px">
         ${mock('header-side')}
         ${mock('header-fancy')}
         ${mock('header-top')}
       </div>
       <div class="k-row" style="margin-top:12px"><button class="mbtn" id="wizAddPhoto"><i class="fa-solid fa-camera"></i> Upload photo</button></div>
     `;
-
     const row = body.querySelector('#mockRow');
-
-    // pre-select current layout
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
-
     row.addEventListener('click', e=>{
       const m = e.target.closest('.mock'); if(!m) return;
       row.querySelectorAll('.mock').forEach(x=>x.classList.remove('sel'));
@@ -259,22 +212,18 @@ function renderStep(){
   if (s === 'theme'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
-      <div class="theme-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack','custom']
-          .map(k => (k==='custom')
-            ? `<div class="swatch customize" id="customizeSw" title="Customize">Customize</div>`
-            : `<div class="swatch" data-k="${k}" style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;background:linear-gradient(135deg,${A1[k]},${A2[k]})"></div>`
-          ).join('')}
+      <div class="theme-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px">
+        ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
+          .map(k=>`<div class="swatch" data-k="${k}" style="background:linear-gradient(135deg,var(--a1),var(--a2))" data-a1="${A1[k]}" data-a2="${A2[k]}"></div>`).join('')}
+        <div class="swatch custom" id="openCustom">Customize</div>
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>
     `;
-    body.querySelectorAll('.swatch[data-k]').forEach(swatch=>{
-      const k = swatch.dataset.k;
-      swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; restyleContactChips(); };
+    body.querySelectorAll('.swatch[data-k]').forEach(sw=>{
+      const k = sw.dataset.k;
+      sw.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; restyleContactChips(); };
     });
-    body.querySelector('#customizeSw').onclick = ()=> openGradModal();
-
     body.querySelector('#wizDark').onclick = e=>{
       e.currentTarget.classList.toggle('on');
       S.dark = e.currentTarget.classList.contains('on');
@@ -283,6 +232,9 @@ function renderStep(){
     };
     body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); restyleContactChips(); };
     body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); restyleContactChips(); };
+
+    // custom gradient modal
+    body.querySelector('#openCustom').onclick = openGradientModal;
   }
 
   if (s === 'contact'){
@@ -290,11 +242,11 @@ function renderStep(){
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Only filled fields will appear.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact?.name||''}">
-        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact?.phone||''}">
-        <input class="wipt" id="em" placeholder="Email" value="${S.contact?.email||''}">
-        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact?.address||''}">
-        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact?.linkedin||''}"></div>
+        <input class="wipt" id="nm" placeholder="Full name" value="${S.contact.name||''}">
+        <input class="wipt" id="ph" placeholder="Phone" value="${S.contact.phone||''}">
+        <input class="wipt" id="em" placeholder="Email" value="${S.contact.email||''}">
+        <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
       </div>`;
     ['nm','ph','em','ad','ln'].forEach(id=>{
       body.querySelector('#'+id).oninput = ()=>{
@@ -310,20 +262,9 @@ function renderStep(){
     });
   }
 
-  if (s === 'skills'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Use stars or a slider; you can fine-tune on the canvas later.</div>`;
-  }
-
-  if (s === 'education'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`;
-  }
-
-  if (s === 'experience'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:8px">You can keep adding/editing from the canvas.</div>`;
-  }
+  if (s === 'skills'){ body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div><div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`; }
+  if (s === 'education'){ body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div><div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>`; }
+  if (s === 'experience'){ body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div><div class="wsub" style="opacity:.8;margin-bottom:8px">You can keep adding/editing from the canvas.</div>`; }
 
   if (s === 'bio'){
     body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
@@ -334,8 +275,7 @@ function renderStep(){
   }
 
   if (s === 'done'){
-    body.innerHTML = `<div class="wtitle" style="text-align:center">All set ✨</div>
-      <div class="wsub" style="opacity:.85;text-align:center">Continue on the canvas.</div>`;
+    body.innerHTML = `<div class="wtitle" style="text-align:center">All set ✨</div><div class="wsub" style="opacity:.85;text-align:center">Continue on the canvas.</div>`;
     document.getElementById('wizNext').textContent = 'Finish';
   } else {
     document.getElementById('wizNext').textContent = 'Next';
@@ -358,155 +298,176 @@ function advance(){
   if (stepIdx < STEPS.length-1){ stepIdx++; renderStep(); }
 }
 
-/* ---------- helpers ---------------------------------------------------- */
+/* ---------- Gradient modal --------------------------------------- */
+function openGradientModal(){
+  let ovl = document.getElementById('grad-ovl');
+  if (!ovl){
+    ovl = document.createElement('div');
+    ovl.id = 'grad-ovl';
+    ovl.className = 'wiz-ovl';
+    ovl.innerHTML = `
+      <div class="wiz-dlg">
+        <div class="title">Customize gradient</div>
+        <div class="pad-wrap" id="padWrap">
+          <canvas id="gradPad" width="560" height="220"></canvas>
+          <div class="pad-handle h1" id="h1"></div>
+          <div class="pad-handle h2" id="h2"></div>
+        </div>
+        <div class="grad-preview" id="gradPrev"></div>
+        <div class="dlg-actions">
+          <button class="mbtn" id="gradCancel">Cancel</button>
+          <button class="mbtn" id="gradApply" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none">Apply</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ovl);
 
+    // draw pad once
+    const pad = $('#gradPad', ovl);
+    const ctx = pad.getContext('2d');
+    const w = pad.width, h = pad.height;
+
+    function renderPad(){
+      // horizontal: hue, vertical: saturation; fixed lightness ~ 0.55
+      const img = ctx.createImageData(w, h);
+      for (let y=0; y<h; y++){
+        for (let x=0; x<w; x++){
+          const hue = (x / w) * 360;
+          const sat = (y / h);
+          const [r,g,b] = hslToRgb(hue/360, sat, 0.55);
+          const i = (y*w + x) * 4;
+          img.data[i] = r; img.data[i+1]=g; img.data[i+2]=b; img.data[i+3]=255;
+        }
+      }
+      ctx.putImageData(img,0,0);
+    }
+    renderPad();
+
+    // handles + drag
+    const wrap = $('#padWrap', ovl);
+    const h1 = $('#h1', ovl), h2 = $('#h2', ovl), prev = $('#gradPrev', ovl);
+
+    // init from current vars
+    const root = getComputedStyle(document.documentElement);
+    let c1 = S.customAccent1 || root.getPropertyValue('--accent').trim() || '#8b5cf6';
+    let c2 = S.customAccent2 || root.getPropertyValue('--accent2').trim() || '#d946ef';
+
+    function placeFromColor(el, hex){
+      const {h, s} = hexToHsl(hex);
+      const x = Math.max(0, Math.min(1, h/360)) * w;
+      const y = Math.max(0, Math.min(1, s)) * h;
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+      el.style.background = hex;
+    }
+    placeFromColor(h1, c1);
+    placeFromColor(h2, c2);
+    prev.style.background = `linear-gradient(135deg, ${c2}, ${c1})`;
+
+    function updateFromHandle(el, assign){
+      const rect = wrap.getBoundingClientRect();
+      function move(ev){
+        const x = Math.max(0, Math.min(rect.width, (ev.clientX - rect.left)));
+        const y = Math.max(0, Math.min(rect.height, (ev.clientY - rect.top)));
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        // sample color from canvas
+        const px = Math.round((x/rect.width) * w);
+        const py = Math.round((y/rect.height)* h);
+        const data = ctx.getImageData(Math.max(0,Math.min(w-1,px)), Math.max(0,Math.min(h-1,py)), 1,1).data;
+        const hex = rgbToHex(data[0],data[1],data[2]);
+        el.style.background = hex;
+        assign(hex);
+        prev.style.background = `linear-gradient(135deg, ${c2}, ${c1})`;
+      }
+      function up(){ window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); }
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    }
+
+    h1.onpointerdown = (e)=>{ e.preventDefault(); updateFromHandle(h1, hex=>{ c1 = hex; }); };
+    h2.onpointerdown = (e)=>{ e.preventDefault(); updateFromHandle(h2, hex=>{ c2 = hex; }); };
+
+    $('#gradCancel', ovl).onclick = ()=> ovl.classList.remove('open');
+    $('#gradApply',  ovl).onclick = ()=>{
+      // write vars + state + re-tint chips
+      document.documentElement.style.setProperty('--accent',  c1);
+      document.documentElement.style.setProperty('--accent2', c2);
+      S.theme = 'custom';
+      S.customAccent1 = c1; S.customAccent2 = c2;
+      restyleContactChips();
+      ovl.classList.remove('open');
+    };
+  }
+  ovl.classList.add('open');
+}
+
+/* ---------- helpers ------------------------------------------------ */
 const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
 function mock(layoutKey){
   const kind = layoutKey.split('-')[1];
   const hero = (kind==='side')
-    ? `<div class="hero" style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-       <div class="pp" style="position:absolute;left:30px;top:26px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
+    ? `<div class="hero" style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div class="pp" style="position:absolute;left:30px;top:30px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
        <div class="txt" style="position:absolute;left:40%;right:20px;top:24px;display:grid;gap:8px">
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:58%"></div>
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:42%"></div>
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:64%"></div>
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
        </div>`
     : kind==='fancy'
-    ? `<div class="hero" style="height:74px;margin:10px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-       <div class="pp" style="position:absolute;left:50%;transform:translate(-50%,-50%);top:84px;width:76px;height:76px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
-       <div class="txt" style="position:absolute;left:24px;right:24px;top:120px;display:grid;gap:10px">
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:32%;margin:0 auto"></div>
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:70%;margin:0 auto"></div>
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:46%;margin:0 auto"></div>
+    ? `<div class="hero" style="height:86px;margin:8px;border-radius:14px;background:#263266"></div>
+       <div class="pp" style="position:absolute;left:50%;transform:translateX(-50%);top:86px;width:74px;height:74px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.35)"></div>
+       <div class="txt" style="position:absolute;left:24px;right:24px;top:176px;display:grid;gap:8px">
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%;margin:0 auto"></div>
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:70%;margin:0 auto"></div>
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:48%;margin:0 auto"></div>
        </div>`
-    : `<div class="hero" style="height:74px;margin:10px;border-radius:14px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
-       <div class="pp" style="position:absolute;right:24px;top:18px;width:64px;height:64px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.35)"></div>
-       <div class="txt" style="position:absolute;left:24px;right:110px;top:28px;display:grid;gap:10px">
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:38%"></div>
-         <div class="line" style="height:10px;border-radius:999px;background:#2b375f;width:56%"></div>
+    : `<div class="hero" style="height:86px;margin:8px;border-radius:14px;background:#263266;position:relative"></div>
+       <div class="pp" style="position:absolute;right:28px;top:28px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.35)"></div>
+       <div class="txt" style="position:absolute;left:24px;right:120px;top:28px;display:grid;gap:8px">
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
+         <div class="line" style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
        </div>`;
-  return `<div class="mock ${kind}" data-layout="${layoutKey}" style="width:450px;height:158px"></div>`.replace('></div>', `>${hero}</div>`);
+  return `<div class="mock ${kind}" data-layout="${layoutKey}" style="position:relative;min-height:158px;border:1px solid #1f2540;border-radius:14px;padding:10px;background:#0c1324">${hero}</div>`;
 }
 
-/* ---------- Gradient editor ----------------------------------------- */
-let gState = { a:'#8b5cf6', b:'#d946ef' };
-
-function openGradModal(){
-  const overlay = document.getElementById('gradModal');
-  if (!overlay) return;
-  // restore last or current vars
-  const cs = getComputedStyle(document.documentElement);
-  gState.a = cs.getPropertyValue('--accent').trim() || gState.a;
-  gState.b = cs.getPropertyValue('--accent2').trim() || gState.b;
-  updateGradSample();
-  overlay.style.display = 'grid';
-}
-
-function closeGradModal(){ document.getElementById('gradModal').style.display = 'none'; }
-
-function setGradientVars(a,b){
-  document.documentElement.style.setProperty('--accent',  a);
-  document.documentElement.style.setProperty('--accent2', b);
-  S.theme = 'custom';
-  S.custom = { a, b };
-  restyleContactChips();
-}
-
-function hslToHex(h, s=100, l=60){
-  // h in [0,360)
-  const c = (1 - Math.abs(2*l/100 - 1)) * (s/100);
-  const x = c * (1 - Math.abs((h/60)%2 - 1));
-  const m = l/100 - c/2;
-  let r=0,g=0,b=0;
-  if (0<=h && h<60)   { r=c; g=x; b=0; }
-  else if (60<=h&&h<120){ r=x; g=c; b=0; }
-  else if (120<=h&&h<180){ r=0; g=c; b=x; }
-  else if (180<=h&&h<240){ r=0; g=x; b=c; }
-  else if (240<=h&&h<300){ r=x; g=0; b=c; }
-  else                   { r=c; g=0; b=x; }
-  const toHex=v=>('0'+Math.round((v+m)*255).toString(16)).slice(-2);
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-function initGradientEditor(){
-  const hue = document.getElementById('hueBar');
-  const ctx = hue.getContext('2d');
-  const overlay = document.getElementById('gradModal');
-
-  // draw hue strip
-  const paintHue=()=>{
-    const {width:w,height:h}=hue;
-    const grd = ctx.createLinearGradient(0,0,w,0);
-    for(let i=0;i<=360;i+=6){ grd.addColorStop(i/360, hslToHex(i,100,50)); }
-    ctx.fillStyle = grd;
-    ctx.fillRect(0,0,w,h);
-  };
-  paintHue();
-
-  const s1 = document.getElementById('stop1');
-  const s2 = document.getElementById('stop2');
-  const sample = document.getElementById('gradSample');
-
-  let drag = null;
-  const posToHue = x => Math.max(0, Math.min(1, x / hue.getBoundingClientRect().width)) * 360;
-
-  function updateFromStops(){
-    const r = hue.getBoundingClientRect();
-    const x1 = parseFloat(s1.style.left) / 100 * r.width;
-    const x2 = parseFloat(s2.style.left) / 100 * r.width;
-    const h1 = posToHue(x1);
-    const h2 = posToHue(x2);
-    gState.a = hslToHex(h1,100,60);
-    gState.b = hslToHex(h2,100,60);
-    updateGradSample();
+/* color helpers */
+function hslToRgb(h, s, l){
+  let r, g, b;
+  if(s === 0){ r = g = b = l; }
+  else{
+    const hue2rgb = (p, q, t)=>{
+      if(t < 0) t += 1; if(t > 1) t -= 1;
+      if(t < 1/6) return p + (q - p) * 6 * t;
+      if(t < 1/2) return q;
+      if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
   }
-  function updateGradSample(){
-    sample.style.background = `linear-gradient(135deg, ${gState.a}, ${gState.b})`;
-  }
-
-  function onDown(e){
-    const t = e.target;
-    if (t===s1 || t===s2){
-      drag = t;
-      drag.style.cursor = 'grabbing';
-      e.preventDefault();
+  return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+}
+function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function hexToHsl(hex){
+  const m = hex.replace('#','');
+  const r = parseInt(m.substring(0,2),16)/255;
+  const g = parseInt(m.substring(2,4),16)/255;
+  const b = parseInt(m.substring(4,6),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l=(max+min)/2;
+  if(max===min){ h=s=0; }
+  else{
+    const d=max-min;
+    s=l>0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max){
+      case r: h=(g-b)/d+(g<b?6:0); break;
+      case g: h=(b-r)/d+2; break;
+      case b: h=(r-g)/d+4; break;
     }
+    h/=6;
   }
-  function onMove(e){
-    if (!drag) return;
-    const r = hue.getBoundingClientRect();
-    const x = (e.touches?e.touches[0].clientX:e.clientX) - r.left;
-    const pct = Math.max(0, Math.min(100, (x / r.width) * 100));
-    drag.style.left = pct + '%';
-    updateFromStops();
-  }
-  function onUp(){
-    if (!drag) return;
-    drag.style.cursor = 'grab';
-    drag = null;
-  }
-
-  hue.addEventListener('mousedown', onDown);
-  hue.addEventListener('touchstart', onDown);
-  window.addEventListener('mousemove', onMove, { passive:false });
-  window.addEventListener('touchmove', onMove, { passive:false });
-  window.addEventListener('mouseup', onUp);
-  window.addEventListener('touchend', onUp);
-
-  document.getElementById('gApply').onclick = ()=>{ setGradientVars(gState.a,gState.b); closeGradModal(); };
-  document.getElementById('gCancel').onclick = ()=> closeGradModal();
-
-  // also allow clicking hue bar to reposition nearest stop
-  hue.addEventListener('click', (e)=>{
-    const r = hue.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width * 100;
-    const t = Math.abs(x - parseFloat(s1.style.left)) < Math.abs(x - parseFloat(s2.style.left)) ? s1 : s2;
-    t.style.left = Math.max(0, Math.min(100, x)) + '%';
-    updateFromStops();
-  });
-
-  // initial sample fill
-  updateGradSample();
+  return { h: h*360, s, l };
 }
