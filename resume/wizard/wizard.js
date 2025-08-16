@@ -1,23 +1,23 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v1.5 — compact classic mocks + clear hover/selected
-console.log('[wizard.js] v1.5');
+// [wizard.js] v1.6 — mocks match reference layout (sidebar/fancy/topbar)
+console.log('[wizard.js] v1.6');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- wizard styles (fixed height, classic layout) ---------- */
+/* ---------- wizard styles (compact cards + hover/selected) ---------- */
 (function ensureWizardStyle(){
   const id = 'wizard-style';
   if (document.getElementById(id)) return;
   const st = document.createElement('style');
   st.id = id;
   st.textContent = `
-    /* cards */
+    /* card shell */
     #wizard .mock{
-      position:relative; height:130px; min-width:220px;
-      background:#0c1324;border:1px solid #1f2540;border-radius:18px;
-      padding:0; cursor:pointer; overflow:hidden;
+      position:relative; min-width:260px; height:180px;
+      background:#0c1324; border:1px solid #1f2540; border-radius:18px;
+      cursor:pointer; overflow:hidden;
       transition:transform .15s ease, box-shadow .15s ease, outline .15s ease;
     }
     #wizard .mock:hover{
@@ -29,44 +29,53 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
       box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px #ffb86c inset;
     }
 
-    /* decorative bits shared */
-    #wizard .mock .hero{
-      position:absolute; left:16px; right:16px; top:16px; height:56px;
-      border-radius:12px; background:linear-gradient(135deg,#5b6fb7,#2f3d7a);
-    }
-    #wizard .mock .line{ height:8px; border-radius:999px; background:#2b375f; }
+    /* base decorative atoms */
+    #wizard .hero{ position:absolute; left:16px; right:16px; top:16px; height:72px;
+      border-radius:16px; background:linear-gradient(135deg,#5b6fb7,#2f3d7a); }
+    #wizard .line{ height:8px; border-radius:999px; background:#2b375f; }
+    #wizard .pill{ height:24px; border-radius:999px; border:2px solid #394165; }
+    #wizard .pp{ width:72px; height:72px; border-radius:50%; background:#cfd6ff;
+      border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35); }
 
-    /* layout variants */
-    /* sidebar: persistent left rail */
+    /* === Sidebar mock =================================================== */
+    #wizard .mock.sidebar{ height:180px; }
+    /* rail spans full height on the left */
     #wizard .mock.sidebar .hero{
-      left:14px; right:auto; top:14px; bottom:14px; width:30%;
+      left:14px; right:auto; top:14px; bottom:14px; width:30%; height:auto; border-radius:14px;
     }
-    #wizard .mock.sidebar .pp{
-      position:absolute; left:34px; top:30px; width:42px; height:42px; border-radius:50%;
-      background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
-    }
+    #wizard .mock.sidebar .pp{ position:absolute; left:34px; top:30px; width:64px; height:64px; }
+    #wizard .mock.sidebar .rail-pill{ position:absolute; left:30px; right:auto; bottom:34px; width:110px; }
     #wizard .mock.sidebar .txt{
-      position:absolute; left:38%; right:20px; top:26px; display:grid; gap:10px;
+      position:absolute; left:38%; right:22px; top:22px; display:grid; gap:12px;
     }
+    #wizard .mock.sidebar .txt .pill{ width:160px; justify-self:center; }
+    #wizard .mock.sidebar .txt .line:nth-child(2){ width:86%; }
+    #wizard .mock.sidebar .txt .line:nth-child(3){ width:52%; }
+    #wizard .mock.sidebar .txt .line:nth-child(4){ width:86%; }
+    #wizard .mock.sidebar .txt .line:nth-child(5){ width:52%; }
+    #wizard .mock.sidebar .txt .line:nth-child(6){ width:86%; }
 
-    /* fancy: banner + centered avatar, two lines below */
-    #wizard .mock.fancy .pp{
-      position:absolute; left:50%; transform:translateX(-50%);
-      top:56px; width:56px; height:56px; border-radius:50%;
-      background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
-    }
-    #wizard .mock.fancy .txt{
-      position:absolute; left:24px; right:24px; top:112px; display:grid; gap:10px;
-    }
+    /* === Fancy (top fancy) mock ======================================== */
+    #wizard .mock.fancy{ height:220px; }
+    #wizard .mock.fancy .hero{ left:16px; right:16px; top:18px; height:96px; }
+    #wizard .mock.fancy .hero .pill{ position:absolute; left:50%; top:30px; transform:translateX(-50%); width:160px; }
+    #wizard .mock.fancy .pp{ position:absolute; left:50%; transform:translateX(-50%); top:96px; }
+    #wizard .mock.fancy .txt{ position:absolute; left:24px; right:24px; top:170px; display:grid; gap:12px; }
+    #wizard .mock.fancy .txt .pill{ width:140px; justify-self:center; }
+    #wizard .mock.fancy .txt .line:nth-child(2){ width:85%; }
+    #wizard .mock.fancy .txt .line:nth-child(3){ width:52%; }
+    #wizard .mock.fancy .txt .line:nth-child(4){ width:85%; }
 
-    /* topbar: banner + avatar on right, text on left */
-    #wizard .mock.topbar .pp{
-      position:absolute; right:31px; top:22px; width:56px; height:56px; border-radius:50%;
-      background:#cfd6ff; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,.35);
-    }
-    #wizard .mock.topbar .txt{
-      position:absolute; left:24px; right:120px; top:26px; display:grid; gap:10px;
-    }
+    /* === Topbar mock ==================================================== */
+    #wizard .mock.topbar{ height:220px; }
+    #wizard .mock.topbar .hero{ left:16px; right:16px; top:18px; height:96px; }
+    #wizard .mock.topbar .hero .pill{ position:absolute; left:36px; top:34px; width:180px; }
+    #wizard .mock.topbar .pp{ position:absolute; right:32px; top:30px; }
+    #wizard .mock.topbar .txt{ position:absolute; left:24px; right:24px; top:170px; display:grid; gap:12px; }
+    #wizard .mock.topbar .txt .pill{ width:140px; justify-self:center; }
+    #wizard .mock.topbar .txt .line:nth-child(2){ width:85%; }
+    #wizard .mock.topbar .txt .line:nth-child(3){ width:52%; }
+    #wizard .mock.topbar .txt .line:nth-child(4){ width:85%; }
   `;
   document.head.appendChild(st);
 })();
@@ -345,32 +354,40 @@ function mock(layoutKey){
       <div class="mock sidebar" data-layout="${layoutKey}">
         <div class="hero"></div>
         <div class="pp"></div>
+        <div class="pill rail-pill"></div>
         <div class="txt">
-          <div class="line" style="width:60%"></div>
-          <div class="line" style="width:40%"></div>
-          <div class="line" style="width:56%"></div>
+          <div class="pill"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
         </div>
       </div>`;
   }
   if (kind === 'fancy'){
     return `
       <div class="mock fancy" data-layout="${layoutKey}">
-        <div class="hero"></div>
+        <div class="hero"><div class="pill"></div></div>
         <div class="pp"></div>
         <div class="txt">
-          <div class="line" style="width:70%"></div>
-          <div class="line" style="width:48%"></div>
+          <div class="pill"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
         </div>
       </div>`;
   }
   // topbar
   return `
     <div class="mock topbar" data-layout="${layoutKey}">
-      <div class="hero"></div>
+      <div class="hero"><div class="pill"></div></div>
       <div class="pp"></div>
       <div class="txt">
-        <div class="line" style="width:60%"></div>
-        <div class="line" style="width:40%"></div>
+        <div class="pill"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
       </div>
     </div>`;
 }
