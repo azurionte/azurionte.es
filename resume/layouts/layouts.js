@@ -287,3 +287,6 @@ export function quickLayoutSwitch(key) {
 export function ensureLayout(keyIfNone = 'header-fancy') {
   if (!getHeaderNode()) quickLayoutSwitch(keyIfNone);
 }
+
+export { quickLayoutSwitch as morphTo };
+
