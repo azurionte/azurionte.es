@@ -1,15 +1,12 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.2.1
-console.log('[layouts.js] v2.2.1');
+// [layouts.js] v2.2.2
+console.log('[layouts.js] v2.2.2');
 
 import { S } from '../app/state.js';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* --------------------------------------------------------------- */
-/* style injection so sidebar behaves consistently                 */
-/* --------------------------------------------------------------- */
 (function ensureLayoutStyles(){
   if (document.getElementById('layouts-style')) return;
   const st = document.createElement('style');
@@ -35,22 +32,15 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
     .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-    .sidebar-layout [data-zone="main"]{
-  display:grid;
-  gap:14px;
-  align-content:start;
-  min-width:0;   /* allow children to stretch */
-}
-
-    /* ---- Right side column becomes a mini canvas grid ---- */
+    /* right column as mini canvas grid */
     .sidebar-layout [data-zone="main"]{
       display:grid;
       grid-template-columns: repeat(12, minmax(0,1fr));
       gap:16px;
       align-content:start;
       min-height:100%;
+      min-width:0;
     }
-    /* make children full width by default */
     .sidebar-layout [data-zone="main"] > .node,
     .sidebar-layout [data-zone="main"] > .section,
     .sidebar-layout [data-zone="main"] > .module,
@@ -60,36 +50,23 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     }
 
     /* ---- Top bar header ---- */
-    .topbar{
-      position:relative;border-radius:14px;
-      background:linear-gradient(135deg,var(--accent2),var(--accent));
-      padding:16px;min-height:160px
-    }
+    .topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
     .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
     .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
     .topbar .right{display:flex;justify-content:flex-end}
 
     /* ---- Fancy header ---- */
     .fancy{position:relative;border-radius:14px}
-    .fancy .hero{
-      border-radius:14px;padding:18px 14px 26px;min-height:200px;
-      background:linear-gradient(135deg,var(--accent2),var(--accent));
-      display:flex;flex-direction:column;align-items:center
-    }
+    .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
     .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
     .fancy .chip-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:72px;row-gap:10px;margin:8px auto 0;max-width:740px}
     .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
     .fancy .below{height:88px}
 
     /* ---- avatar shell ---- */
-    .avatar{
-      border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;
-      box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px
-    }
+    .avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
     .avatar input{display:none}
-    .avatar[data-empty="1"]::after{
-      content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)
-    }
+    .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
     /* ---- chips baseline ---- */
     .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -100,11 +77,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 })();
 
 /* --------------------------------------------------------------- */
-/* helpers                                                         */
-/* --------------------------------------------------------------- */
 function stackEl(){ return $('#stack'); }
-
-/** Create canvas if missing and expose both stack and addWrap */
 export function ensureCanvas(){
   if (!$('#stack')){
     const root = $('#canvas-root') || document.body;
@@ -145,9 +118,7 @@ export function getSideMain(){
   return $('#stack');
 }
 
-/* --------------------------------------------------------------- */
-/* avatar loading                                                  */
-/* --------------------------------------------------------------- */
+/* avatar loading (unchanged) */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
     if (w._inited) return; w._inited = true;
@@ -178,9 +149,7 @@ function initAvatars(root){
   });
 }
 
-/* --------------------------------------------------------------- */
-/* chips and contact                                               */
-/* --------------------------------------------------------------- */
+/* chips + contact (unchanged except export names already present) */
 function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
@@ -231,9 +200,7 @@ export function applyContact(){
   restyleContactChips();
 }
 
-/* --------------------------------------------------------------- */
-/* build headers + morph                                           */
-/* --------------------------------------------------------------- */
+/* build + morph (unchanged) */
 function buildHeader(kind){
   const node=document.createElement('div');
   node.className='node';
@@ -293,7 +260,6 @@ function buildHeader(kind){
   ensureAddAnchor(true);
   applyContact();
 
-  // let listeners (editor) re-place the + anchor
   queueMicrotask(()=> document.dispatchEvent(new CustomEvent('layout:changed', { detail:{ kind:S.layout } })));
 
   return node;
@@ -324,11 +290,14 @@ export function morphTo(kind){
   }
 }
 
-/* --------------------------------------------------------------- */
+/* place the "+" in the correct host (stack or sidebar main) */
 export function ensureAddAnchor(show){
-  const s=stackEl(), add=$('#canvasAdd');
-  if(!s || !add) return null;
-  if(add.parentElement!==s) s.appendChild(add);
+  const add = $('#canvasAdd'); if(!add) return null;
+  const stack = stackEl();
+  const main = getSideMain();
+  const host = isSidebarActive() ? (main || stack) : stack;
+
+  if (host && add.parentElement !== host) host.appendChild(add);
   if(typeof show==='boolean') add.style.display=show?'flex':'none';
   return add;
 }
