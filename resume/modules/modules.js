@@ -14,21 +14,21 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const st = document.createElement('style');
   st.id = 'modules-style';
   st.textContent = `
-    /* sections */
-    .section{position:relative; border-radius:14px; padding:12px; background:var(--secBg, #ffffff); box-shadow:0 10px 28px rgba(0,0,0,.10); border:1px solid rgba(0,0,0,.08)}
-    [data-dark="1"] .section{ --secBg:#0f1420; border-color:#1f2540; box-shadow:0 10px 28px rgba(0,0,0,.35) }
+  /* sections */
+  .section{position:relative; border-radius:14px; padding:12px; background:var(--secBg); box-shadow:0 10px 28px rgba(0,0,0,.10); border:1px solid var(--cardBorder)}
+  [data-dark="1"] .section{ --secBg:var(--card,#0f1420); border-color:var(--cardBorder,#1f2540); box-shadow:0 10px 28px rgba(0,0,0,.35) }
     .sec-head{display:grid;justify-items:center;margin-bottom:6px}
     .sec-title{font-weight:900}
     .sec-underline{height:4px;border-radius:999px;background:linear-gradient(135deg,var(--accent2),var(--accent));width:120px;margin-top:6px}
 
     /* cards */
-    .card{border-radius:14px;padding:10px;border:1px solid rgba(0,0,0,.08);background:rgba(0,0,0,.03)}
-    [data-dark="1"] .card{border-color:#2a3354;background:#0c1222}
+  .card{border-radius:14px;padding:10px;border:1px solid var(--cardBorder);background:var(--cardBg)}
+  [data-dark="1"] .card{border-color:var(--cardBorder);background:#0c1222}
     .year-chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .year-chip i{width:16px;text-align:center}
 
     /* theme-driven year chip tint (dark text unless too dark) */
-    .year-chip{background:var(--chipBg, #fff); color:#111}
+  .year-chip{background:var(--chipBg); color:var(--ink-d)}
     [data-dark="1"] .year-chip{background:rgba(255,255,255,.10); color:#e8edff; border-color:#ffffff28; backdrop-filter:blur(6px)}
 
     /* skills list (canvas + sidebar) */

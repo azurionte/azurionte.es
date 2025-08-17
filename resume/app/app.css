@@ -7,6 +7,10 @@
   --rail:300px;
   --page-w:860px;
   --chipBg: #fff; /* default chip background unless set by setYearChipTint */
+  /* section/card color tokens (will switch with dark mode) */
+  --secBg: #ffffff;
+  --cardBg: rgba(0,0,0,0.03);
+  --cardBorder: rgba(0,0,0,0.08);
 }
 body[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
 body[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
@@ -61,6 +65,18 @@ a{color:inherit;text-decoration:none}
 #sheet{padding:24px;min-height:1120px}
 [data-dark="1"] #sheet{ background:#0d1220; color:var(--ink); }
 .stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
+
+/* Sidebar rail tweaks: keep content top-aligned, center avatar only */
+.sidebar-layout .rail{ display:flex; flex-direction:column; align-items:flex-start }
+.sidebar-layout .rail .avatar{ margin:18px auto; display:block }
+
+/* Make main zone occupy full inner width and remove extra padding that could offset children */
+.sidebar-layout [data-zone="main"]{ padding:0 }
+
+/* Add button centering improvements */
+.add-squircle{grid-column:1/-1;display:flex;justify-content:center;align-items:center;padding:28px 0}
+.add-dot{display:flex;align-items:center;justify-content:center}
+*** End Patch
 
 /* plus button */
 .add-squircle{grid-column:1/-1;display:flex;justify-content:center;padding:28px 0}
