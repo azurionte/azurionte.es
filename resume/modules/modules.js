@@ -53,6 +53,11 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .skill-remove{position:absolute;left:-6px;top:50%;transform:translateY(-50%);border:0;background:#fff;border-radius:999px;width:28px;height:28px;box-shadow:0 6px 16px rgba(0,0,0,.12);cursor:pointer}
   .sec-adds{display:flex;gap:8px;margin-left:8px}
   .sec-adds button{border:0;background:transparent;color:inherit;cursor:pointer;padding:6px;border-radius:8px}
+  /* centered squircle add anchor */
+  .sec-add-anchor{display:flex;justify-content:center;padding:12px 0}
+  .squircle-add{width:56px;height:56px;border-radius:14px;background:linear-gradient(180deg,#0f2b3a,#0b2330);display:grid;place-items:center;color:#dbeafe;border:0;box-shadow:0 8px 24px rgba(6,22,40,.6);cursor:pointer}
+  .squircle-add:hover{box-shadow:0 12px 36px rgba(8,36,64,.8);transform:translateY(-2px)}
+  .squircle-add:active{transform:translateY(0);box-shadow:0 6px 18px rgba(6,22,40,.5)}
   `;
   document.head.appendChild(st);
 })();
@@ -203,14 +208,15 @@ export function renderSkills(list, opts = {}){
     }
     wrap.appendChild(row);
   });
-  // add controls for skill types
-  const adds = document.createElement('div'); adds.className='sec-adds';
-  const btnStar = document.createElement('button'); btnStar.innerHTML='<i class="fa-solid fa-star"></i>'; btnStar.title='Add star skill';
-  const btnSlider = document.createElement('button'); btnSlider.innerHTML='<i class="fa-solid fa-sliders"></i>'; btnSlider.title='Add slider skill';
-  btnStar.addEventListener('click', ()=>{ renderSkills([{type:'star',label:'New skill',stars:3}], {}); });
-  btnSlider.addEventListener('click', ()=>{ renderSkills([{type:'slider',label:'New skill',value:60}], {}); });
-  adds.appendChild(btnStar); adds.appendChild(btnSlider);
-  body.appendChild(adds);
+  // centered squircle add anchor (below content)
+  const anchorWrap = document.createElement('div'); anchorWrap.className='sec-add-anchor';
+  const squircleStar = document.createElement('button'); squircleStar.className='squircle-add'; squircleStar.innerHTML='<i class="fa-solid fa-star"></i>';
+  const squircleSlider = document.createElement('button'); squircleSlider.className='squircle-add'; squircleSlider.innerHTML='<i class="fa-solid fa-sliders"></i>';
+  squircleStar.title='Add star skill'; squircleSlider.title='Add slider skill';
+  squircleStar.addEventListener('click', ()=>{ renderSkills([{type:'star',label:'New skill',stars:3}], {}); });
+  squircleSlider.addEventListener('click', ()=>{ renderSkills([{type:'slider',label:'New skill',value:60}], {}); });
+  anchorWrap.appendChild(squircleStar); anchorWrap.appendChild(squircleSlider);
+  body.appendChild(anchorWrap);
   body.appendChild(wrap);
   putSection(sec, { toRail: !!opts.toRail });
 }
@@ -254,6 +260,11 @@ export function renderEdu(items){
   btnHat.addEventListener('click', ()=>{ renderEdu([{kind:'degree',title:'New degree',dates:'2020',academy:'School'}]); });
   btnScroll.addEventListener('click', ()=>{ renderEdu([{kind:'course',title:'New course',dates:'2020',academy:'School'}]); });
   body.appendChild(adds); adds.appendChild(btnHat); adds.appendChild(btnScroll);
+  // centered squircle add anchor for education
+  const eAnchor = document.createElement('div'); eAnchor.className='sec-add-anchor';
+  const eHat = document.createElement('button'); eHat.className='squircle-add'; eHat.innerHTML='<i class="fa-solid fa-graduation-cap"></i>'; eHat.title='Add education';
+  eHat.addEventListener('click', ()=>{ renderEdu([{kind:'degree',title:'New degree',dates:'2020',academy:'School'}]); });
+  eAnchor.appendChild(eHat); body.appendChild(eAnchor);
   putSection(sec);
 }
 
@@ -268,6 +279,10 @@ export function renderExp(items){
   const btnExp = document.createElement('button'); btnExp.innerHTML='<i class="fa-solid fa-plus"></i>'; btnExp.title='Add experience';
   btnExp.addEventListener('click', ()=>{ renderExp([{dates:'Now',role:'New role',org:'Company',desc:'Describe.'}]); });
   body.appendChild(adds); adds.appendChild(btnExp);
+  const xAnchor = document.createElement('div'); xAnchor.className='sec-add-anchor';
+  const xBtn = document.createElement('button'); xBtn.className='squircle-add'; xBtn.innerHTML='<i class="fa-solid fa-plus"></i>'; xBtn.title='Add experience';
+  xBtn.addEventListener('click', ()=>{ renderExp([{dates:'Now',role:'New role',org:'Company',desc:'Describe.'}]); });
+  xAnchor.appendChild(xBtn); body.appendChild(xAnchor);
 
   items.forEach(it => {
     const card = document.createElement('div');
