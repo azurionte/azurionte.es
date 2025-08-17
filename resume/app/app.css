@@ -73,6 +73,17 @@ a{color:inherit;text-decoration:none}
 /* Make main zone occupy full inner width and remove extra padding that could offset children */
 .sidebar-layout [data-zone="main"]{ padding:0 }
 
+/* Ensure any .node wrapper directly inside the page stack spans the full 12-column width.
+   This prevents header/node wrappers (like the sidebar header) from being placed into a
+   single grid column which constrains inner .sidebar-layout to a tiny width. */
+.stack > .node{
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
 /* Add button centering improvements */
 .add-squircle{grid-column:1/-1;display:flex;justify-content:center;align-items:center;padding:28px 0}
 .add-dot{display:flex;align-items:center;justify-content:center}
