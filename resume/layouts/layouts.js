@@ -67,6 +67,9 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   #chipAddPop .sq-btn{width:36px;height:36px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;color:#fff;cursor:pointer}
   #chipAddPop .sq-btn.hidden{display:none}
 
+  /* ensure hero add button is centered in sidebar rail */
+  .sidebar-layout .rail #chipAddBtn{ display:block; margin:10px auto 0; }
+
   /* small floating chip remove */
   .chip{position:relative}
   .chip .chip-rm{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:999px;padding:0;border:0;font-size:12px;background:#fff;color:#111;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer}
