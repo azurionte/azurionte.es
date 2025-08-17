@@ -1,3 +1,4 @@
+// /resume/layouts/layouts.js
 // [layouts.js] v2.4.0 — single source of truth for canvas hosts + contact chips
 console.log('[layouts.js] v2.4.0');
 
@@ -89,6 +90,7 @@ export function getSideMain(){
 
 /* Avatar */
 function initAvatars(root){
+  $$('.[data-avatar]', root); // noop to satisfy linter – next block handles init
   $$('[data-avatar]', root).forEach(w=>{
     if (w._inited) return; w._inited = true;
     const input = w.querySelector('input[type=file]');
