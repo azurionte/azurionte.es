@@ -1,6 +1,6 @@
 // /resume/modules/modules.js
-// [modules.js] v2.8.1 — sections + add popover + safe host insertion
-console.log('[modules.js] v2.8.1');
+// [modules.js] v2.9.0 — tokens + sections + add popover + safe host insertion
+console.log('[modules.js] v2.9.0');
 
 import { S } from '../app/state.js';
 import { ensureCanvas, isSidebarActive, getRailHolder, getSideMain } from '../layouts/layouts.js';
@@ -14,6 +14,12 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const st = document.createElement('style');
   st.id = 'modules-style';
   st.textContent = `
+    /* tokens (used by skills rendering) */
+    :root{
+      --star-gap:4px;            /* tight stars, matches single-file */
+      --skill-right:120px;       /* right column width (stars/slider) */
+    }
+
     /* sections */
     .section{position:relative; border-radius:14px; padding:12px; background:var(--secBg, #ffffff); box-shadow:0 10px 28px rgba(0,0,0,.10); border:1px solid rgba(0,0,0,.08)}
     [data-dark="1"] .section{ --secBg:#0f1420; border-color:#1f2540; box-shadow:0 10px 28px rgba(0,0,0,.35) }
@@ -33,11 +39,11 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
     /* skills list (canvas + sidebar) */
     .skills-wrap{display:grid;gap:8px}
-    .skill-row{display:grid;grid-template-columns:1fr 120px;align-items:center;gap:10px}
+    .skill-row{display:grid;grid-template-columns:1fr var(--skill-right,120px);align-items:center;gap:10px}
     .skill-row .name{min-width:0}
-    .stars{display:inline-grid;grid-auto-flow:column;gap:6px;justify-content:end}
+    .stars{display:inline-grid;grid-auto-flow:column;gap:var(--star-gap,4px);justify-content:end}
     .star{width:14px;height:14px;display:inline-block;transform:translateY(1px)}
-    .meter{width:120px}
+    .meter{width:var(--skill-right,120px)}
 
     /* add menu (icon-only, centered above the plus) */
     .add-pop{position:absolute;z-index:20050;display:none}
@@ -218,7 +224,6 @@ export function openAddMenu(anchor){
 
   // position centered above the anchor
   const r = anchor.getBoundingClientRect();
-  const bar = $('.bar', pop);
   pop.style.left = `${Math.round(r.left + (r.width/2))}px`;
   pop.style.top  = `${Math.round(r.top  - 12)}px`;
   pop.style.transform = `translate(-50%,-100%)`;
@@ -226,7 +231,6 @@ export function openAddMenu(anchor){
 }
 
 /* ---------------------- tint helpers (optional) --------------------- */
-/* If you want stronger per-theme chip tinting, expose this hook: */
 export function setYearChipTint(bgCss, darkText=false){
   document.documentElement.style.setProperty('--chipBg', bgCss);
   if (darkText){
