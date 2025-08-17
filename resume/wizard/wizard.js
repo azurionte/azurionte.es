@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.11.5 — keeps theme swatches + inline editors; renders with tokens-aware skills
-console.log('[wizard.js] v2.11.5');
+// [wizard.js] v2.12.0 — wizard with reliable layout morph + inline editors
+console.log('[wizard.js] v2.12.0');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
@@ -28,10 +28,35 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     #wizard .wtitle{font-weight:900;font-size:18px;margin-bottom:8px}
     #wizard .wsub{opacity:.8;margin-bottom:10px}
 
+    /* header mocks (unchanged look) */
+    #wizard .wz-mock{width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease}
+    #wizard .wz-mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset}
+    #wizard .wz-mock.sel{outline:2px solid #ffb86c}
+    #wizard .wz-card{position:absolute;inset:0;border-radius:16px;padding:12px;background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);overflow:hidden}
+    #wizard .wz-pill{height:10px;border-radius:999px;background:#2b375f}
+    #wizard .wz-pp{width:74px;height:74px;border-radius:50%;background:#cfd6ff;border:4px solid #ffffffc0;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+    #wizard .wz-mock--side .wz-left{position:absolute;left:12px;top:12px;bottom:12px;width:162px;border-radius:14px;background:linear-gradient(160deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+    #wizard .wz-mock--side .wz-right{position:absolute;left:192px;right:20px;top:24px;display:grid;row-gap:12px}
+    #wizard .wz-mock--side .wz-right .wz-l1{width:72%} #wizard .wz-mock--side .wz-right .wz-l2{width:56%} #wizard .wz-mock--side .wz-left .wz-under{width:72%}
+    #wizard .wz-mock--fancy .wz-hero{position:absolute;left:12px;right:12px;top:12px;height:68px;border-radius:14px;background:linear-gradient(135deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14}
+    #wizard .wz-mock--fancy .wz-pp{position:absolute;left:50%;transform:translateX(-50%);top:28px;width:92px;height:92px;z-index:1}
+    #wizard .wz-mock--fancy .wz-b1,#wizard .wz-mock--fancy .wz-b2,#wizard .wz-mock--fancy .wz-b3{position:absolute;left:50%;transform:translateX(-50%);z-index:0}
+    #wizard .wz-mock--fancy .wz-b1{width:140px;bottom:26px} #wizard .wz-mock--fancy .wz-b2{width:78%;bottom:14px} #wizard .wz-mock--fancy .wz-b3{width:160px;bottom:6px}
+    #wizard .wz-mock--top .wz-hero{position:absolute;left:12px;right:12px;top:12px;height:66px;border-radius:14px;background:linear-gradient(135deg,#6c7fca,#3b4b93);box-shadow:inset 0 1px 0 #ffffff14}
+    #wizard .wz-mock--top .wz-pp{position:absolute;right:26px;top:15px;width:60px;height:60px}
+    #wizard .wz-mock--top .wz-txt{position:absolute;left:32px;right:130px;top:30px;display:grid;row-gap:12px}
+    #wizard .wz-mock--top .wz-t1{width:52%;height:10px} #wizard .wz-mock--top .wz-t2{width:70%;height:10px}
+    #wizard .wz-mock--top .wz-b1,#wizard .wz-mock--top .wz-b2,#wizard .wz-mock--top .wz-b3{position:absolute;left:50%;transform:translateX(-50%)}
+    #wizard .wz-mock--top .wz-b1{width:160px;bottom:42px} #wizard .wz-mock--top .wz-b2{width:78%;bottom:24px} #wizard .wz-mock--top .wz-b3{width:170px;bottom:8px}
+
+    /* theme swatches */
+    #wizard .theme-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+    #wizard .swatch{height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer}
+
     /* inline editors */
     .wiz-mini .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
     .wiz-mini .row input[type=text]{background:#0c1328;color:#e7ebff;border:1px solid #243057;border-radius:10px;padding:8px 10px;width:100%}
-    .wiz-mini .row .stars{display:inline-flex;gap:var(--star-gap,4px)}
+    .wiz-mini .row .stars{display:inline-flex;gap:6px}
     .wiz-mini .row .star{cursor:pointer;width:16px;height:16px;fill:#d1d5db}
     .wiz-mini .row .star.active{fill:#f59e0b}
     .wiz-mini .btns{display:flex;gap:8px;margin-top:8px}
@@ -74,9 +99,9 @@ function wizAttachDnd(container, itemSel){
 
 /* ---------- wizard state ---------- */
 let W = {
-  skills: [],                 // {type:'star'|'slider', label, stars|value}
-  addSkillsToRail: true,      // toggle for sidebar placement
-  edu: [],                    // {kind:'course'|'degree', title, dates, academy}
+  skills: [],
+  addSkillsToRail: true,
+  edu: [],
   exp: [],
   expDraft: { dates:'', role:'', org:'', desc:'' },
   bio: ''
@@ -196,7 +221,8 @@ function renderStep(){
     row.addEventListener('click', e=>{
       const m=e.target.closest('.wz-mock'); if(!m) return;
       row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel'));
-      m.classList.add('sel'); morphTo(m.dataset.layout);
+      m.classList.add('sel');
+      morphTo(m.dataset.layout);          // morph FIRST to guarantee correct hosts
     });
     body.querySelector('#wizAddPhoto').onclick = ()=> getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
@@ -218,10 +244,7 @@ function renderStep(){
       </div>`;
     body.querySelectorAll('.swatch').forEach(swatch=>{
       const k=swatch.dataset.k;
-      swatch.onclick = ()=>{
-        document.body.setAttribute('data-theme', k);
-        S.theme = k;
-      };
+      swatch.onclick = ()=>{ document.body.setAttribute('data-theme', k); S.theme = k; };
     });
     body.querySelector('#wizDark').onclick = e=>{
       e.currentTarget.classList.toggle('on');
