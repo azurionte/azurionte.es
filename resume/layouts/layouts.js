@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.5');
+console.log('[layouts.js] v2.5.6');
 
 import { S, save } from '../app/state.js';
 
@@ -74,8 +74,11 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .sidebar-layout .rail .name:focus{ outline:none; box-shadow:none }
   /* name block anchors the add button so it's always centered under the name */
   .sidebar-layout .rail .name-block{ position:relative; width:100%; display:block; text-align:center }
-  .sidebar-layout .rail .name-block #chipAddBtn{ position:absolute; left:50%; transform:translateX(-50%); top:calc(100% + 8px); width:44px; height:44px; border-radius:12px; background:#0b1022 !important; color:#fff !important; border:0; box-shadow:0 8px 20px rgba(11,16,34,.28); font-weight:800 }
-  .sidebar-layout .rail .name-block #chipAddBtn:hover{ filter:brightness(1.03) }
+  /* place the add button in-flow after the chips so it naturally sits below the latest chip
+    while remaining centered across the full rail width */
+  .sidebar-layout .rail .chips{ width:100%; display:block }
+  .sidebar-layout .rail #chipAddBtn{ display:block; margin:8px auto 6px; width:44px; height:44px; border-radius:12px; background:#0b1022 !important; color:#fff !important; border:0; box-shadow:0 8px 20px rgba(11,16,34,.28); font-weight:800 }
+  .sidebar-layout .rail #chipAddBtn:hover{ filter:brightness(1.03) }
   /* prevent the browser "editing" container from showing an ugly border/outline */
   .sidebar-layout .rail .name[contenteditable]{ caret-color: #fff; }
   .sidebar-layout .rail .name[contenteditable]:focus{ outline:none !important; box-shadow:none !important; border:none !important }
@@ -251,8 +254,9 @@ function chip(icon, text){
         ['phone','email','address','linkedin'].forEach(k=>{ if (S.contact[k] && txt.includes(S.contact[k])) S.contact[k]=''; });
         save();
       }
-      el.remove();
-      restyleContactChips();
+  el.remove();
+  restyleContactChips();
+  try{ applyContact(); }catch(e){}
     }catch(e){}
   });
   return el;
@@ -340,6 +344,13 @@ export function applyContact(){
                   head.querySelector('[data-info-right]') ].filter(Boolean);
   setChips(holders, items);
   restyleContactChips();
+  // show/hide the add button: hide when all supported contact slots are used
+  try{
+    const allKeys = ['phone','email','address','linkedin'];
+    const used = allKeys.filter(k=> !!(S.contact && S.contact[k] && S.contact[k].trim()));
+    const btn = head.querySelector('#chipAddBtn');
+    if (btn) btn.style.display = (used.length === allKeys.length) ? 'none' : 'block';
+  }catch(e){}
 }
 
 /* Build headers + morph */
