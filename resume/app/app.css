@@ -95,6 +95,14 @@ a{color:inherit;text-decoration:none}
 
 .sidebar-layout [data-zone="main"] .card{ width:100%; box-sizing:border-box }
 
+/* Ensure the node wrapper spans the full grid and cannot be shrunk by children */
+.sidebar-layout [data-zone="main"] > .node{
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
 /* floating add menu (shared) */
 .pop{position:fixed;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:18000}
 .pop.open{display:block}

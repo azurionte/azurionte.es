@@ -1,4 +1,5 @@
 // Central state + helpers
+console.log('[state.js] v1.0.1');
 export const S = {
   theme: 'magentaPurple',
   dark: false,

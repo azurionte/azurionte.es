@@ -1,6 +1,6 @@
 // /resume/modules/modules.js
 // [modules.js] v2.9.0 — sections + add popover + safe host insertion + remember rail choice
-console.log('[modules.js] v2.9.0');
+console.log('[modules.js] v2.9.1');
 
 import { S } from '../app/state.js';
 import { ensureCanvas, isSidebarActive, getRailHolder, getSideMain } from '../layouts/layouts.js';
@@ -81,9 +81,25 @@ function hostRail(){
 function putSection(node, { toRail=false } = {}){
   const host = (toRail && hostRail()) || hostMain();
   // clear any inline width styles that may have been copied from mocks so grid can size sections
-  try { node.style.width = ''; node.style.maxWidth = ''; } catch(_){}
+  try {
+    node.style.width = '';
+    node.style.maxWidth = '';
+    // also clear widths on children (cards/sec inner) to avoid intrinsic sizing
+    node.querySelectorAll && node.querySelectorAll('[style]').forEach(el=>{ el.style.width=''; el.style.maxWidth=''; });
+  } catch(_){}
+
+  // older code used a .node wrapper that spans the grid; recreate that structure so
+  // grid rules (and styles from your previous working version) apply correctly.
+  let wrapper = node;
+  if (!node.classList.contains('node')){
+    wrapper = document.createElement('div');
+    wrapper.className = 'node';
+    if (node.dataset && node.dataset.section) wrapper.dataset.section = node.dataset.section;
+    wrapper.appendChild(node);
+  }
+
   const plus = ensurePlusIn(host);
-  if (plus) host.insertBefore(node, plus); else host.appendChild(node);
+  if (plus) host.insertBefore(wrapper, plus); else host.appendChild(wrapper);
 }
 
 function sectionEl(key, title){
