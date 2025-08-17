@@ -73,6 +73,8 @@ export function ensureCanvas(){
     root.appendChild(page);
   }
   ensureAddAnchor(true);
+  // ensure observer is running to sanitize late style changes
+  try{ startLayoutObserver(); }catch(e){}
   return { stack: $('#stack'), addWrap: $('#canvasAdd'), add: $('#canvasAdd') };
 }
 
@@ -107,6 +109,31 @@ export function sanitizeMainNodes(){
       Array.from(n.querySelectorAll('[style]')).forEach(c=>{ try{ c.style.width=''; c.style.maxWidth=''; c.style.minWidth=''; }catch(e){} });
     });
   }catch(e){}
+}
+
+// Start a MutationObserver that watches for nodes being added or style attribute changes
+// and sanitizes .node wrappers inside the active main zone. This catches late inline
+// widths set by other code (drag placeholders, copy from mocks, etc.).
+let __layoutObserver = null;
+function startLayoutObserver(){
+  if(__layoutObserver) return;
+  const cb = (mutations)=>{
+    let saw=false;
+    for(const m of mutations){
+      if(m.type==='childList' && m.addedNodes.length){
+        for(const n of m.addedNodes){ if(n.nodeType===1 && (n.classList.contains('node') || n.querySelector && n.querySelector('.node'))) saw=true; }
+      }
+      if(m.type==='attributes' && m.attributeName==='style'){
+        const t=m.target; if(t && (t.classList && (t.classList.contains('node') || t.classList.contains('section') || t.classList.contains('card')))) saw=true;
+      }
+    }
+    if(saw){
+      // debounce/defensive: run sanitize on next microtask
+      Promise.resolve().then(()=>{ try{ sanitizeMainNodes(); }catch(e){} });
+    }
+  };
+  __layoutObserver = new MutationObserver(cb);
+  __layoutObserver.observe(document.body, { subtree:true, childList:true, attributes:true, attributeFilter:['style'] });
 }
 
 /* Avatar */
