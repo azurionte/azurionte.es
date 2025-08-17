@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.2');
+console.log('[layouts.js] v2.5.3');
 
 import { S, save } from '../app/state.js';
 
@@ -67,9 +67,18 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   #chipAddPop .sq-btn{width:36px;height:36px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;color:#fff;cursor:pointer}
   #chipAddPop .sq-btn.hidden{display:none}
 
-  /* ensure hero add button is centered in sidebar rail */
+  /* style the header name and place the add button statically below the name */
   .sidebar-layout .rail{ position:relative }
-  .sidebar-layout .rail #chipAddBtn{ position:absolute; left:50%; transform:translateX(-50%); top:170px; }
+  .sidebar-layout .rail .name{ text-align:center; font-weight:800; font-size:18px; margin:8px 0; padding:2px 6px; color:inherit }
+  .sidebar-layout .rail .name[contenteditable]{ outline:none; border:none; background:transparent }
+  .sidebar-layout .rail .name:focus{ outline:none; box-shadow:none }
+  /* prevent the browser "editing" container from showing an ugly border/outline */
+  .sidebar-layout .rail .name[contenteditable]{ caret-color: #fff; }
+  .sidebar-layout .rail .name[contenteditable]:focus{ outline:none !important; box-shadow:none !important; border:none !important }
+  .sidebar-layout .rail .name::selection{ background: rgba(255,255,255,0.12); color: #fff }
+  /* chip add button: static centered below the name (petroleum blue, not theme-inherited) */
+  .sidebar-layout .rail #chipAddBtn{ position:static; display:inline-block; margin:6px auto 6px; left:auto; transform:none; top:auto; width:44px; height:44px; border-radius:12px; background:#0b7285; color:#fff; border:0; box-shadow:0 8px 20px rgba(11,114,133,.24); font-weight:800 }
+  .sidebar-layout .rail #chipAddBtn:hover{ filter:brightness(1.05) }
 
   /* small floating chip remove */
   .chip{position:relative}
@@ -287,7 +296,8 @@ function openChipMenu(anchor){
       S.contact = S.contact || {};
       // only add if not already present
       if (S.contact[k] && S.contact[k].trim()) { pop.classList.remove('open'); return; }
-      const placeholder = (k==='linkedin') ? 'linkedin.com/in/your-handle' : (k==='phone'?'+1 555 555 5555': (k==='email'?'you@domain.com':'Your address'));
+  // store only the linkedin handle and render as "/in/handle" when displayed
+  const placeholder = (k==='linkedin') ? 'your-handle' : (k==='phone'?'+1 555 555 5555': (k==='email'?'you@domain.com':'Your address'));
       S.contact[k] = placeholder;
       save();
       applyContact();
@@ -317,7 +327,7 @@ export function applyContact(){
   if(c.phone){ const el=chip('fa-solid fa-phone', c.phone); el.title=c.phone; items.push(el); }
   if(c.email){ const el=chip('fa-solid fa-envelope', c.email); el.title=c.email; items.push(el); }
   if(c.address){ const el=chip('fa-solid fa-location-dot', c.address); el.dataset.wrap='1'; el.title=c.address; items.push(el); }
-  if(c.linkedin){ const el=chip('fa-brands fa-linkedin','linkedin.com/in/'+c.linkedin); el.dataset.wrap='1'; el.title='linkedin.com/in/'+c.linkedin; items.push(el); }
+  if(c.linkedin){ const el=chip('fa-brands fa-linkedin','/in/'+c.linkedin); el.dataset.wrap='1'; el.title='/in/'+c.linkedin; items.push(el); }
 
   const holders=[ head.querySelector('[data-info]'),
                   head.querySelector('[data-info-left]'),
@@ -337,7 +347,7 @@ function buildHeader(kind){
       <div class="sidebar-layout" data-header data-hero="side">
         <div class="rail">
           <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
-          <div class="name" contenteditable>YOUR NAME</div>
+          <h2 class="name" contenteditable>YOUR NAME</h2>
           <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
             <div class="chips" data-info></div>
             <div style="display:flex;justify-content:center;width:100%"><button id="chipAddBtn" title="Add contact" class="add-dot" style="border:0;background:transparent;color:inherit">+</button></div>
