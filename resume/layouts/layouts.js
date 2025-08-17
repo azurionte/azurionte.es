@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.4');
+console.log('[layouts.js] v2.5.5');
 
 import { S, save } from '../app/state.js';
 
@@ -72,6 +72,10 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .sidebar-layout .rail .name{ text-align:center; font-weight:800; font-size:18px; margin:8px 0; padding:2px 6px; color:inherit }
   .sidebar-layout .rail .name[contenteditable]{ outline:none; border:none; background:transparent }
   .sidebar-layout .rail .name:focus{ outline:none; box-shadow:none }
+  /* name block anchors the add button so it's always centered under the name */
+  .sidebar-layout .rail .name-block{ position:relative; width:100%; display:block; text-align:center }
+  .sidebar-layout .rail .name-block #chipAddBtn{ position:absolute; left:50%; transform:translateX(-50%); top:calc(100% + 8px); width:44px; height:44px; border-radius:12px; background:#0b1022 !important; color:#fff !important; border:0; box-shadow:0 8px 20px rgba(11,16,34,.28); font-weight:800 }
+  .sidebar-layout .rail .name-block #chipAddBtn:hover{ filter:brightness(1.03) }
   /* prevent the browser "editing" container from showing an ugly border/outline */
   .sidebar-layout .rail .name[contenteditable]{ caret-color: #fff; }
   .sidebar-layout .rail .name[contenteditable]:focus{ outline:none !important; box-shadow:none !important; border:none !important }
@@ -349,10 +353,12 @@ function buildHeader(kind){
       <div class="sidebar-layout" data-header data-hero="side">
         <div class="rail">
           <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
-          <h2 class="name" contenteditable>YOUR NAME</h2>
+          <div class="name-block">
+            <h2 class="name" contenteditable>YOUR NAME</h2>
+            <button id="chipAddBtn" title="Add contact" class="add-dot">+</button>
+          </div>
           <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch;">
             <div class="chips" data-info></div>
-            <div style="display:flex;justify-content:center;width:100%"><button id="chipAddBtn" title="Add contact" class="add-dot">+</button></div>
           </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
