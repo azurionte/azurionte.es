@@ -259,7 +259,7 @@ export function renderSkills(list, opts = {}){
   // move-to-rail control: allow moving the skills section to the sidebar
   try{
     const head = sec.querySelector('.sec-head');
-    const moveBtn = document.createElement('button'); moveBtn.className='ctrl-circle'; moveBtn.title='Toggle rail placement'; moveBtn.innerHTML = '<i class="fa-solid fa-arrows-left-right"></i>';
+  const moveBtn = document.createElement('button'); moveBtn.className='ctrl-circle move-rail'; moveBtn.title='Toggle rail placement'; moveBtn.innerHTML = '<i class="fa-solid fa-arrows-left-right"></i>';
     moveBtn.addEventListener('click', ()=>{
       try{
         const wrapper = sec.closest('.node') || sec;

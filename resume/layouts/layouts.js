@@ -52,6 +52,29 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .chip i{width:16px;text-align:center}
     .chip[contenteditable="true"]{outline:none}
+  /* light/dark text rules */
+  body[data-dark="1"]{ color: #fff }
+  body:not([data-dark="1"]){ color: #111 }
+
+  /* chip add pop (pill) */
+  #chipAddPop{position:absolute;z-index:20060;display:none}
+  #chipAddPop.open{display:block}
+  #chipAddPop .pill{display:inline-flex;gap:8px;padding:8px;border-radius:999px;background:var(--chipPopBg,#071827);box-shadow:0 10px 30px rgba(2,10,18,.6)}
+  #chipAddPop .sq-btn{width:36px;height:36px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;color:#fff;cursor:pointer}
+  #chipAddPop .sq-btn.hidden{display:none}
+
+  /* small floating chip remove */
+  .chip{position:relative}
+  .chip .chip-rm{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:999px;padding:0;border:0;font-size:12px;background:#fff;color:#111;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer}
+
+  /* section delete (prominent red) and header controls */
+  .sec-head{position:relative}
+  .sec-remove{position:absolute;right:12px;top:12px;background:#ff4d4f;color:#fff;border:0;padding:6px;border-radius:10px;cursor:pointer}
+  .sec-head .ctrl-circle.move-rail{position:absolute;right:56px;top:10px}
+
+  /* card controls and smaller ctrl-circles floating near the edge */
+  .card-controls{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+  .card-controls .ctrl-circle{width:28px;height:28px;border-radius:999px;font-size:12px}
   `;
   document.head.appendChild(st);
 })();
@@ -243,34 +266,35 @@ function openChipMenu(anchor){
   let pop = document.getElementById('chipAddPop');
   if (!pop){
     pop = document.createElement('div'); pop.id='chipAddPop'; pop.className='pop';
-    pop.innerHTML = `<div style="display:flex;gap:8px;padding:8px">
-      <button data-k="phone" title="Phone"><i class='fa-solid fa-phone'></i></button>
-      <button data-k="email" title="Email"><i class='fa-solid fa-envelope'></i></button>
-      <button data-k="address" title="Address"><i class='fa-solid fa-location-dot'></i></button>
-      <button data-k="linkedin" title="LinkedIn"><i class='fa-brands fa-linkedin'></i></button>
-    </div>`;
+    const html = `<div class="pill">`+
+      `<button class="sq-btn" data-k="phone" title="Phone"><i class='fa-solid fa-phone' style='color:#fff'></i></button>`+
+      `<button class="sq-btn" data-k="email" title="Email"><i class='fa-solid fa-envelope' style='color:#fff'></i></button>`+
+      `<button class="sq-btn" data-k="address" title="Address"><i class='fa-solid fa-location-dot' style='color:#fff'></i></button>`+
+      `<button class="sq-btn" data-k="linkedin" title="LinkedIn"><i class='fa-brands fa-linkedin' style='color:#fff'></i></button>`+
+    `</div>`;
+    pop.innerHTML = html;
     document.body.appendChild(pop);
     pop.addEventListener('click', e=>{
       const btn = e.target.closest('button'); const k = btn?.dataset.k; if(!k) return;
-      // create the chip inline and focus it for editing
       S.contact = S.contact || {};
+      // only add if not already present
+      if (S.contact[k] && S.contact[k].trim()) { pop.classList.remove('open'); return; }
       const placeholder = (k==='linkedin') ? 'linkedin.com/in/your-handle' : (k==='phone'?'+1 555 555 5555': (k==='email'?'you@domain.com':'Your address'));
-      if (k==='linkedin') {
-        S.contact[k] = S.contact[k] || '';
-      } else {
-        S.contact[k] = S.contact[k] || '';
-      }
+      S.contact[k] = '';
       save();
       applyContact();
       // focus the new chip after a tick
       Promise.resolve().then(()=>{
         const head=getHeaderNode(); if(!head) return;
         const chips = head.querySelectorAll('.chip');
-        const last = chips[chips.length-1]; if(last){ last.focus(); last.setAttribute('contenteditable','true'); }
+        const last = chips[chips.length-1]; if(last){ last.focus(); last.click(); last.setAttribute('contenteditable','true'); }
       });
       pop.classList.remove('open');
     });
   }
+  // hide used ones
+  const used = Object.keys(S.contact||{}).filter(k=> !!S.contact[k]);
+  pop.querySelectorAll('.sq-btn').forEach(b=>{ const k=b.dataset.k; if(used.indexOf(k)!==-1) b.classList.add('hidden'); else b.classList.remove('hidden'); });
   const r = anchor.getBoundingClientRect();
   pop.style.left = `${Math.round(r.left + (r.width/2))}px`;
   pop.style.top  = `${Math.round(r.top  - 12)}px`;
