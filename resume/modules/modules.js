@@ -1,320 +1,325 @@
 // /resume/modules/modules.js
-// [modules.js] v2.4 — sections renderers + anchored add menu + editing chrome
-console.log('[modules.js] v2.4');
-
-import { ensureCanvas, getRailHolder, getSideMain, isSidebarActive } from '../layouts/layouts.js';
+// [modules.js] v2.5
+// - Horizontal icon-only Add menu (dark, centered above the + squircle)
+// - openAddMenu export (used by editor.js)
+// - renderSkills/ renderEdu/ renderExp/ renderBio exports (used by wizard.js)
+// - Skills {toRail:true} places the module in the Sidebar rail
+// - Chip tools: quick add + reorder mode for header chips
+console.log('[modules.js] v2.5');
 import { S } from '../app/state.js';
+import {
+  getRailHolder,
+  getSideMain,
+  ensureAddAnchor,
+  applyContact,
+  restyleContactChips
+} from '../layouts/layouts.js';
 
-/* ============================================================
-   Styles injected once
-   ============================================================ */
-(function ensureModuleStyles(){
-  if (document.getElementById('modules-style')) return;
-  const st = document.createElement('style');
-  st.id = 'modules-style';
+/* -------------------------------------------------------------------------- */
+/*  Minimal styles this file needs                                            */
+/* -------------------------------------------------------------------------- */
+(function ensureStyles(){
+  if (document.getElementById('modules-v320')) return;
+  const st = document.createElement('style'); st.id = 'modules-v320';
   st.textContent = `
-  /* ---- generic chips / badges ---- */
-  .badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;font-weight:800;font-size:12px}
-  .badge i{font-size:12px}
+  /* add menu (icon-only, horizontal) */
+  #addMenu{position:fixed;inset:0;display:none;place-items:center;background:transparent;z-index:30000}
+  #addMenu.open{display:grid}
+  #addMenu .tray{position:absolute;transform:translate(-50%,-14px);display:flex;gap:10px;
+    background:#0c1328;border:1px solid #1f2540;border-radius:999px;padding:8px 10px;box-shadow:0 22px 50px rgba(0,0,0,.45)}
+  #addMenu .item{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;cursor:pointer;
+    color:#e6ecff;border:1px solid #223059}
+  #addMenu .item:hover{background:#121a33}
+  #addMenu .item i{font-size:16px}
 
-  /* use theme gradient tips for light tints */
-  :root{
-    --mz-bg: #0f1420;
-    --mz-card: #0e1324;
-    --mz-cardB: #121a35;
-    --mz-ink: #e8ecff;
-    --mz-ink-70: #c9d1ffb3;
-    --mz-line: #202a4c;
-    --mz-shadow: 0 18px 50px rgba(0,0,0,.35);
-  }
+  /* chip toolbar (small row above + in rail) */
+  .chip-tools{position:absolute;left:50%;transform:translate(-50%,-8px);display:flex;gap:8px;
+    background:#0c1328;border:1px solid #1f2540;border-radius:999px;padding:6px 8px;box-shadow:0 16px 40px rgba(0,0,0,.35)}
+  .chip-tools .ct-btn{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:#e6ecff;border:1px solid #223059;cursor:pointer}
+  .chip-tools .ct-btn:hover{background:#121a33}
+  .chip-drag{outline:2px dashed #7c99ff77;border-radius:999px}
 
-  /* ---- generic section ---- */
-  .section{position:relative;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid #ffffff14;box-shadow:0 10px 26px rgba(0,0,0,.28);padding:14px}
-  [data-mat="paper"] .section{background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 10px 24px rgba(0,0,0,.08)}
-  .section .s-head{display:flex;align-items:center;gap:10px;margin:2px 4px 10px}
-  .section .s-head i{width:18px;text-align:center;color:var(--accent)}
-  .section .s-head .s-title{font-weight:900}
-  .section .s-body{display:grid;gap:10px}
+  /* skill item edit affordances (float, don't alter layout width) */
+  .sk-item{position:relative}
+  .sk-item .sk-float{position:absolute;top:-8px;display:flex;gap:8px;align-items:center}
+  .sk-item .sk-float .h{left:-22px}
+  .sk-item .sk-float .x{right:-22px}
+  .sk-stars{display:inline-flex;gap:6px;vertical-align:middle}
+  .sk-stars svg{width:12px;height:12px;fill:#8a95b8}
+  .sk-stars svg.on{fill:#f5b301}
+  .sk-slider{width:90px;vertical-align:middle}
 
-  /* ---- skills module ---- */
-  .module-skills .s-body{gap:8px}
-  .module-skills .sk-row{display:grid;grid-template-columns:2fr 1fr;align-items:center;gap:10px;position:relative}
-  .module-skills .sk-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .module-skills .stars{display:inline-flex;gap:6px;justify-content:flex-end}
-  .module-skills .star{width:14px;height:14px;fill:#cfd6ff}
-  .module-skills .star.on{fill:#f59e0b}
-  .module-skills .slider{width:100%}
+  /* year chips tint (not forced dark) */
+  .year-chip{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;
+    border:1px solid #00000014;color:#111;font-weight:800}
+  [data-dark="1"] .year-chip{color:#0b1224}
+  .edu-card{border-radius:14px;border:1px solid #00000012;padding:10px 12px}
+  [data-dark="1"] .edu-card{border-color:#ffffff1e}
 
-  /* skills in rail — rating is one third of rail width */
-  .sidebar-layout .rail .module-skills .sk-row{grid-template-columns:2fr 1fr}
-
-  /* two columns per row when skills live in the main area with sidebar layout */
-  .sidebar-layout [data-zone="main"] .module-skills .s-body{
-    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
-  }
-  .sidebar-layout [data-zone="main"] .module-skills .sk-row{grid-template-columns:3fr 1fr}
-
-  /* editing chrome that floats (doesn't consume layout) */
-  .sk-row[data-editing="1"]{outline:2px dashed #7aa2ff80; outline-offset:4px; border-radius:10px}
-  .sk-row[data-editing="1"] .drag, .sk-row[data-editing="1"] .kill{
-    position:absolute;top:-12px;display:grid;place-items:center;width:22px;height:22px;border-radius:999px;background:#0d1226;border:1px solid #2a345f;color:#cfe1ff;box-shadow:0 6px 16px rgba(0,0,0,.28);
-  }
-  .sk-row[data-editing="1"] .drag{left:-12px;cursor:grab}
-  .sk-row[data-editing="1"] .kill{right:-12px;cursor:pointer}
-
-  /* ---- education cards (match canvas look; auto-tinted) ---- */
-  .edu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-  .edu-card{position:relative;border-radius:12px;padding:12px;border:1px solid var(--edu-line);background:var(--edu-bg);box-shadow:0 10px 24px rgba(0,0,0,.18)}
-  .edu-card .top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-  .edu-card .top .year{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;font-weight:900;background:var(--edu-year-bg);color:var(--edu-year-fg);border:1px solid var(--edu-year-line)}
-  .edu-card .title{font-weight:800;margin:6px 0 2px}
-  .edu-card .academy{opacity:.85}
-
-  /* tint using theme — not always dark */
-  .section[data-edu-tone]{--edu-bg: rgba(255,255,255,.08); --edu-line:#ffffff18; --edu-year-bg: var(--accent2); --edu-year-fg:#111; --edu-year-line:#00000022;}
-  [data-dark="1"] .section[data-edu-tone]{--edu-bg:#0e1324; --edu-line:#1c2646; --edu-year-bg: var(--accent); --edu-year-fg:#111; --edu-year-line:#00000022;}
-  [data-mat="paper"] .section[data-edu-tone]{--edu-bg:#fff; --edu-line:rgba(0,0,0,.08); --edu-year-bg: var(--accent); --edu-year-fg:#111; --edu-year-line:#00000012;}
-
-  /* if theme is too dark on chip, switch to white text */
-  body[data-theme="grayBlack"] .edu-card .top .year,
-  body[data-theme="magentaPurple"][data-dark="1"] .edu-card .top .year{color:#fff}
-
-  /* ---- experience cards (same as canvas pink/neutral tint) ---- */
-  .exp-grid{display:grid;gap:12px}
-  .exp-card{position:relative;border-radius:12px;padding:12px;border:1px solid var(--exp-line);background:var(--exp-bg);box-shadow:0 10px 24px rgba(0,0,0,.18)}
-  .exp-card .row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-  .exp-card .when{font-weight:800}
-  .exp-card .role{font-weight:900}
-  .exp-card .org{opacity:.9}
-  .exp-card .desc{opacity:.95;margin-top:4px}
-  /* tone vs theme */
-  .section[data-exp-tone]{--exp-bg:#ffe6f1; --exp-line:#ffc2da;}
-  [data-dark="1"] .section[data-exp-tone]{--exp-bg:#2a1c29; --exp-line:#4b2b43;}
-  [data-mat="paper"] .section[data-exp-tone]{--exp-bg:#fff0f6; --exp-line:#ffd0e6;}
-
-  /* ---- anchored add menu ---- */
-  .add-menu{position:fixed;z-index:30000;display:grid;gap:8px;padding:10px;background:#0c1223;border:1px solid #28335b;border-radius:12px;box-shadow:0 26px 90px rgba(0,0,0,.55)}
-  [data-mat="paper"] .add-menu{background:#fff;border:1px solid rgba(0,0,0,.12)}
-  .add-menu .itm{display:flex;gap:8px;align-items:center;cursor:pointer;border-radius:8px;padding:8px 10px}
-  .add-menu .itm:hover{background:#19233f}
-  [data-mat="paper"] .add-menu .itm:hover{background:#f5f6fb}
-  .add-menu .itm i{width:16px;text-align:center;color:var(--accent)}
-
-  /* ---- sparkle + plus twinkle ---- */
-  @keyframes twinkle {
-    0%{transform:translate(0,0) scale(1); opacity:.2}
-    50%{opacity:1}
-    100%{transform:translate(var(--dx), var(--dy)) scale(0.6); opacity:0}
-  }
-  .twinkle-wrap{display:grid;place-items:center;height:92px;border:1px dashed #2b3458;border-radius:12px;position:relative;overflow:hidden}
-  .twinkle-wrap .added{font-weight:900;letter-spacing:.3px}
-  .twinkle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
-  .twinkle .p{position:absolute;font-weight:900;color:#26d07c;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
-  .twinkle .s{position:absolute;color:#ffd166;filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))}
+  /* small helpers for sections */
+  .section{border-radius:14px;background:var(--sec-bg,#fff);border:1px solid var(--sec-br,#0000);padding:12px}
+  [data-dark="1"] .section{--sec-bg:#0f1420;--sec-br:#1f2540}
+  .section .sec-hd{display:flex;gap:8px;align-items:center;font-weight:900}
+  .section .sec-hd i{color:var(--accent)}
+  .section .body{margin-top:8px;display:grid;gap:8px}
   `;
   document.head.appendChild(st);
 })();
 
-/* ============================================================
-   Helpers
-   ============================================================ */
-const $ = (s, r=document)=> r.querySelector(s);
-const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
-
-function ensureSection(kind, title, icon){
-  const root = (isSidebarActive() && kind==='skills' && S?.skillsToRail!==false) ? (getRailHolder() || getSideMain()) : getSideMain();
-  let box = root.querySelector(`[data-module="${kind}"]`);
-  if (!box){
-    box = document.createElement('div');
-    box.className = `section module-${kind}`;
-    box.setAttribute('data-module', kind);
-    if (kind==='education') box.setAttribute('data-edu-tone','');
-    if (kind==='experience') box.setAttribute('data-exp-tone','');
-    box.innerHTML = `
-      <div class="s-head"><i class="${icon}"></i><div class="s-title">${title}</div></div>
-      <div class="s-body"></div>`;
-    // for sidebar layout, sections in main should span full width (layout code already handles)
-    const addNode = $('#canvasAdd') || ensureCanvas().add;
-    const parent = addNode?.parentElement || root;
-    parent.insertBefore(box, addNode || null);
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                   */
+/* -------------------------------------------------------------------------- */
+function hostFor(opts={}) {
+  // In Sidebar layout, toRail:true -> left rail; otherwise right/main column
+  if (opts.toRail) {
+    const rail = getRailHolder();
+    if (rail) return rail;
   }
-  return box.querySelector('.s-body');
+  return getSideMain();
 }
 
-function makeStars(n){
-  const wrap = document.createElement('span');
-  wrap.className = 'stars';
-  for(let i=1;i<=5;i++){
-    const s = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    s.setAttribute('viewBox','0 0 24 24'); s.classList.add('star'); if (i<=n) s.classList.add('on');
-    s.innerHTML = `<path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21Z"/>`;
-    wrap.appendChild(s);
+function makeSection(kind, title, icon){
+  let sec = document.querySelector(`.module[data-kind="${kind}"]`);
+  if (!sec){
+    sec = document.createElement('div');
+    sec.className = 'module section';
+    sec.setAttribute('data-kind', kind);
+    sec.innerHTML = `<div class="sec-hd"><i class="${icon}"></i><span>${title}</span></div><div class="body"></div>`;
+    hostFor().insertBefore(sec, document.getElementById('canvasAdd'));
+    ensureAddAnchor(true);
   }
-  return wrap;
+  return sec;
 }
 
-function sparkleAdded(container){
-  // Container gets a fancy twinkle for ~1s
-  container.innerHTML = `
-    <div class="twinkle-wrap">
-      <div class="added">Added</div>
-      <div class="twinkle"></div>
-    </div>`;
-  const tw = container.querySelector('.twinkle');
-  const count = 14;
-  for(let i=0;i<count;i++){
-    const el = document.createElement('div');
-    const isPlus = Math.random() > .5;
-    el.className = isPlus ? 'p' : 's';
-    el.textContent = isPlus ? '+' : '✶';
-    const ang = Math.random()*Math.PI*2;
-    const rad = 40 + Math.random()*80;
-    const dx = Math.cos(ang)*rad, dy=Math.sin(ang)*rad;
-    el.style.setProperty('--dx', `${dx}px`);
-    el.style.setProperty('--dy', `${dy}px`);
-    el.style.left = '0px'; el.style.top = '0px';
-    el.style.animation = `twinkle ${600+Math.random()*500}ms ease-out ${Math.random()*200}ms forwards`;
-    tw.appendChild(el);
-  }
-  setTimeout(()=> container.innerHTML = '', 1200);
+function tintChip(el){
+  const cs = getComputedStyle(document.documentElement);
+  const a1 = cs.getPropertyValue('--accent').trim() || '#8b5cf6';
+  const a2 = cs.getPropertyValue('--accent2').trim() || '#d946ef';
+  el.style.background = `linear-gradient(135deg, ${a2}22, ${a1}22)`;
+  el.style.borderColor = `${a1}55`;
 }
 
-/* ============================================================
-   Public: openAddMenu (anchored above big dotted plus)
-   ============================================================ */
-export function openAddMenu(anchor){
-  const old = document.querySelector('.add-menu'); old?.remove();
-
-  const r = anchor.getBoundingClientRect();
-  const menu = document.createElement('div');
-  menu.className = 'add-menu';
-  menu.innerHTML = `
-    <div class="itm" data-k="exp"><i class="fa-solid fa-briefcase"></i><span>Add experience</span></div>
-    <div class="itm" data-k="edu-course"><i class="fa-solid fa-scroll"></i><span>Add course</span></div>
-    <div class="itm" data-k="edu-degree"><i class="fa-solid fa-graduation-cap"></i><span>Add degree</span></div>
-    <div class="itm" data-k="skills"><i class="fa-solid fa-layer-group"></i><span>Add skills</span></div>
-    <div class="itm" data-k="bio"><i class="fa-solid fa-user-pen"></i><span>Add bio</span></div>`;
-  document.body.appendChild(menu);
-
-  // center above the + squircle
-  const mw = menu.offsetWidth;
-  const mh = menu.offsetHeight;
-  const cx = r.left + r.width/2;
-  const top = Math.max(12, r.top - mh - 12);
-  menu.style.left = `${Math.max(12, cx - mw/2)}px`;
-  menu.style.top  = `${top}px`;
-
-  const close = (e)=>{
-    if (!menu.contains(e.target) && e.target!==anchor){ menu.remove(); document.removeEventListener('mousedown', close); }
-  };
-  document.addEventListener('mousedown', close);
-
-  // wire items
-  menu.addEventListener('click', (e)=>{
-    const it = e.target.closest('.itm'); if(!it) return;
-    const k = it.dataset.k;
-    if (k==='exp') renderExp([{ dates:'Jan 2024 – Present', role:'Job title', org:'@Company', desc:'Describe impact, scale and results.' }]);
-    if (k==='edu-course') renderEdu([{ kind:'course', title:'Course', dates:'2018–2022', academy:'Academy' }]);
-    if (k==='edu-degree') renderEdu([{ kind:'degree', title:'Degree', dates:'2018–2022', academy:'Academy' }]);
-    if (k==='skills') renderSkills([{type:'star',label:'Skill',stars:3},{type:'slider',label:'Skill',value:60}], { toRail:true });
-    if (k==='bio') renderBio('Add a short summary of your profile, strengths and what you’re looking for.');
-    menu.remove();
-  });
+function svgStar(on=false){
+  return `<svg viewBox="0 0 24 24" ${on?'class="on"':''}><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
 }
 
-/* ============================================================
-   Public: Skills
-   ============================================================ */
-export function renderSkills(items, opts={}){
-  // remember rail choice for later calls
-  if (typeof opts.toRail === 'boolean') S.skillsToRail = !!opts.toRail;
+/* -------------------------------------------------------------------------- */
+/*  RENDERERS (used by wizard + add menu)                                     */
+/* -------------------------------------------------------------------------- */
 
-  const body = ensureSection('skills','Skills','fa-solid fa-layer-group');
-  body.classList.add('sk-body');
+export function renderSkills(items=[], opts={}){
+  const sec = makeSection('skills','Skills','fa-solid fa-layer-group');
+  const body = sec.querySelector('.body');
+  body.innerHTML = '';
 
-  // create rows
   items.forEach(it=>{
     const row = document.createElement('div');
-    row.className = 'sk-row';
-    row.setAttribute('data-editing','1'); // editing chrome by default while building
+    row.className = 'sk-item';
+    const name = document.createElement('span');
+    name.textContent = it.label || 'Skill';
+    name.style.display='inline-block';
+    name.style.width='66%';
 
-    const label = document.createElement('div');
-    label.className = 'sk-label';
-    label.textContent = it.label || 'Skill';
-
-    const right = document.createElement('div');
+    let right;
     if (it.type === 'star'){
-      right.appendChild(makeStars(it.stars||0));
+      right = document.createElement('span');
+      right.className = 'sk-stars';
+      right.innerHTML = [1,2,3,4,5].map(i => svgStar(i<=(+it.stars||0))).join('');
     } else {
-      const input = document.createElement('input');
-      input.type='range'; input.min='0'; input.max='100'; input.value = String(it.value ?? 60);
-      input.className='slider';
-      right.appendChild(input);
+      right = document.createElement('input');
+      right.type='range'; right.min=0; right.max=100;
+      right.value = +it.value||60; right.className='sk-slider';
     }
 
-    // floating chrome (doesn't affect layout)
-    const drag = document.createElement('div'); drag.className='drag'; drag.innerHTML='⋮⋮';
-    const kill = document.createElement('div'); kill.className='kill'; kill.textContent='×';
-    kill.onclick = ()=> row.remove();
+    const wrap = document.createElement('div');
+    wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.justifyContent='space-between';
+    wrap.appendChild(name); wrap.appendChild(right);
+    row.appendChild(wrap);
 
-    row.append(label, right, drag, kill);
+    // floating edit affordances (don't consume layout width)
+    const fl = document.createElement('div');
+    fl.className='sk-float';
+    fl.style.position='absolute'; fl.style.left='-22px'; fl.style.right='-22px'; fl.style.top='-8px'; fl.style.display='flex'; fl.style.justifyContent='space-between';
+    fl.innerHTML = `
+      <span class="h" title="Drag" style="cursor:grab"><i class="fa-solid fa-grip-vertical"></i></span>
+      <span class="x" title="Delete" style="cursor:pointer"><i class="fa-solid fa-xmark"></i></span>`;
+    fl.querySelector('.x').onclick = ()=> row.remove();
+    row.appendChild(fl);
+
     body.appendChild(row);
   });
+
+  // if requested to rail and we're not in rail yet, move it
+  if (opts.toRail){
+    const rail = hostFor({toRail:true});
+    if (rail && sec.parentElement!==rail){
+      rail.insertBefore(sec, rail.querySelector(':scope > *') || null);
+      ensureAddAnchor(true);
+    }
+  }
+
+  return sec;
 }
 
-/* ============================================================
-   Public: Education
-   ============================================================ */
-export function renderEdu(items){
-  const body = ensureSection('education','Education','fa-solid fa-graduation-cap');
-
-  // ensure grid container
-  let grid = body.querySelector('.edu-grid');
-  if(!grid){ grid = document.createElement('div'); grid.className='edu-grid'; body.appendChild(grid); }
+export function renderEdu(items=[]){
+  const sec = makeSection('education','Education','fa-solid fa-graduation-cap');
+  const body = sec.querySelector('.body');
+  body.innerHTML = '';
 
   items.forEach(it=>{
     const card = document.createElement('div');
     card.className='edu-card';
-    card.innerHTML = `
-      <div class="top">
-        <i class="fa-solid ${it.kind==='degree'?'fa-graduation-cap':'fa-scroll'}"></i>
-        <div class="year">${it.dates || '2018–2022'}</div>
-      </div>
-      <div class="title">${it.title || (it.kind==='degree'?'Degree':'Course')}</div>
-      <div class="academy">${it.academy || 'Academy'}</div>`;
-    grid.appendChild(card);
+    const chip = document.createElement('span');
+    chip.className='year-chip';
+    chip.innerHTML = `<i class="fa-solid ${it.kind==='degree'?'fa-graduation-cap':'fa-scroll'}"></i> ${it.dates||'2018–2022'}`;
+    tintChip(chip);
+
+    const t = document.createElement('div');
+    t.style.marginTop='8px';
+    t.innerHTML = `
+      <div style="font-weight:800">${it.title||''}</div>
+      <div style="opacity:.8">${it.academy||''}</div>
+    `;
+
+    card.appendChild(chip);
+    card.appendChild(t);
+    body.appendChild(card);
   });
+
+  return sec;
 }
 
-/* ============================================================
-   Public: Experience (+ sparkle handoff when adding from wizard)
-   ============================================================ */
-export function renderExp(items){
-  const body = ensureSection('experience','Work experience','fa-solid fa-briefcase');
-  body.classList.add('exp-grid');
+export function renderExp(items=[]){
+  const sec = makeSection('experience','Work experience','fa-solid fa-briefcase');
+  const body = sec.querySelector('.body');
+  items.forEach(it=>{
+    const card = document.createElement('div');
+    card.className='edu-card';
+    const chip = document.createElement('span');
+    chip.className='year-chip';
+    chip.innerHTML = `<i class="fa-solid fa-bars-staggered"></i> ${it.dates||''}`;
+    tintChip(chip);
 
-  if (items && items.__sparkleTarget){ // internal hook
-    sparkleAdded(items.__sparkleTarget);
-  }
-
-  items.forEach(d=>{
-    const c = document.createElement('div');
-    c.className = 'exp-card';
-    c.innerHTML = `
-      <div class="row">
-        <div class="when badge"><i class="fa-solid fa-bars"></i>${d.dates || 'Jan 2024 – Present'}</div>
-        <div class="role">${d.role || 'Job title'}</div>
-      </div>
-      <div class="org">${d.org || '@Company'}</div>
-      <div class="desc">${d.desc || 'Describe impact, scale and results.'}</div>`;
-    body.appendChild(c);
+    const t = document.createElement('div');
+    t.style.marginTop='8px';
+    t.innerHTML = `
+      <div style="font-weight:800">${it.role||'Job title'}</div>
+      <div style="opacity:.85">@${(it.org||'Company').replace(/^@/,'')}</div>
+      <div style="margin-top:4px">${it.desc||''}</div>
+    `;
+    card.appendChild(chip);
+    card.appendChild(t);
+    body.appendChild(card);
   });
+  return sec;
 }
 
-/* ============================================================
-   Public: Bio
-   ============================================================ */
-export function renderBio(text){
-  const body = ensureSection('bio','Profile','fa-solid fa-id-badge');
-  body.innerHTML = `<div style="white-space:pre-wrap">${text || ''}</div>`;
+export function renderBio(text=''){
+  const sec = makeSection('bio','Profile','fa-solid fa-user');
+  sec.querySelector('.body').innerHTML = `<div>${text||''}</div>`;
+  return sec;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  ADD MENU (icon-only horizontal, dark)                                     */
+/* -------------------------------------------------------------------------- */
+
+export function openAddMenu(anchorEl){
+  const pop = document.getElementById('addMenu');
+  const tray = document.getElementById('addTray');
+  if(!pop || !tray) return;
+
+  // build items (icon-only)
+  tray.innerHTML = [
+    {k:'skills',  ic:'fa-layer-group', tip:'Skills'},
+    {k:'education', ic:'fa-graduation-cap', tip:'Education'},
+    {k:'experience',ic:'fa-briefcase', tip:'Work'},
+    {k:'bio', ic:'fa-user', tip:'Bio'},
+  ].map(it=>`<div class="item" data-k="${it.k}" title="${it.tip}"><i class="fa-solid ${it.ic}"></i></div>`).join('');
+
+  // position centered above the anchor (plus squircle)
+  const r = anchorEl.getBoundingClientRect();
+  tray.style.left = (r.left + r.width/2) + 'px';
+  tray.style.top  = (r.top) + 'px';
+
+  // open
+  pop.classList.add('open');
+
+  // close on outside
+  const close = (ev)=>{ if (!tray.contains(ev.target)) { pop.classList.remove('open'); document.removeEventListener('mousedown', close, true); }};
+  document.addEventListener('mousedown', close, true);
+
+  tray.onclick = (e)=>{
+    const k = e.target.closest('.item')?.dataset.k;
+    if(!k) return;
+    pop.classList.remove('open');
+
+    if (k==='skills')      renderSkills([{type:'star',label:'Skill',stars:3},{type:'slider',label:'Skill',value:60}], { toRail:false });
+    else if (k==='education') renderEdu([{kind:'course',title:'',dates:'2018–2022',academy:''}]);
+    else if (k==='experience') renderExp([{dates:'Jan 2024 – Present',role:'Job title',org:'Company',desc:'Describe impact, scale and results.'}]);
+    else if (k==='bio')       renderBio('Add a short summary of your profile, strengths and what you’re great at.');
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/*  CHIP TOOLS (above the + in rail; reorder + add basic chips)               */
+/* -------------------------------------------------------------------------- */
+
+(function mountChipTools(){
+  const head = document.querySelector('[data-header]');
+  if (!head) return;
+
+  // place a tiny toolbar above the rail "+" area (only in sidebar layout)
+  const rail = getRailHolder();
+  if (!rail) return;
+
+  // ensure the + anchor exists and is positioned by layouts
+  const add = ensureAddAnchor(true);
+  if (!add || add._chipTools) return;
+
+  const bar = document.createElement('div');
+  bar.className = 'chip-tools';
+  bar.innerHTML = `
+    <div class="ct-btn" title="Add phone"><i class="fa-solid fa-phone"></i></div>
+    <div class="ct-btn" title="Add email"><i class="fa-solid fa-envelope"></i></div>
+    <div class="ct-btn" title="Add location"><i class="fa-solid fa-location-dot"></i></div>
+    <div class="ct-btn" title="Add LinkedIn"><i class="fa-brands fa-linkedin"></i></div>
+    <div class="ct-btn" id="ctRe" title="Reorder"><i class="fa-solid fa-up-down-left-right"></i></div>
+  `;
+  add.appendChild(bar);
+  add._chipTools = true;
+
+  // add handlers (basic insert at end)
+  const c = S.contact || (S.contact={});
+  const ensure = ()=>{ applyContact(); restyleContactChips(); };
+
+  bar.children[0].onclick = ()=>{ c.phone   = c.phone   || '000 000 000'; ensure(); };
+  bar.children[1].onclick = ()=>{ c.email   = c.email   || 'user@email.com'; ensure(); };
+  bar.children[2].onclick = ()=>{ c.address = c.address || 'City, Country'; ensure(); };
+  bar.children[3].onclick = ()=>{ c.linkedin= c.linkedin|| 'username'; ensure(); };
+
+  // reorder mode (drag chips within header chips containers)
+  let on = false;
+  bar.querySelector('#ctRe').onclick = ()=>{
+    on = !on;
+    const holders = head.querySelectorAll('.chips');
+    holders.forEach(h=>{
+      h.querySelectorAll('.chip').forEach(ch=>{
+        ch.setAttribute('draggable', on?'true':'false');
+        ch.classList.toggle('chip-drag', on);
+      });
+      if (on && !h._drag){
+        h._drag = true;
+        let dragEl=null;
+        h.addEventListener('dragstart', e=>{ const it=e.target.closest('.chip'); if(!it) return; dragEl=it; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain','');}catch(_){}})
+        h.addEventListener('dragover', e=>{
+          if(!dragEl) return; e.preventDefault();
+          const after = Array.from(h.querySelectorAll('.chip')).filter(x=>x!==dragEl)
+            .reduce((c,ch)=>{const b=ch.getBoundingClientRect(); const off=e.clientX-b.left-b.width/2; return off<0 && off>c.o?{o:off,el:ch}:c;},{o:-1e9}).el;
+          if(!after) h.appendChild(dragEl); else h.insertBefore(dragEl, after);
+        });
+        h.addEventListener('dragend', ()=> dragEl=null);
+      }
+    });
+  };
+})();
