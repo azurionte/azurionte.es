@@ -74,10 +74,14 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .sidebar-layout .rail .name:focus{ outline:none; box-shadow:none }
   /* name block anchors the add button so it's always centered under the name */
   .sidebar-layout .rail .name-block{ position:relative; width:100%; display:block; text-align:center }
+  /* explicit wrapper for chips + add button to ensure the add button is centered */
+  .sidebar-layout .rail .chip-wrap{ display:flex;flex-direction:column;gap:8px;align-items:center }
+  .sidebar-layout .rail .chip-wrap .chips{ width:100%; display:flex; flex-direction:column; gap:8px }
   /* place the add button in-flow after the chips so it naturally sits below the latest chip
     while remaining centered across the full rail width */
-  .sidebar-layout .rail .chips{ width:100%; display:flex; flex-wrap:wrap; gap:8px }
-  .sidebar-layout .rail #chipAddBtn{ display:block; margin:8px auto 6px; width:44px; height:44px; border-radius:12px; background:#0b1022 !important; color:#fff !important; border:0; box-shadow:0 8px 20px rgba(11,16,34,.28); font-weight:800 }
+  /* In sidebar layout, chips are single-column (one per row) */
+  .sidebar-layout .rail .chips{ width:100%; display:flex; flex-direction:column; gap:8px }
+  .sidebar-layout .rail #chipAddBtn{ display:block; margin:8px auto 6px; width:44px; height:44px; border-radius:12px; background:#0b1022 !important; color:#fff !important; border:0; box-shadow:0 8px 20px rgba(11,16,34,.28); font-weight:800; z-index:40 }
   .sidebar-layout .rail #chipAddBtn:hover{ filter:brightness(1.03) }
   /* prevent the browser "editing" container from showing an ugly border/outline */
   .sidebar-layout .rail .name[contenteditable]{ caret-color: #fff; }
@@ -88,6 +92,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   /* small floating chip remove */
   .chip{position:relative}
   .chip .chip-rm{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:999px;padding:0;border:0;font-size:12px;background:#fff;color:#111;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer}
+  .chip .chip-rm{user-select:none;-webkit-user-select:none}
 
   /* section delete (prominent red) and header controls */
   .sec-head{position:relative}
@@ -240,10 +245,11 @@ function initAvatars(root){
 function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
-  el.contentEditable = 'true';         // editable directly
-  el.innerHTML = `<i class="${icon}"></i><span>${text}</span><button class="chip-rm" title="Remove" style="margin-left:8px;border-radius:8px;padding:2px 6px">×</button>`;
+  // only the text span should be editable — protects the remove button from receiving edits
+  el.innerHTML = `<i class="${icon}"></i><span contenteditable="true">${text}</span><button class="chip-rm" title="Remove" aria-label="Remove contact" tabindex="-1" aria-hidden="true" role="button" contenteditable="false" style="margin-left:8px;border-radius:8px;padding:2px 6px">×</button>`;
   // remove handler (best-effort: clears matching contact value)
-  el.querySelector('.chip-rm').addEventListener('click', ()=>{
+  const rm = el.querySelector('.chip-rm');
+  rm.addEventListener('click', ()=>{
     try{
       const txt = el.textContent.trim();
       if (S && S.contact){
@@ -255,12 +261,56 @@ function chip(icon, text){
   try{ applyContact(); }catch(e){}
     }catch(e){}
   });
-  // persist edits when the chip loses focus
-  el.addEventListener('focusout', ()=>{
+  // enforce non-editable and block keyboard interactions on the remove button
+  try{ rm.setAttribute('contenteditable','false'); rm.setAttribute('aria-hidden','true'); rm.setAttribute('tabindex','-1'); }catch(e){}
+  rm.addEventListener('keydown', (e)=>{ e.preventDefault(); e.stopPropagation(); });
+  // the editable text node inside the chip — declared once
+  const span = el.querySelector('span[contenteditable]');
+  // prevent backspace/delete from affecting the remove button or surrounding DOM
+  span.addEventListener('keydown', (e)=>{
+    // get current selection/range in a robust way
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    const { startContainer, startOffset, collapsed } = range;
+    // If caret is collapsed inside the text node at start, block Backspace
+    if (e.key === 'Backspace'){
+      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === 0){
+        e.preventDefault();
+        return;
+      }
+    }
+    // If caret is collapsed inside the text node at end, block Delete
+    if (e.key === 'Delete'){
+      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === span.textContent.length){
+        e.preventDefault();
+        return;
+      }
+    }
+    // If caret is at end and user presses ArrowRight, move focus to the remove button
+    if (e.key === 'ArrowRight'){
+      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === span.textContent.length){
+        e.preventDefault();
+        try{ rm.focus(); }catch(err){}
+        return;
+      }
+    }
+    // If caret is at start and user presses ArrowLeft, move focus to the chip container (avoid entering left sibling)
+    if (e.key === 'ArrowLeft'){
+      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === 0){
+        e.preventDefault();
+        try{ span.parentElement && span.parentElement.focus && span.parentElement.focus(); }catch(err){}
+        return;
+      }
+    }
+    // For other keys, allow default behavior
+  });
+  // persist edits when the chip's editable span loses focus
+  span.addEventListener('focusout', ()=>{
     try{
       const k = el.dataset.key;
       if (!k) return;
-      const text = el.querySelector('span')?.textContent?.trim() || el.textContent.trim();
+      const text = span?.textContent?.trim() || '';
       if (!S.contact) S.contact = {};
       // for linkedin, strip any leading /in/ or domain
       if (k === 'linkedin'){
@@ -324,11 +374,15 @@ function openChipMenu(anchor){
       S.contact[k] = placeholder;
       save();
       applyContact();
-      // focus the new chip after a tick
+      // focus the new chip's editable span after a tick and place caret at end
       Promise.resolve().then(()=>{
         const head=getHeaderNode(); if(!head) return;
         const chips = head.querySelectorAll('.chip');
-        const last = chips[chips.length-1]; if(last){ last.focus(); last.setAttribute('contenteditable','true'); }
+        const last = chips[chips.length-1];
+        if(last){
+          const sp = last.querySelector('span[contenteditable]');
+          if (sp){ sp.focus(); const range = document.createRange(); range.selectNodeContents(sp); range.collapse(false); const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range); }
+        }
       });
       pop.classList.remove('open');
     });
@@ -380,7 +434,7 @@ function buildHeader(kind){
           <div class="name-block">
             <h2 class="name" contenteditable>YOUR NAME</h2>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch;">
+          <div class="chip-wrap">
             <div class="chips" data-info></div>
             <button id="chipAddBtn" title="Add contact" class="add-dot">+</button>
           </div>
