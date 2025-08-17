@@ -53,11 +53,19 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .skill-remove{position:absolute;left:-6px;top:50%;transform:translateY(-50%);border:0;background:#fff;border-radius:999px;width:28px;height:28px;box-shadow:0 6px 16px rgba(0,0,0,.12);cursor:pointer}
   .sec-adds{display:flex;gap:8px;margin-left:8px}
   .sec-adds button{border:0;background:transparent;color:inherit;cursor:pointer;padding:6px;border-radius:8px}
-  /* centered squircle add anchor */
-  .sec-add-anchor{display:flex;justify-content:center;padding:12px 0}
-  .squircle-add{width:56px;height:56px;border-radius:14px;background:linear-gradient(180deg,#0f2b3a,#0b2330);display:grid;place-items:center;color:#dbeafe;border:0;box-shadow:0 8px 24px rgba(6,22,40,.6);cursor:pointer}
-  .squircle-add:hover{box-shadow:0 12px 36px rgba(8,36,64,.8);transform:translateY(-2px)}
-  .squircle-add:active{transform:translateY(0);box-shadow:0 6px 18px rgba(6,22,40,.5)}
+  /* centered add anchor area */
+  .sec-add-anchor{display:flex;justify-content:center;padding:12px 0;gap:8px}
+  /* pill add buttons (dark petroleum) */
+  .pill-add{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#071827;color:#e6f3ff;font-weight:700;border:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px rgba(2,10,18,.6);cursor:pointer}
+  .pill-add:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(2,10,18,.75)}
+  .pill-add:active{transform:translateY(0);box-shadow:0 6px 18px rgba(2,10,18,.5)}
+  /* top-right control circles (handle + remove) */
+  .card-controls{position:absolute;right:12px;top:12px;display:flex;gap:8px}
+  .ctrl-circle{width:36px;height:36px;border-radius:999px;background:#071827;color:#fff;display:grid;place-items:center;box-shadow:0 8px 20px rgba(2,10,18,.6);cursor:pointer;border:1px solid rgba(255,255,255,.06)}
+  .ctrl-circle:active{transform:translateY(1px)}
+  /* drag handle (left vertical dots) */
+  .drag-handle{width:36px;height:36px;border-radius:999px;background:#071827;color:#fff;display:grid;place-items:center;cursor:grab;border:1px solid rgba(255,255,255,.06)}
+  .skill-handle{width:34px;height:34px;border-radius:8px;background:#071827;color:#fff;display:grid;place-items:center;margin-right:10px}
   `;
   document.head.appendChild(st);
 })();
@@ -182,14 +190,17 @@ export function renderSkills(list, opts = {}){
         ? `<div class="stars">${[1,2,3,4,5].map(i => svgStar((it.stars||0) >= i)).join('')}</div>`
         : `<input class="meter" type="range" min="0" max="100" value="${it.value ?? 60}" disabled>`}
       </div>`;
-    const remove = document.createElement('button'); remove.textContent='×'; remove.title='Remove skill';
-    remove.style.cssText='margin-left:8px;border-radius:8px;padding:4px 8px;';
-    remove.addEventListener('click', ()=>{
+    // left handle for dragging / visual affordance
+    const handle = document.createElement('div'); handle.className = 'skill-handle'; handle.innerHTML = '<i class="fa-solid fa-grip-lines-vertical"></i>';
+    row.insertBefore(handle, row.firstChild);
+    // control circle for remove (styled squircle)
+    const ctrl = document.createElement('button'); ctrl.className = 'ctrl-circle'; ctrl.title = 'Remove skill'; ctrl.innerHTML = '×';
+    ctrl.addEventListener('click', ()=>{
       row.remove();
-      try{ S.skills = (S.skills||[]).filter(x=> x.label !== it.label); save(); }catch(_){}
-      try{ refreshPlusVisibility(); }catch(_){}
+      try{ S.skills = (S.skills||[]).filter(x=> x.label !== it.label); save(); }catch(_){ }
+      try{ refreshPlusVisibility(); }catch(_){ }
     });
-    row.appendChild(remove);
+    row.appendChild(ctrl);
     // make name editable
     row.querySelector('.name').setAttribute('contenteditable','true');
     // make stars/slider interactive
@@ -240,15 +251,20 @@ export function renderEdu(items){
       <div style="font-weight:800">${it.title || ''}</div>
       <div>${it.academy || ''}</div>`;
     // add remove control
-    const remove = document.createElement('button'); remove.textContent='×'; remove.title='Remove';
-    remove.style.cssText = 'position:absolute;right:12px;top:12px;border-radius:8px;padding:4px 8px;';
-    remove.addEventListener('click', ()=>{
+    // top-right control circle + optional drag handle
+    card.style.position = 'relative';
+    const controls = document.createElement('div'); controls.className = 'card-controls';
+    const removeBtn = document.createElement('button'); removeBtn.className = 'ctrl-circle'; removeBtn.title = 'Remove'; removeBtn.innerHTML = '×';
+    removeBtn.addEventListener('click', ()=>{
       card.remove();
       // update S.edu to remove the corresponding item (best-effort by title)
-      try{ S.edu = (S.edu||[]).filter(x=> x.title !== it.title); save(); }catch(_){}
-      try{ refreshPlusVisibility(); }catch(_){}
+      try{ S.edu = (S.edu||[]).filter(x=> x.title !== it.title); save(); }catch(_){ }
+      try{ refreshPlusVisibility(); }catch(_){ }
     });
-    card.style.position='relative'; card.appendChild(remove);
+    controls.appendChild(removeBtn);
+    card.appendChild(controls);
+    const dHandle = document.createElement('div'); dHandle.className = 'drag-handle'; dHandle.innerHTML = '<i class="fa-solid fa-grip-vertical"></i>';
+    card.insertBefore(dHandle, card.firstChild);
     grid.appendChild(card);
   });
 
@@ -295,14 +311,18 @@ export function renderExp(items){
       <div style="opacity:.9">@${(it.org||'Company').replace(/^@/, '')}</div>
       <div style="height:8px"></div>
       <div>${it.desc || 'Describe impact, scale and results.'}</div>`;
-    const remove = document.createElement('button'); remove.textContent='×'; remove.title='Remove';
-    remove.style.cssText = 'position:absolute;right:12px;top:12px;border-radius:8px;padding:4px 8px;';
-    remove.addEventListener('click', ()=>{
+    card.style.position = 'relative';
+    const controlsX = document.createElement('div'); controlsX.className = 'card-controls';
+    const removeX = document.createElement('button'); removeX.className = 'ctrl-circle'; removeX.title = 'Remove'; removeX.innerHTML = '×';
+    removeX.addEventListener('click', ()=>{
       card.remove();
-      try{ S.exp = (S.exp||[]).filter(x=> x.role !== it.role); save(); }catch(_){}
-      try{ refreshPlusVisibility(); }catch(_){}
+      try{ S.exp = (S.exp||[]).filter(x=> x.role !== it.role); save(); }catch(_){ }
+      try{ refreshPlusVisibility(); }catch(_){ }
     });
-    card.style.position='relative'; card.appendChild(remove);
+    controlsX.appendChild(removeX);
+    card.appendChild(controlsX);
+    const dHandleX = document.createElement('div'); dHandleX.className = 'drag-handle'; dHandleX.innerHTML = '<i class="fa-solid fa-grip-vertical"></i>';
+    card.insertBefore(dHandleX, card.firstChild);
   // make displayed texts editable
   Array.from(card.querySelectorAll('div')).forEach(d=> d.setAttribute('contenteditable','true'));
   body.appendChild(card);
