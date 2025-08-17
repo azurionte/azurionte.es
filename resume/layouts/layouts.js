@@ -297,5 +297,7 @@ export function ensureAddAnchor(show){
   if(!s || !add) return null;
   if(add.parentElement!==s) s.appendChild(add);
   if(typeof show==='boolean') add.style.display=show?'flex':'none';
+  // Re-home any existing section wrappers into the current main zone.
+  try{ adoptSectionsToCurrentLayout(); }catch(e){ /* best-effort */ }
   return add;
 }
