@@ -1,16 +1,14 @@
-// /resume/wizard/wizard.js
-// [wizard.js] v2.10.0 — in-wizard editors for Skills/Edu/Exp + conditional adds
-console.log('[wizard.js] v2.10.0');
+// [wizard.js] v2.10.2 — inline editors + sidebar toggle + conditional adds
+console.log('[wizard.js] v2.10.2');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- mock styles (unchanged from your v2.9.1) ---------- */
+/* ---------- mock styles (kept) + inline editor styles ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
-  const st = document.createElement('style');
-  st.id = 'wizard-style';
+  const st = document.createElement('style'); st.id = 'wizard-style';
   st.textContent = `
     #wizard .wz-mock{width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease}
     #wizard .wz-mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset}
@@ -18,37 +16,41 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     #wizard .wz-card{position:absolute; inset:0; border-radius:16px; padding:12px;background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);overflow:hidden}
     #wizard .wz-pill{ height:10px; border-radius:999px; background:#2b375f; }
     #wizard .wz-pp{width:74px;height:74px;border-radius:50%; background:#cfd6ff;border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35)}
-
     /* side */
     #wizard .wz-mock--side .wz-left{position:absolute; left:12px; top:12px; bottom:12px; width:162px;border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px}
     #wizard .wz-mock--side .wz-right{position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px}
     #wizard .wz-mock--side .wz-right .wz-l1{ width:72% }  #wizard .wz-mock--side .wz-right .wz-l2{ width:56% }  #wizard .wz-mock--side .wz-left .wz-under{ width:72% }
-
     /* fancy */
     #wizard .wz-mock--fancy .wz-hero{position:absolute; left:12px; right:12px; top:12px; height:68px;border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14}
     #wizard .wz-mock--fancy .wz-pp{position:absolute; left:50%; transform:translateX(-50%); top:28px; width:92px; height:92px; z-index:1}
-    #wizard .wz-mock--fancy .wz-b1, #wizard .wz-mock--fancy .wz-b2, #wizard .wz-mock--fancy .wz-b3{position:absolute; left:50%; transform:translateX(-50%); z-index:0}
+    #wizard .wz-mock--fancy .wz-b1,#wizard .wz-mock--fancy .wz-b2,#wizard .wz-mock--fancy .wz-b3{position:absolute; left:50%; transform:translateX(-50%); z-index:0}
     #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px } #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px } #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px }
-
     /* top */
     #wizard .wz-mock--top .wz-hero{position:absolute; left:12px; right:12px; top:12px; height:66px;border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14}
     #wizard .wz-mock--top .wz-pp{position:absolute; right:26px; top:15px;width:60px; height:60px}
     #wizard .wz-mock--top .wz-txt{position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px}
     #wizard .wz-mock--top .wz-t1{ width:52%; height:10px } #wizard .wz-mock--top .wz-t2{ width:70%; height:10px }
-    #wizard .wz-mock--top .wz-b1, #wizard .wz-mock--top .wz-b2, #wizard .wz-mock--top .wz-b3{position:absolute; left:50%; transform:translateX(-50%)}
+    #wizard .wz-mock--top .wz-b1,#wizard .wz-mock--top .wz-b2,#wizard .wz-mock--top .wz-b3{position:absolute; left:50%; transform:translateX(-50%)}
     #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px } #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px } #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px }
 
     /* inline editors */
-    #wizGrid{display:grid;gap:10px}
-    .wiz-mini .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center}
-    .wiz-mini .row input[type=text]{background:#0c1328;color:#e7ebff;border:1px solid #243057;border-radius:10px;padding:8px 10px;width:100%}
-    .wiz-mini .row .stars{display:inline-flex;gap:6px}
+    .wiz-mini .row{display:grid;grid-template-columns:20px 20px 221px 100px;gap:10px;align-items:center;justify-content:center}
+    .wiz-mini .row .handle{display:grid;place-items:center}
+    .wiz-mini .row .del{display:grid;place-items:center}
+    .wiz-mini .row input[type=text]{background:#0c1328;color:#e7ebff;border:1px solid #243057;border-radius:10px;padding:8px 10px;width:221px}
+    .wiz-mini .row input[type=range]{width:100px}
+    .wiz-mini .row .stars{display:inline-flex;gap:6px;justify-self:center}
     .wiz-mini .row .star{cursor:pointer;width:16px;height:16px;fill:#d1d5db}
     .wiz-mini .row .star.active{fill:#f59e0b}
-    .wiz-mini .btns{display:flex;gap:8px;margin-top:8px}
-    .wiz-pill{background:#0c1328;border:1px solid #243057;color:#e7ebff;border-radius:10px;padding:8px 10px}
-    .wiz-badge{background:#1a2036;border:1px solid #2b3458;color:#cfe1ff;border-radius:999px;padding:4px 10px;font-weight:700}
+    .wiz-mini .btns{display:flex;gap:8px;margin-top:10px;justify-content:center}
+    .wiz-switch{display:inline-flex;align-items:center;gap:8px;justify-content:center;margin-top:8px}
+    .wiz-switch .switch{width:44px;height:24px;border-radius:999px;background:#243057;position:relative;cursor:pointer}
+    .wiz-switch .switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#8aa4ff;transition:left .15s ease}
+    .wiz-switch .switch.on::after{left:23px}
     .wiz-card{background:#0c1324;border:1px solid #1f2540;border-radius:12px;padding:10px;display:grid;gap:8px}
+    .wiz-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .wiz-pill{background:#0c1328;border:1px solid #243057;color:#e7ebff;border-radius:10px;padding:8px 10px;width:100%}
+    .wiz-badge{background:#1a2036;border:1px solid #2b3458;color:#cfe1ff;border-radius:999px;padding:4px 10px;font-weight:700}
     .wiz-added{display:grid;place-items:center;height:90px;border:1px dashed #2b3458;border-radius:12px;opacity:.85}
     .wiz-added .spark{animation:wPop .6s ease;display:inline-flex;gap:8px;align-items:center;font-weight:800}
     @keyframes wPop{0%{transform:scale(.9);opacity:.2}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
@@ -56,17 +58,16 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
   document.head.appendChild(st);
 })();
 
-/* ---------- tiny DnD for wizard lists ---------- */
+/* DnD used in wizard lists */
 function wizAttachDnd(container, itemSel){
   if(!container || container._dndWiz) return; container._dndWiz = true;
-  let dragEl=null, ph=null;
+  let dragEl=null;
   container.addEventListener('dragstart', e=>{
     const it = e.target.closest(itemSel); if(!it) return;
     dragEl=it; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain','');}catch(_){}
-    ph = document.createElement('div'); ph.style.height = it.offsetHeight+'px';
     setTimeout(()=> it.style.opacity='.35',0);
   });
-  container.addEventListener('dragend', ()=>{ if(dragEl){ dragEl.style.opacity=''; ph&&ph.remove(); dragEl=null; ph=null; } });
+  container.addEventListener('dragend', ()=>{ if(dragEl){ dragEl.style.opacity=''; dragEl=null; } });
   container.addEventListener('dragover', e=>{
     if(!dragEl) return; e.preventDefault();
     const after = Array.from(container.querySelectorAll(itemSel)).filter(x=>x!==dragEl)
@@ -75,14 +76,8 @@ function wizAttachDnd(container, itemSel){
   });
 }
 
-/* ---------- wizard state for in-step editors ---------- */
-let W = {
-  skills: [],          // {type:'star'|'slider', label, stars|value}
-  edu: [],             // {kind:'course'|'degree', title, dates, academy}
-  exp: [],             // collected items added via "Add another" button
-  expDraft: { dates:'', role:'', org:'', desc:'' }, // current editor values
-  bio: ''
-};
+/* wizard state */
+let W = { skills:[], addSkillsToRail:true, edu:[], exp:[], expDraft:{dates:'',role:'',org:'',desc:''}, bio:'' };
 
 /* ---------- Public API ---------- */
 export function mountWelcome() {
@@ -91,7 +86,6 @@ export function mountWelcome() {
   wrap.id = 'welcome';
   wrap.setAttribute('data-overlay', '');
   Object.assign(wrap.style, { position:'fixed', inset:'0', display:'grid', placeItems:'center', background:'rgba(0,0,0,.45)', zIndex:'20000' });
-
   wrap.innerHTML = `
     <div class="wcard" style="width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;justify-items:center;gap:16px">
       <div class="wtitle" style="font-weight:900;font-size:22px">Welcome to the Easy Resume Builder</div>
@@ -107,20 +101,15 @@ export function mountWelcome() {
       </div>
     </div>`;
   document.body.appendChild(wrap);
-
   wrap.querySelector('#startWizard').addEventListener('click', () => { wrap.style.display = 'none'; mountWizard(); openWizard(); });
   wrap.querySelector('#startBlank').addEventListener('click', () => { wrap.remove(); document.getElementById('canvasAdd')?.style && (document.getElementById('canvasAdd').style.display = 'flex'); });
 }
 
 export function mountWizard() {
   if (document.getElementById('wizard')) return;
-
   const modal = document.createElement('div');
-  modal.id = 'wizard';
-  modal.className = 'modal';
-  modal.setAttribute('data-overlay', '');
+  modal.id = 'wizard'; modal.className = 'modal'; modal.setAttribute('data-overlay', '');
   Object.assign(modal.style, { position:'fixed', inset:'0', display:'none', placeItems:'center', background:'rgba(0,0,0,.55)', zIndex:'21000' });
-
   modal.innerHTML = `
     <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden">
       <div class="wiz-left" style="background:#0c111f;border-right:1px solid #1b2340;padding:16px"><div class="step-list" id="stepList" style="display:grid;gap:8px"></div></div>
@@ -155,8 +144,7 @@ let backCount = 0;
 function openWizard(){ renderStep(); document.getElementById('wizard').style.display = 'grid'; }
 
 function buildWizard(){
-  const list = document.getElementById('stepList');
-  list.innerHTML = '';
+  const list = document.getElementById('stepList'); list.innerHTML = '';
   STEPS.forEach((s,i) => {
     const el = document.createElement('div');
     el.className = 'step'; el.dataset.i = i;
@@ -165,7 +153,7 @@ function buildWizard(){
     list.appendChild(el);
   });
   document.getElementById('wizBack').onclick = () => { if(stepIdx>0){ stepIdx--; backCount++; renderStep(); } };
-  document.getElementById('wizStartOver').onclick = () => { Object.assign(S,{ contact:{name:'',phone:'',email:'',address:'',linkedin:''} }); W={skills:[],edu:[],exp:[],expDraft:{dates:'',role:'',org:'',desc:''},bio:''}; stepIdx=0; backCount=0; renderStep(); };
+  document.getElementById('wizStartOver').onclick = () => { Object.assign(S,{ contact:{name:'',phone:'',email:'',address:'',linkedin:''} }); W={skills:[],addSkillsToRail:true,edu:[],exp:[],expDraft:{dates:'',role:'',org:'',desc:''},bio:''}; stepIdx=0; backCount=0; renderStep(); };
   document.getElementById('wizNext').onclick = advance;
 }
 
@@ -186,7 +174,7 @@ function renderStep(){
   markSteps();
   document.getElementById('wizStartOver').style.display = (backCount>=2 ? 'inline-flex' : 'none');
 
-  /* ----- LAYOUT ----- */
+  /* LAYOUT */
   if (s === 'layout'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
@@ -204,7 +192,7 @@ function renderStep(){
     body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
 
-  /* ----- THEME ----- */
+  /* THEME */
   if (s === 'theme'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
@@ -220,7 +208,7 @@ function renderStep(){
     body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); };
   }
 
-  /* ----- CONTACT ----- */
+  /* CONTACT */
   if (s === 'contact'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
@@ -232,71 +220,66 @@ function renderStep(){
         <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
         <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
       </div>`;
-['nm','ph','em','ad','ln'].forEach(id => {
-  body.querySelector('#' + id).oninput = () => {
-    S.contact = {
-      name: body.querySelector('#nm').value,
-      phone: body.querySelector('#ph').value,
-      email: body.querySelector('#em').value,
-      address: body.querySelector('#ad').value,
-      linkedin: body.querySelector('#ln').value
-    };
-    applyContact?.();
-  };
-});
+    ['nm','ph','em','ad','ln'].forEach(id=> body.querySelector('#'+id).oninput = ()=>{ S.contact = { name: body.querySelector('#nm').value, phone: body.querySelector('#ph').value, email: body.querySelector('#em').value, address: body.querySelector('#ad').value, linkedin: body.querySelector('#ln').value }; applyContact?.(); }));
   }
 
-  /* ----- SKILLS (inline list) ----- */
+  /* SKILLS */
   if (s === 'skills'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:10px">Use stars or a slider; you can fine-tune on the canvas later.</div>
+      <div class="wsub" style="opacity:.8;margin-bottom:10px;text-align:center">Use ★ or a slider; you can fine-tune on the canvas later.</div>
       <div class="wiz-mini">
-        <div id="wizSkills" class="list"></div>
+        <div id="wizSkills" class="list" style="display:grid;gap:8px;justify-items:center"></div>
         <div class="btns">
           <button class="mbtn" id="addStar">+ ★</button>
           <button class="mbtn" id="addSlider">+ <i class="fa-solid fa-sliders"></i></button>
+        </div>
+        <div class="wiz-switch">
+          <span>Add to sidebar</span>
+          <div id="toRail" class="switch ${W.addSkillsToRail?'on':''}"></div>
         </div>
       </div>`;
     const list = body.querySelector('#wizSkills');
 
     const rowStar = (label='Skill', active=0)=>{
       const r = document.createElement('div'); r.className='row'; r.setAttribute('draggable','true');
-      r.innerHTML = `<span class="handle">⋮⋮</span><input type="text" value="${label}"><span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span><button class="mbtn">×</button>`;
-      r.dataset.t='star';
+      r.innerHTML = `<span class="handle">⋮⋮</span><span class="del">×</span><input type="text" value="${label}"><span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span>`;
+      r.dataset.t='star'; r.querySelector('.del').onclick=()=>r.remove();
       r.querySelectorAll('.star').forEach((s,ix)=>{ if(ix<active) s.classList.add('active'); s.onclick = e=>{ const n=+e.currentTarget.dataset.i; r.querySelectorAll('.star').forEach((el,i)=> el.classList.toggle('active', i<n)); }; });
-      r.querySelector('.mbtn').onclick = ()=> r.remove();
       return r;
     };
     const rowSlider = (label='Skill', val=60)=>{
       const r = document.createElement('div'); r.className='row'; r.setAttribute('draggable','true');
-      r.innerHTML = `<span class="handle">⋮⋮</span><input type="text" value="${label}"><input type="range" min="0" max="100" value="${val}"><button class="mbtn">×</button>`;
-      r.dataset.t='slider'; r.querySelector('.mbtn').onclick = ()=> r.remove(); return r;
+      r.innerHTML = `<span class="handle">⋮⋮</span><span class="del">×</span><input type="text" value="${label}"><input type="range" min="0" max="100" value="${val}">`;
+      r.dataset.t='slider'; r.querySelector('.del').onclick=()=>r.remove(); return r;
     };
 
     body.querySelector('#addStar').onclick   = ()=> list.appendChild(rowStar());
     body.querySelector('#addSlider').onclick = ()=> list.appendChild(rowSlider());
     wizAttachDnd(list, '.row');
 
-    // restore previously added (if user navigates back)
+    // restore
     W.skills.forEach(it=> list.appendChild(it.type==='star' ? rowStar(it.label,it.stars) : rowSlider(it.label,it.value)));
+    body.querySelector('#toRail').onclick = (e)=>{ e.currentTarget.classList.toggle('on'); W.addSkillsToRail = e.currentTarget.classList.contains('on'); };
   }
 
-  /* ----- EDUCATION (inline cards) ----- */
+  /* EDUCATION */
   if (s === 'education'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>
-      <div id="wizEdu" class="wiz-mini"></div>
+      <div id="wizEdu" class="wiz-grid2"></div>
       <div class="btns"><button class="mbtn" id="addCourse">+ Add course</button><button class="mbtn" id="addDegree">+ Add degree</button></div>`;
     const list = body.querySelector('#wizEdu');
     const mk = (kind='course', data={})=>{
       const card = document.createElement('div'); card.className='wiz-card'; card.setAttribute('draggable','true'); card.dataset.k = kind;
+      const icon = kind==='degree' ? 'fa-graduation-cap' : 'fa-scroll';
       card.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px"><span class="handle">⋮⋮</span><span class="wiz-badge">${kind==='degree'?'Degree':'Course'}</span><button class="mbtn" title="Remove" style="margin-left:auto">×</button></div>
+        <div style="display:flex;align-items:center;gap:8px"><i class="fa-solid ${icon}"></i><span class="wiz-badge" contenteditable>2018–2022</span><button class="mbtn" title="Remove" style="margin-left:auto">×</button></div>
         <input type="text" placeholder="Title" class="wiz-pill" value="${data.title||''}">
-        <input type="text" placeholder="Dates (e.g. 2018–2022)" class="wiz-pill" value="${data.dates||''}">
         <input type="text" placeholder="Academy" class="wiz-pill" value="${data.academy||''}">`;
+      // store dates in badge
+      if (data.dates) card.querySelector('.wiz-badge').textContent = data.dates;
       card.querySelector('.mbtn').onclick = ()=> card.remove();
       return card;
     };
@@ -307,7 +290,7 @@ function renderStep(){
     W.edu.forEach(it=> list.appendChild(mk(it.kind,it)));
   }
 
-  /* ----- EXPERIENCE (one-at-a-time editor) ----- */
+  /* EXPERIENCE */
   if (s === 'experience'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
@@ -326,10 +309,7 @@ function renderStep(){
       return c;
     };
 
-    const showAdded = ()=>{
-      wrap.innerHTML = `<div class="wiz-added"><div class="spark">✨ <span>Added</span> <span style="color:#26d07c">+ +</span> ✨</div></div>`;
-      setTimeout(()=>{ wrap.innerHTML=''; wrap.appendChild(mkEditor({})); }, 520);
-    };
+    const showAdded = ()=>{ wrap.innerHTML = `<div class="wiz-added"><div class="spark">✨ <span>Added</span> <span style="color:#26d07c">+ +</span> ✨</div></div>`; setTimeout(()=>{ wrap.innerHTML=''; wrap.appendChild(mkEditor({})); }, 520); };
 
     wrap.appendChild(mkEditor(W.expDraft||{}));
     body.querySelector('#addExpNow').onclick = ()=>{
@@ -340,21 +320,18 @@ function renderStep(){
         desc:  wrap.querySelector('#eDesc').value.trim()
       };
       const edited = d.dates || d.role || d.org || d.desc;
-      if(!edited) return; // don't add empty
-      W.exp.push(d);
-      W.expDraft = { };     // reset
-      renderExp([d]);       // append to canvas right away
+      if(!edited) return;
+      W.exp.push(d); W.expDraft = {};
+      renderExp([d]);  // add immediately to canvas
       showAdded();
     };
   }
 
-  /* ----- BIO ----- */
+  /* BIO */
   if (s === 'bio'){
     body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
       <textarea id="bioText" class="wipt" rows="6" placeholder="Short profile…" style="width:100%;min-height:120px"></textarea>`;
-    const t = body.querySelector('#bioText');
-    t.value = W.bio || '';
-    t.oninput = ()=>{ W.bio = t.value; };
+    const t = body.querySelector('#bioText'); t.value = W.bio || ''; t.oninput = ()=>{ W.bio = t.value; };
   }
 
   if (s === 'done'){
@@ -365,12 +342,11 @@ function renderStep(){
   }
 }
 
-/* ---------- Next flow: collect & push to canvas when leaving step ---------- */
+/* ---------- Next: collect & push (only when edited) ---------- */
 function advance(){
   const cur = STEPS[stepIdx].k;
 
   if (cur === 'skills'){
-    // collect rows from wizard list
     const list = document.getElementById('wizBody').querySelector('#wizSkills');
     if (list){
       W.skills = Array.from(list.querySelectorAll('.row')).map(r=>{
@@ -384,41 +360,31 @@ function advance(){
           return { type:'slider', label, value };
         }
       });
-      if (W.skills.length) renderSkills(W.skills);
+      if (W.skills.length) renderSkills(W.skills, { toRail: W.addSkillsToRail });
     }
   }
 
   if (cur === 'education'){
     const list = document.getElementById('wizBody').querySelector('#wizEdu');
     if (list){
-      W.edu = Array.from(list.querySelectorAll('.wiz-card')).map(c=>({
-        kind: c.dataset.k,
-        title: c.querySelectorAll('input')[0].value.trim(),
-        dates: c.querySelectorAll('input')[1].value.trim(),
-        academy: c.querySelectorAll('input')[2].value.trim()
-      })).filter(x=> x.title||x.dates||x.academy);
+      W.edu = Array.from(list.querySelectorAll('.wiz-card')).map(c=>{
+        const badge = c.querySelector('.wiz-badge')?.textContent.trim() || '';
+        return { kind: c.dataset.k, title: c.querySelectorAll('input')[0].value.trim(), dates: badge, academy: c.querySelectorAll('input')[1].value.trim() };
+      }).filter(x=> x.title||x.dates||x.academy);
       if (W.edu.length) renderEdu(W.edu);
     }
   }
 
   if (cur === 'experience'){
-    // If an editor has unsaved content, add it as one more item.
     const wrap = document.getElementById('wizBody').querySelector('#wizExpWrap');
     if (wrap && wrap.querySelector('#eDates')){
-      const d = {
-        dates: wrap.querySelector('#eDates').value.trim(),
-        role:  wrap.querySelector('#eRole').value.trim(),
-        org:   wrap.querySelector('#eOrg').value.trim(),
-        desc:  wrap.querySelector('#eDesc').value.trim()
-      };
+      const d = { dates: wrap.querySelector('#eDates').value.trim(), role: wrap.querySelector('#eRole').value.trim(), org: wrap.querySelector('#eOrg').value.trim(), desc: wrap.querySelector('#eDesc').value.trim() };
       const edited = d.dates || d.role || d.org || d.desc;
       if (edited){ W.exp.push(d); renderExp([d]); }
     }
   }
 
-  if (cur === 'bio'){
-    if (W.bio && W.bio.trim()) renderBio(W.bio);
-  }
+  if (cur === 'bio'){ if (W.bio && W.bio.trim()) renderBio(W.bio); }
 
   if (cur === 'done'){
     document.getElementById('wizard').style.display = 'none';
