@@ -1,11 +1,12 @@
-// [wizard.js] v2.11.2 — inline editors + safe Next flow + sparkle add for Exp
-console.log('[wizard.js] v2.11.2');
+// /resume/wizard/wizard.js
+// [wizard.js] v2.11.3 — inline editors + safe Next flow + sparkle add for Exp
+console.log('[wizard.js] v2.11.3');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
 import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* styles for wizard + sparkle */
+/* ---------- styles for wizard + sparkle ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style'); st.id = 'wizard-style';
@@ -30,7 +31,7 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
   document.head.appendChild(st);
 })();
 
-/* DnD (compact) */
+/* ---------- tiny DnD ---------- */
 function wizAttachDnd(container, itemSel){
   if(!container || container._dndWiz) return; container._dndWiz = true;
   let dragEl=null;
@@ -48,7 +49,7 @@ function wizAttachDnd(container, itemSel){
   });
 }
 
-/* wizard state */
+/* ---------- wizard state ---------- */
 let W = { skills:[], addSkillsToRail:true, edu:[], exp:[], expDraft:{dates:'',role:'',org:'',desc:''}, bio:'' };
 
 /* ---------- Public API ---------- */
@@ -106,14 +107,20 @@ const STEPS = [
   { k: 'education', label: 'Education' },
   { k: 'experience',label: 'Experience' },
   { k: 'bio',       label: 'Bio' },
-  { k: 'done',      label: 'Done' },
+  { k: 'done',      label: 'Done' }
 ];
 
-let stepIdx = 0, backCount = 0;
-function openWizard(){ renderStep(); document.getElementById('wizard').style.display = 'grid'; }
+let stepIdx = 0;
+let backCount = 0;
+
+function openWizard(){
+  renderStep();
+  document.getElementById('wizard').style.display = 'grid';
+}
 
 function buildWizard(){
-  const list = document.getElementById('stepList'); list.innerHTML = '';
+  const list = document.getElementById('stepList');
+  list.innerHTML = '';
   STEPS.forEach((s,i) => {
     const el = document.createElement('div');
     el.className = 'step'; el.dataset.i = i;
@@ -122,9 +129,14 @@ function buildWizard(){
     list.appendChild(el);
   });
   document.getElementById('wizBack').onclick = () => { if(stepIdx>0){ stepIdx--; backCount++; renderStep(); } };
-  document.getElementById('wizStartOver').onclick = () => { Object.assign(S,{ contact:{name:'',phone:'',email:'',address:'',linkedin:''} }); W={skills:[],addSkillsToRail:true,edu:[],exp:[],expDraft:{dates:'',role:'',org:'',desc:''},bio:''}; stepIdx=0; backCount=0; renderStep(); };
+  document.getElementById('wizStartOver').onclick = () => {
+    Object.assign(S,{ contact:{name:'',phone:'',email:'',address:'',linkedin:''} });
+    W = { skills:[], addSkillsToRail:true, edu:[], exp:[], expDraft:{dates:'',role:'',org:'',desc:''}, bio:'' };
+    stepIdx = 0; backCount = 0; renderStep();
+  };
   document.getElementById('wizNext').onclick = advance;
 }
+
 function markSteps(){
   const nodes = Array.from(document.querySelectorAll('#stepList .step'));
   nodes.forEach((el,i)=>{
@@ -136,12 +148,13 @@ function markSteps(){
   });
 }
 
-/* Render step bodies (layout/theme identical to your last good version) */
 function renderStep(){
   const body = document.getElementById('wizBody');
-  const s = STEPS[stepIdx].k; markSteps();
+  const s = STEPS[stepIdx].k;
+  markSteps();
   document.getElementById('wizStartOver').style.display = (backCount>=2 ? 'inline-flex' : 'none');
 
+  /* ----- LAYOUT ----- */
   if (s === 'layout'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
@@ -154,20 +167,32 @@ function renderStep(){
     const row = body.querySelector('#mockRow');
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
-    row.addEventListener('click', e=>{ const m=e.target.closest('.wz-mock'); if(!m) return; row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); morphTo(m.dataset.layout); });
+    row.addEventListener('click', e=>{
+      const m=e.target.closest('.wz-mock'); if(!m) return;
+      row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel'));
+      m.classList.add('sel'); morphTo(m.dataset.layout);
+    });
     body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
+    return;
   }
 
+  /* ----- THEME ----- */
   if (s === 'theme'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>`;
-    body.querySelector('#wizDark').onclick = e=>{ e.currentTarget.classList.toggle('on'); S.dark = e.currentTarget.classList.contains('on'); document.body.setAttribute('data-dark', S.dark ? '1' : '0'); };
+    body.querySelector('#wizDark').onclick = e=>{
+      e.currentTarget.classList.toggle('on');
+      S.dark = e.currentTarget.classList.contains('on');
+      document.body.setAttribute('data-dark', S.dark ? '1' : '0');
+    };
     body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); };
     body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); };
+    return;
   }
 
+  /* ----- CONTACT ----- */
   if (s === 'contact'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
@@ -177,11 +202,27 @@ function renderStep(){
         <input class="wipt" id="ph" placeholder="Phone" value="${S.contact?.phone||''}">
         <input class="wipt" id="em" placeholder="Email" value="${S.contact?.email||''}">
         <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact?.address||''}">
-        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact?.linkedin||''}"></div>
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center">
+          <span style="opacity:.7">linkedin.com/in/</span>
+          <input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact?.linkedin||''}">
+        </div>
       </div>`;
-    ['nm','ph','em','ad','ln'].forEach(id=> body.querySelector('#'+id).oninput = ()=>{ S.contact = { name: body.querySelector('#nm').value, phone: body.querySelector('#ph').value, email: body.querySelector('#em').value, address: body.querySelector('#ad').value, linkedin: body.querySelector('#ln').value }; applyContact?.(); }));
+    ['nm','ph','em','ad','ln'].forEach(id=>{
+      body.querySelector('#'+id).oninput = ()=>{
+        S.contact = {
+          name: body.querySelector('#nm').value,
+          phone: body.querySelector('#ph').value,
+          email: body.querySelector('#em').value,
+          address: body.querySelector('#ad').value,
+          linkedin: body.querySelector('#ln').value
+        };
+        applyContact?.();
+      };
+    });
+    return;
   }
 
+  /* ----- SKILLS ----- */
   if (s === 'skills'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
@@ -193,18 +234,29 @@ function renderStep(){
 
     const rowStar = (label='Skill', active=3)=>{
       const r = document.createElement('div'); r.className='wiz-card'; r.setAttribute('draggable','true'); r.dataset.t='star';
-      r.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
-        <input type="text" class="wiz-pill" value="${label}">
-        <span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star ${i<=active?'active':''}" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span></div>`;
-      r.querySelectorAll('.star').forEach(s=> s.onclick = e=>{ const n=+e.currentTarget.dataset.i; r.querySelectorAll('.star').forEach((el,i)=> el.classList.toggle('active', i<n)); });
+      r.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
+          <input type="text" class="wiz-pill" value="${label}">
+          <span class="stars">
+            ${[1,2,3,4,5].map(i=>`<svg class="star ${i<=active?'active':''}" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}
+          </span>
+        </div>`;
+      r.querySelectorAll('.star').forEach(sv=>{
+        sv.onclick = e=>{
+          const n=+e.currentTarget.dataset.i;
+          r.querySelectorAll('.star').forEach((el,i)=> el.classList.toggle('active', i<n));
+        };
+      });
       return r;
     };
+
     const rowSlider = (label='Skill', val=60)=>{
       const r = document.createElement('div'); r.className='wiz-card'; r.setAttribute('draggable','true'); r.dataset.t='slider';
-      r.innerHTML = `<div style="display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:center">
-        <input type="text" class="wiz-pill" value="${label}">
-        <input type="range" min="0" max="100" value="${val}">
-      </div>`;
+      r.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:center">
+          <input type="text" class="wiz-pill" value="${label}">
+          <input type="range" min="0" max="100" value="${val}">
+        </div>`;
       return r;
     };
 
@@ -213,20 +265,29 @@ function renderStep(){
     wizAttachDnd(list, '.wiz-card');
     W.skills.forEach(it=> list.appendChild(it.type==='star' ? rowStar(it.label,it.stars) : rowSlider(it.label,it.value)));
     body.querySelector('#toRail').onclick = (e)=>{ e.currentTarget.classList.toggle('on'); W.addSkillsToRail = e.currentTarget.classList.contains('on'); };
+    return;
   }
 
+  /* ----- EDUCATION ----- */
   if (s === 'education'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
       <div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>
       <div id="wizEdu" class="wiz-grid2"></div>
-      <div style="display:flex;gap:8px;margin-top:6px"><button class="mbtn" id="addCourse">+ Add course</button><button class="mbtn" id="addDegree">+ Add degree</button></div>`;
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="mbtn" id="addCourse">+ Add course</button>
+        <button class="mbtn" id="addDegree">+ Add degree</button>
+      </div>`;
     const list = body.querySelector('#wizEdu');
     const iconCls = k => k==='degree' ? 'fa-graduation-cap':'fa-scroll';
     const mk = (kind='course', data={})=>{
       const card = document.createElement('div'); card.className='wiz-card'; card.setAttribute('draggable','true'); card.dataset.k = kind;
       card.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px"><i class="fa-solid ${iconCls(kind)}"></i><span class="wiz-badge" contenteditable>${data.dates||'2018–2022'}</span><button class="mbtn" title="Remove" style="margin-left:auto">×</button></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="fa-solid ${iconCls(kind)}"></i>
+          <span class="wiz-badge" contenteditable>${data.dates||'2018–2022'}</span>
+          <button class="mbtn" title="Remove" style="margin-left:auto">×</button>
+        </div>
         <input type="text" placeholder="Title" class="wiz-pill" value="${data.title||''}">
         <input type="text" placeholder="Academy" class="wiz-pill" value="${data.academy||''}">`;
       card.querySelector('.mbtn').onclick = ()=> card.remove();
@@ -236,8 +297,10 @@ function renderStep(){
     body.querySelector('#addDegree').onclick = ()=> list.appendChild(mk('degree'));
     wizAttachDnd(list, '.wiz-card');
     W.edu.forEach(it=> list.appendChild(mk(it.kind,it)));
+    return;
   }
 
+  /* ----- EXPERIENCE ----- */
   if (s === 'experience'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
@@ -257,12 +320,13 @@ function renderStep(){
     };
 
     const showAdded = ()=>{
-      wrap.innerHTML = `<div class="sparkles">
-        <div class="spark" style="left:20%"><i class="fa-solid fa-plus"></i> ✨</div>
-        <div class="spark" style="left:50%;animation-delay:.15s">✨ <i class="fa-solid fa-plus"></i> ✨</div>
-        <div class="spark" style="left:78%;animation-delay:.3s"><i class="fa-solid fa-plus"></i> ✨</div>
-        <div style="position:relative;z-index:2;font-weight:900">Added</div>
-      </div>`;
+      wrap.innerHTML = `
+        <div class="sparkles">
+          <div class="spark" style="left:20%"><i class="fa-solid fa-plus"></i> ✨</div>
+          <div class="spark" style="left:50%;animation-delay:.15s">✨ <i class="fa-solid fa-plus"></i> ✨</div>
+          <div class="spark" style="left:78%;animation-delay:.3s"><i class="fa-solid fa-plus"></i> ✨</div>
+          <div style="position:relative;z-index:2;font-weight:900">Added</div>
+        </div>`;
       setTimeout(()=>{ wrap.innerHTML=''; wrap.appendChild(mkEditor({})); }, 900);
     };
 
@@ -280,14 +344,21 @@ function renderStep(){
       renderExp([d]);  // add immediately to canvas
       showAdded();
     };
+    return;
   }
 
+  /* ----- BIO ----- */
   if (s === 'bio'){
-    body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
+    body.innerHTML = `
+      <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
       <textarea id="bioText" class="wipt" rows="6" placeholder="Short profile…" style="width:100%;min-height:120px"></textarea>`;
-    const t = body.querySelector('#bioText'); t.value = W.bio || ''; t.oninput = ()=>{ W.bio = t.value; };
+    const t = body.querySelector('#bioText');
+    t.value = W.bio || '';
+    t.oninput = ()=>{ W.bio = t.value; };
+    return;
   }
 
+  /* ----- DONE ----- */
   if (s === 'done'){
     body.innerHTML = `<div class="wtitle" style="text-align:center">All set ✨</div><div class="wsub" style="opacity:.85;text-align:center">Continue on the canvas.</div>`;
     document.getElementById('wizNext').textContent = 'Finish';
@@ -296,7 +367,7 @@ function renderStep(){
   }
 }
 
-/* ---------- Next: collect & push (only when edited) ---------- */
+/* ---------- Next flow ---------- */
 function advance(){
   const cur = STEPS[stepIdx].k;
 
@@ -308,7 +379,7 @@ function advance(){
           const label = r.querySelector('input[type=text]').value.trim() || 'Skill';
           const stars = r.querySelectorAll('.star.active').length;
           return { type:'star', label, stars };
-        }else{
+        } else {
           const label = r.querySelector('input[type=text]').value.trim() || 'Skill';
           const value = +r.querySelector('input[type=range]').value;
           return { type:'slider', label, value };
@@ -323,7 +394,12 @@ function advance(){
     if (list){
       W.edu = Array.from(list.querySelectorAll('.wiz-card')).map(c=>{
         const badge = c.querySelector('.wiz-badge')?.textContent.trim() || '';
-        return { kind: c.dataset.k, title: c.querySelectorAll('input')[0].value.trim(), dates: badge, academy: c.querySelectorAll('input')[1].value.trim() };
+        return {
+          kind: c.dataset.k,
+          title: c.querySelectorAll('input')[0].value.trim(),
+          dates: badge,
+          academy: c.querySelectorAll('input')[1].value.trim()
+        };
       }).filter(x=> x.title||x.dates||x.academy);
       if (W.edu.length) renderEdu(W.edu);
     }
@@ -332,13 +408,20 @@ function advance(){
   if (cur === 'experience'){
     const wrap = document.getElementById('wizBody').querySelector('#wizExpWrap');
     if (wrap && wrap.querySelector('#eDates')){
-      const d = { dates: wrap.querySelector('#eDates').value.trim(), role: wrap.querySelector('#eRole').value.trim(), org: wrap.querySelector('#eOrg').value.trim(), desc: wrap.querySelector('#eDesc').value.trim() };
+      const d = {
+        dates: wrap.querySelector('#eDates').value.trim(),
+        role:  wrap.querySelector('#eRole').value.trim(),
+        org:   wrap.querySelector('#eOrg').value.trim(),
+        desc:  wrap.querySelector('#eDesc').value.trim()
+      };
       const edited = d.dates || d.role || d.org || d.desc;
       if (edited){ W.exp.push(d); renderExp([d]); }
     }
   }
 
-  if (cur === 'bio'){ if (W.bio && W.bio.trim()) renderBio(W.bio); }
+  if (cur === 'bio'){
+    if (W.bio && W.bio.trim()) renderBio(W.bio);
+  }
 
   if (cur === 'done'){
     document.getElementById('wizard').style.display = 'none';
@@ -352,9 +435,27 @@ function advance(){
 /* ---------- helpers ---------- */
 function mock(layoutKey){
   const kind = layoutKey.split('-')[1];
-  const base = `<div class="wz-mock" data-layout="${layoutKey}" style="width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease">
-    <div class="wz-card" style="position:absolute; inset:0; border-radius:16px; padding:12px;background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38)"></div>
+  const hero = (kind==='side')
+    ? `<div style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div style="position:absolute;left:30px;top:30px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
+       <div style="position:absolute;left:40%;right:20px;top:24px;display:grid;gap:8px">
+         <div style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
+         <div style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
+       </div>`
+    : kind==='fancy'
+    ? `<div style="height:60px;margin:8px;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div style="position:absolute;left:50%;transform:translateX(-50%);top:58px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
+       <div style="position:absolute;left:24px;right:24px;top:120px;display:grid;gap:8px">
+         <div style="height:8px;border-radius:999px;background:#2b375f;width:70%"></div>
+         <div style="height:8px;border-radius:999px;background:#2b375f;width:48%"></div>
+       </div>`
+    : `<div style="height:60px;margin:8px;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
+       <div style="position:absolute;right:31px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
+       <div style="position:absolute;left:24px;right:120px;top:28px;display:grid;gap:8px">
+         <div style="height:8px;border-radius:999px;background:#2b375f;width:60%"></div>
+         <div style="height:8px;border-radius:999px;background:#2b375f;width:40%"></div>
+       </div>`;
+  return `<div class="wz-mock" data-layout="${layoutKey}" style="width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease">
+    <div class="wz-card" style="position:absolute; inset:0; border-radius:16px; padding:12px;background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38)">${hero}</div>
   </div>`;
-  const el = document.createElement('div'); el.innerHTML = base.trim();
-  return el.firstChild.outerHTML;
 }
