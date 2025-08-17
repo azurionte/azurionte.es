@@ -52,6 +52,10 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .chip i{width:16px;text-align:center}
     .chip[contenteditable="true"]{outline:none}
+    /* constrain chip widths inside sidebar rail and truncate if needed */
+    .chips{max-width:calc(var(--rail,300px) - 36px)}
+    .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chip[data-wrap="1"] span{white-space:normal;max-width:260px}
   /* scope text color to the sheet (canvas) only */
   #sheet{ color: #111 }
   body[data-dark="1"] #sheet{ color: #fff }
@@ -306,10 +310,10 @@ export function applyContact(){
   const nm=head.querySelector('.name'); if(nm) nm.textContent=S?.contact?.name||'YOUR NAME';
 
   const c=S.contact||{}; const items=[];
-  if(c.phone)   items.push(chip('fa-solid fa-phone', c.phone));
-  if(c.email)   items.push(chip('fa-solid fa-envelope', c.email));
-  if(c.address) items.push(chip('fa-solid fa-location-dot', c.address));
-  if(c.linkedin)items.push(chip('fa-brands fa-linkedin','linkedin.com/in/'+c.linkedin));
+  if(c.phone){ const el=chip('fa-solid fa-phone', c.phone); el.title=c.phone; items.push(el); }
+  if(c.email){ const el=chip('fa-solid fa-envelope', c.email); el.title=c.email; items.push(el); }
+  if(c.address){ const el=chip('fa-solid fa-location-dot', c.address); el.dataset.wrap='1'; el.title=c.address; items.push(el); }
+  if(c.linkedin){ const el=chip('fa-brands fa-linkedin','linkedin.com/in/'+c.linkedin); el.dataset.wrap='1'; el.title='linkedin.com/in/'+c.linkedin; items.push(el); }
 
   const holders=[ head.querySelector('[data-info]'),
                   head.querySelector('[data-info-left]'),
@@ -332,7 +336,7 @@ function buildHeader(kind){
           <div class="name" contenteditable>YOUR NAME</div>
           <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
             <div class="chips" data-info></div>
-            <button id="chipAddBtn" title="Add contact" class="add-dot" style="border:0;background:transparent;color:inherit">+</button>
+            <div style="display:flex;justify-content:center;width:100%"><button id="chipAddBtn" title="Add contact" class="add-dot" style="border:0;background:transparent;color:inherit">+</button></div>
           </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
