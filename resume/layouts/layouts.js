@@ -332,7 +332,7 @@ function buildHeader(kind){
           <div class="name" contenteditable>YOUR NAME</div>
           <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
             <div class="chips" data-info></div>
-            <button id="chipAddBtn" title="Add contact" class="ctrl-circle" style="border:0;background:transparent;color:inherit"><i class='fa-solid fa-plus'></i></button>
+            <button id="chipAddBtn" title="Add contact" class="add-dot" style="border:0;background:transparent;color:inherit">+</button>
           </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
