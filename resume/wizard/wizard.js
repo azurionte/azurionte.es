@@ -1,6 +1,6 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.11.0 — inline editors (match canvas), sidebar toggle, sparkly "Added" animation
-console.log('[wizard.js] v2.11.0');
+// [wizard.js] v2.11.1 — inline editors (match canvas), sidebar toggle, sparkly "Added" animation
+console.log('[wizard.js] v2.11.1');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
@@ -241,10 +241,19 @@ function renderStep(){
         <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
         <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
       </div>`;
-    ['nm','ph','em','ad','ln'].forEach(id=> body.querySelector('#'+id).oninput = ()=>{
-      S.contact = { name: body.querySelector('#nm').value, phone: body.querySelector('#ph').value, email: body.querySelector('#em').value, address: body.querySelector('#ad').value, linkedin: body.querySelector('#ln').value };
-      applyContact?.();
-    }));
+    // FIX: one closing parenthesis removed here
+    ['nm','ph','em','ad','ln'].forEach(id=>{
+      body.querySelector('#'+id).oninput = ()=>{
+        S.contact = {
+          name: body.querySelector('#nm').value,
+          phone: body.querySelector('#ph').value,
+          email: body.querySelector('#em').value,
+          address: body.querySelector('#ad').value,
+          linkedin: body.querySelector('#ln').value
+        };
+        applyContact?.();
+      };
+    });
   }
 
   /* Skills */
