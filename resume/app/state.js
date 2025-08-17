@@ -13,16 +13,29 @@ export const S = {
   bio: ''            // free text
 };
 
+// Backwards-compatible alias: some modules expect `S.mat` while S uses `material`.
+Object.defineProperty(S, 'mat', {
+  enumerable: true,
+  get() { return S.material; },
+  set(v) { S.material = v; save(); document.body.setAttribute('data-mat', v); }
+});
+
 // --- persistence
 const KEY='erb3-state';
 export function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+  try {
+    // Ensure the persisted object always contains `material` (and allow older callers to read `mat`).
+    const copy = Object.assign({}, S, { material: S.material });
+    localStorage.setItem(KEY, JSON.stringify(copy));
+  } catch {}
 }
 export function hydrateFromStorage() {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return;
     const obj = JSON.parse(raw);
+    // Support both legacy `mat` and current `material` keys.
+    if (obj.mat && !obj.material) obj.material = obj.mat;
     Object.assign(S, obj);
   } catch {}
 }
