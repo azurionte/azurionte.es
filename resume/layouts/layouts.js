@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.2.2
-console.log('[layouts.js] v2.2.2');
+// [layouts.js] v2.2.3
+console.log('[layouts.js] v2.2.3');
 
 import { S } from '../app/state.js';
 
@@ -12,7 +12,6 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const st = document.createElement('style');
   st.id = 'layouts-style';
   st.textContent = `
-    /* ---- Sidebar header grid ---- */
     .sidebar-layout{
       display:grid;
       grid-template-columns: var(--rail) minmax(0,1fr);
@@ -32,7 +31,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
     .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-    /* right column as mini canvas grid */
+    /* RIGHT COLUMN behaves like a mini canvas grid and expands fully */
     .sidebar-layout [data-zone="main"]{
       display:grid;
       grid-template-columns: repeat(12, minmax(0,1fr));
@@ -47,15 +46,17 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .sidebar-layout [data-zone="main"] > #canvasAdd{
       grid-column: 1 / -1;
       width:100%;
+      max-width:none !important;
+      box-sizing:border-box;
     }
 
-    /* ---- Top bar header ---- */
+    /* top bar */
     .topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
     .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
     .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
     .topbar .right{display:flex;justify-content:flex-end}
 
-    /* ---- Fancy header ---- */
+    /* fancy */
     .fancy{position:relative;border-radius:14px}
     .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
     .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
@@ -63,12 +64,11 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
     .fancy .below{height:88px}
 
-    /* ---- avatar shell ---- */
+    /* avatar */
     .avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
     .avatar input{display:none}
     .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
-    /* ---- chips baseline ---- */
     .chips{display:flex;flex-wrap:wrap;gap:8px}
     .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .chip i{width:16px;text-align:center}
@@ -76,7 +76,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   document.head.appendChild(st);
 })();
 
-/* --------------------------------------------------------------- */
+/* helpers */
 function stackEl(){ return $('#stack'); }
 export function ensureCanvas(){
   if (!$('#stack')){
@@ -118,7 +118,7 @@ export function getSideMain(){
   return $('#stack');
 }
 
-/* avatar loading (unchanged) */
+/* avatar loading */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
     if (w._inited) return; w._inited = true;
@@ -149,7 +149,7 @@ function initAvatars(root){
   });
 }
 
-/* chips + contact (unchanged except export names already present) */
+/* chips + contact */
 function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
@@ -200,7 +200,7 @@ export function applyContact(){
   restyleContactChips();
 }
 
-/* build + morph (unchanged) */
+/* build headers + morph */
 function buildHeader(kind){
   const node=document.createElement('div');
   node.className='node';
@@ -259,16 +259,13 @@ function buildHeader(kind){
 
   ensureAddAnchor(true);
   applyContact();
-
   queueMicrotask(()=> document.dispatchEvent(new CustomEvent('layout:changed', { detail:{ kind:S.layout } })));
-
   return node;
 }
 
 export function morphTo(kind){
   const oldWrap=getHeaderNodeWrapper();
   const before=oldWrap?.getBoundingClientRect();
-
   const temp=buildHeader(kind);
   const after=temp.getBoundingClientRect();
 
@@ -290,14 +287,10 @@ export function morphTo(kind){
   }
 }
 
-/* place the "+" in the correct host (stack or sidebar main) */
 export function ensureAddAnchor(show){
-  const add = $('#canvasAdd'); if(!add) return null;
-  const stack = stackEl();
-  const main = getSideMain();
-  const host = isSidebarActive() ? (main || stack) : stack;
-
-  if (host && add.parentElement !== host) host.appendChild(add);
+  const s=stackEl(), add=$('#canvasAdd');
+  if(!s || !add) return null;
+  if(add.parentElement!==s) s.appendChild(add);
   if(typeof show==='boolean') add.style.display=show?'flex':'none';
   return add;
 }
