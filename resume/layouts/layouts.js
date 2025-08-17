@@ -14,9 +14,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   st.textContent = `
   .page{display:grid;place-items:start;padding:28px}
   /* The visual card is the #sheet; .page should be a transparent container */
-  #sheet{width:var(--page-w);max-width:100%;background:#fff;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.25);padding:22px}
-  /* when sidebar layout is active, allow the sheet to grow to include the rail */
-  body[data-layout="side"] #sheet{ width: calc(var(--page-w) + var(--rail)); }
+  #sheet{width:var(--page-w);max-width:100%;background:#fff;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.25);padding:22px;margin:0 auto}
   /* dark mode for the sheet */
   body[data-dark="1"] #sheet{ background:#0d1220; color:var(--ink); box-shadow:0 18px 60px rgba(0,0,0,.45) }
     .stack{display:grid;gap:16px;align-content:start}
@@ -24,7 +22,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .add-dot{width:40px;height:40px;border-radius:12px;background:#0b1022;color:#fff;display:grid;place-items:center;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.35)}
     /* Sidebar layout */
     .sidebar-layout{
-      display:grid;grid-template-columns: 300px minmax(0,1fr);gap:18px;align-items:start
+      display:grid;grid-template-columns: var(--rail) minmax(0,1fr);gap:18px;align-items:start
+      width:100%;
     }
     .sidebar-layout .rail{
       background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-height:920px;position:relative
