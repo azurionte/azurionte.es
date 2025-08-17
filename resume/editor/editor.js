@@ -1,6 +1,6 @@
 // /resume/editor/editor.js
-// [editor.js] v1.6.2 — restores theme swatches, stable + menu, no reflows
-console.log('[editor.js] v1.6.2');
+// [editor.js] v1.6.3 — theme swatches + menu + preview/print + keeps "+" in right host
+console.log('[editor.js] v1.6.3');
 
 import { S, save } from '../app/state.js';
 import { morphTo } from '../layouts/layouts.js';
@@ -106,7 +106,7 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     document.body.classList.toggle('preview', on);
     top.querySelector('#btnPreview').textContent = on ? 'Exit preview' : 'Preview';
   };
-  top.querySelector('#btnPrint').onclick = () => { 
+  top.querySelector('#btnPrint').onclick = () => {
     const was = document.body.classList.contains('preview');
     document.body.classList.add('preview'); setTimeout(() => { window.print(); if(!was) document.body.classList.remove('preview'); }, 60);
   };
