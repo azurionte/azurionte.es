@@ -1,5 +1,5 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.5.0 — tokens + canvas hosts + contact chips + avatar persistence + FLIP
+// [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
 console.log('[layouts.js] v2.5.0');
 
 import { S } from '../app/state.js';
@@ -12,12 +12,6 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const st = document.createElement('style');
   st.id = 'layouts-style';
   st.textContent = `
-    /* tokens from single-file build */
-    :root{
-      --star-gap:4px;
-      --skill-right:120px;
-    }
-
     .page{display:grid;place-items:start;padding:28px}
     #sheet{width:860px;background:#fff;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.25);padding:22px}
     .stack{display:grid;gap:16px;align-content:start}
@@ -94,19 +88,7 @@ export function getSideMain(){
   return stackEl();
 }
 
-/* ===== Avatar (now persists across header morphs via S.avatarData) ===== */
-function drawAvatarToCanvas(img, canvas, ctx){
-  const s = Math.max(canvas.width/img.width, canvas.height/img.height);
-  const dw = img.width*s, dh = img.height*s;
-  const dx = (canvas.width-dw)/2, dy = (canvas.height-dh)/2;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.save(); ctx.beginPath();
-  ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, Math.PI*2);
-  ctx.clip(); ctx.imageSmoothingQuality='high';
-  ctx.drawImage(img,dx,dy,dw,dh);
-  ctx.restore();
-}
-
+/* Avatar */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
     if (w._inited) return; w._inited = true;
@@ -121,19 +103,19 @@ function initAvatars(root){
       const f = input.files?.[0]; if(!f) return;
       const img = new Image();
       img.onload = ()=>{
-        drawAvatarToCanvas(img, canvas, ctx);
-        try { S.avatarData = canvas.toDataURL('image/png'); } catch {}
+        const s = Math.max(canvas.width/img.width, canvas.height/img.height);
+        const dw=img.width*s, dh=img.height*s;
+        const dx=(canvas.width-dw)/2, dy=(canvas.height-dh)/2;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.save(); ctx.beginPath();
+        ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, Math.PI*2);
+        ctx.clip(); ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,dx,dy,dw,dh);
+        ctx.restore();
         w.setAttribute('data-empty','0');
       };
       img.src = URL.createObjectURL(f);
     });
-
-    // restore saved avatar if present
-    if (S.avatarData){
-      const img = new Image();
-      img.onload = ()=>{ drawAvatarToCanvas(img, canvas, ctx); w.setAttribute('data-empty','0'); };
-      img.src = S.avatarData;
-    }
   });
 }
 
@@ -188,7 +170,7 @@ export function applyContact(){
   restyleContactChips();
 }
 
-/* Build headers + morph (FLIP) */
+/* Build headers + morph */
 function buildHeader(kind){
   const node=document.createElement('div');
   node.className='node';
@@ -233,7 +215,7 @@ function buildHeader(kind){
 
   const s=stackEl();
   s.insertBefore(node, $('#canvasAdd'));
-  initAvatars(node); // now restores saved avatar if S.avatarData exists
+  initAvatars(node);
 
   S.layout=(kind==='header-side')?'side':(kind==='header-fancy')?'fancy':'top';
   if (S.theme) document.body.setAttribute('data-theme', S.theme);
@@ -246,10 +228,34 @@ function buildHeader(kind){
   return node;
 }
 
+/* ---- Re-home existing sections when layout changes ---- */
+function adoptSectionsToCurrentLayout(){
+  const main = getSideMain();       // [data-zone="main"] when side; else #stack
+  const rail = getRailHolder();     // null unless side layout is active
+  const plus = $('#canvasAdd');
+
+  // Move any loose sections into main first
+  const loose = Array.from(document.querySelectorAll('.section'))
+    .filter(n => !main.contains(n) && (!rail || !rail.contains(n)));
+  loose.forEach(n => main.insertBefore(n, plus || null));
+
+  // Skills to rail if that choice was made
+  if (rail && (S?.skillsInSidebar)){
+    const skills = main.querySelector('.section[data-section="skills"]');
+    if (skills) rail.appendChild(skills);
+  }
+
+  ensureAddAnchor(true);
+}
+
 export function morphTo(kind){
   const oldWrap=getHeaderNodeWrapper();
   const before=oldWrap?.getBoundingClientRect();
   const temp=buildHeader(kind);
+
+  // NEW: immediately re-home any existing sections for the new layout
+  adoptSectionsToCurrentLayout();
+
   const after=temp.getBoundingClientRect();
 
   if(before){
