@@ -1,6 +1,5 @@
-// /resume/layouts/layouts.js
-// [layouts.js] v2.2.3
-console.log('[layouts.js] v2.2.3');
+// [layouts.js] v2.3 — canvas/rail sizing fixes + stretch columns
+console.log('[layouts.js] v2.3');
 
 import { S } from '../app/state.js';
 
@@ -12,51 +11,32 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const st = document.createElement('style');
   st.id = 'layouts-style';
   st.textContent = `
+    /* Sidebar header grid */
     .sidebar-layout{
       display:grid;
       grid-template-columns: var(--rail) minmax(0,1fr);
       gap:16px;
       min-height:320px;
-      align-items:start;
+      align-items:stretch; /* stretch both columns to the tallest */
     }
     .sidebar-layout .rail{
       background:linear-gradient(135deg,var(--accent2),var(--accent));
       border-radius:14px;
       padding:18px 14px;
       display:flex;flex-direction:column;gap:12px;align-items:center;
-      min-height:1060px;
+      min-height:100%;
       position:relative;
     }
     .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
     .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
     .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-    /* RIGHT COLUMN behaves like a mini canvas grid and expands fully */
-    .sidebar-layout [data-zone="main"]{
-      display:grid;
-      grid-template-columns: repeat(12, minmax(0,1fr));
-      gap:16px;
-      align-content:start;
-      min-height:100%;
-      min-width:0;
-    }
-    .sidebar-layout [data-zone="main"] > .node,
-    .sidebar-layout [data-zone="main"] > .section,
-    .sidebar-layout [data-zone="main"] > .module,
-    .sidebar-layout [data-zone="main"] > #canvasAdd{
-      grid-column: 1 / -1;
-      width:100%;
-      max-width:none !important;
-      box-sizing:border-box;
-    }
-
-    /* top bar */
+    /* Right-side column will be styled further by modules.css */
     .topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
     .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
     .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
     .topbar .right{display:flex;justify-content:flex-end}
 
-    /* fancy */
     .fancy{position:relative;border-radius:14px}
     .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
     .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
@@ -64,7 +44,6 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
     .fancy .below{height:88px}
 
-    /* avatar */
     .avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
     .avatar input{display:none}
     .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
@@ -102,19 +81,15 @@ export function isSidebarActive(){
   const head = getHeaderNode();
   return (S.layout === 'side') || !!head?.closest('.sidebar-layout');
 }
-
 export function getRailHolder(){
   const head = getHeaderNode();
   if (!head) return null;
   if (head.closest('.sidebar-layout')) return head.querySelector('[data-rail-sections]');
   return null;
 }
-
 export function getSideMain(){
   const head = getHeaderNode();
-  if (isSidebarActive() && head){
-    return head.querySelector('[data-zone="main"]');
-  }
+  if (isSidebarActive() && head) return head.querySelector('[data-zone="main"]');
   return $('#stack');
 }
 
@@ -127,7 +102,6 @@ function initAvatars(root){
     canvas.width = 140; canvas.height = 140;
     w.appendChild(canvas);
     const ctx = canvas.getContext('2d', { willReadFrequently:true });
-
     w.addEventListener('click', e=>{ if (e.target !== input) input.click(); });
     input.addEventListener('change', ()=>{
       const f = input.files?.[0]; if(!f) return;
@@ -137,11 +111,8 @@ function initAvatars(root){
         const dw=img.width*s, dh=img.height*s;
         const dx=(canvas.width-dw)/2, dy=(canvas.height-dh)/2;
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.save(); ctx.beginPath();
-        ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, Math.PI*2);
-        ctx.clip(); ctx.imageSmoothingQuality='high';
-        ctx.drawImage(img,dx,dy,dw,dh);
-        ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, canvas.width/2, 0, Math.PI*2); ctx.clip(); ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,dx,dy,dw,dh); ctx.restore();
         w.setAttribute('data-empty','0');
       };
       img.src = URL.createObjectURL(f);
@@ -149,70 +120,44 @@ function initAvatars(root){
   });
 }
 
-/* chips + contact */
-function chip(icon, text){
-  const el = document.createElement('div');
-  el.className = 'chip';
-  el.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
-  el.style.borderRadius = '999px';
-  return el;
-}
+/* chips/contact */
+function chip(icon, text){ const el=document.createElement('div'); el.className='chip'; el.innerHTML=`<i class="${icon}"></i><span>${text}</span>`; el.style.borderRadius='999px'; return el; }
 function setChips(containers, items){
   containers.forEach(c=>c.innerHTML='');
   if (!items.length) return;
-  if (containers.length === 1){
-    items.forEach(it => containers[0].appendChild(it));
-  } else {
-    items.forEach((it,i)=> containers[i%2].appendChild(it));
-  }
+  if (containers.length === 1){ items.forEach(it => containers[0].appendChild(it)); }
+  else { items.forEach((it,i)=> containers[i%2].appendChild(it)); }
 }
 function styleOneChip(el){
   el.style.background=''; el.style.color=''; el.style.border=''; el.style.backdropFilter='';
   const isGlass=(S.mat==='glass'), isDark=!!S.dark;
-  if (isGlass){
-    el.style.background='rgba(255,255,255,.10)'; el.style.border='1px solid #ffffff28'; el.style.backdropFilter='blur(6px)';
-    el.style.color=(['grayBlack','magentaPurple'].includes(S.theme)?'#fff':'#111');
-  } else if (isDark){
-    el.style.background='#0c1324'; el.style.border='1px solid #1f2a44'; el.style.color='#e6ecff';
-  } else {
-    el.style.background='#fff'; el.style.border='1px solid rgba(0,0,0,.08)'; el.style.color='#111';
-  }
+  if (isGlass){ el.style.background='rgba(255,255,255,.10)'; el.style.border='1px solid #ffffff28'; el.style.backdropFilter='blur(6px)'; el.style.color=(['grayBlack','magentaPurple'].includes(S.theme)?'#fff':'#111'); }
+  else if (isDark){ el.style.background='#0c1324'; el.style.border='1px solid #1f2a44'; el.style.color='#e6ecff'; }
+  else { el.style.background='#fff'; el.style.border='1px solid rgba(0,0,0,.08)'; el.style.color='#111'; }
   const ic = el.querySelector('i'); if (ic) ic.style.color='var(--accent)';
 }
-export function restyleContactChips(scope=document){
-  const head=getHeaderNode(); if(!head) return;
-  $$('.chip', head).forEach(styleOneChip);
-}
+export function restyleContactChips(scope=document){ const head=getHeaderNode(); if(!head) return; $$('.chip', head).forEach(styleOneChip); }
 export function applyContact(){
   const head=getHeaderNode(); if(!head) return;
   const nm=head.querySelector('.name'); if(nm) nm.textContent=S?.contact?.name||'YOUR NAME';
-
   const c=S.contact||{}; const items=[];
   if(c.phone)   items.push(chip('fa-solid fa-phone', c.phone));
   if(c.email)   items.push(chip('fa-solid fa-envelope', c.email));
   if(c.address) items.push(chip('fa-solid fa-location-dot', c.address));
   if(c.linkedin)items.push(chip('fa-brands fa-linkedin','linkedin.com/in/'+c.linkedin));
-
-  const holders=[ head.querySelector('[data-info]'),
-                  head.querySelector('[data-info-left]'),
-                  head.querySelector('[data-info-right]') ].filter(Boolean);
-  setChips(holders, items);
-  restyleContactChips();
+  const holders=[ head.querySelector('[data-info]'), head.querySelector('[data-info-left]'), head.querySelector('[data-info-right]') ].filter(Boolean);
+  setChips(holders, items); restyleContactChips();
 }
 
 /* build headers + morph */
 function buildHeader(kind){
-  const node=document.createElement('div');
-  node.className='node';
-  node.setAttribute('data-locked','1');
+  const node=document.createElement('div'); node.className='node'; node.setAttribute('data-locked','1');
 
   if(kind==='header-side'){
     node.innerHTML=`
       <div class="sidebar-layout" data-header data-hero="side">
         <div class="rail">
-          <label class="avatar" data-avatar data-empty="1">
-            <input type="file" accept="image/*" style="display:none">
-          </label>
+          <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*" style="display:none"></label>
           <div class="name" contenteditable>YOUR NAME</div>
           <div class="chips" data-info></div>
           <div class="sec-holder" data-rail-sections></div>
@@ -248,17 +193,13 @@ function buildHeader(kind){
       </div>`;
   }
 
-  const s=stackEl();
-  s.insertBefore(node, $('#canvasAdd'));
-  initAvatars(node);
-
+  const s=stackEl(); s.insertBefore(node, $('#canvasAdd')); initAvatars(node);
   S.layout=(kind==='header-side')?'side':(kind==='header-fancy')?'fancy':'top';
   if (S.theme) document.body.setAttribute('data-theme', S.theme);
   document.body.setAttribute('data-dark', S.dark?'1':'0');
   document.body.setAttribute('data-mat',  S.mat||'paper');
 
-  ensureAddAnchor(true);
-  applyContact();
+  ensureAddAnchor(true); applyContact();
   queueMicrotask(()=> document.dispatchEvent(new CustomEvent('layout:changed', { detail:{ kind:S.layout } })));
   return node;
 }
@@ -282,7 +223,7 @@ export function morphTo(kind){
       temp.style.opacity='1';
       setTimeout(()=>{temp.style.transition=''; temp.style.transform='';},380);
     });
-  }else{
+  } else {
     ensureAddAnchor(true);
   }
 }
