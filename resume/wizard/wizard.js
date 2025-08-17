@@ -66,7 +66,7 @@ import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/module
     .wiz-switch .switch.on::after{left:23px}
     .wiz-card{background:#0c1324;border:1px solid #1f2540;border-radius:12px;padding:10px;display:grid;gap:8px}
     .wiz-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .wiz-pill{background:#0c1328;border:1px solid #243057;color:#e7ebff;border-radius:10px;padding:8px 10px;width:100%}
+    .wiz-pill{background:#0c1328;border:1px solid #243057;color:#e6e8ff;border-radius:10px;padding:8px 10px;width:100%}
     .wiz-badge{background:#1a2036;border:1px solid #2b3458;color:#cfe1ff;border-radius:999px;padding:4px 10px;font-weight:700}
     .wiz-added{display:grid;place-items:center;height:90px;border:1px dashed #2b3458;border-radius:12px;opacity:.85}
     .wiz-added .spark{animation:wPop .6s ease;display:inline-flex;gap:8px;align-items:center;font-weight:800}
