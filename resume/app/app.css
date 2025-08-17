@@ -113,3 +113,24 @@ a{color:inherit;text-decoration:none}
 /* preview + print */
 .preview .add-dot{display:none!important}
 @media print{ .nav,.pop,[data-overlay]{display:none!important} .page{box-shadow:none} }
+
+/* DEBUG: visual layout overlay (enable with `document.body.setAttribute('data-debug','layout')`) */
+body[data-debug="layout"] [data-zone="main"]{
+  outline: 3px dashed rgba(255,80,80,.95);
+  background: rgba(255,80,80,0.03);
+}
+body[data-debug="layout"] .node{
+  outline: 3px dashed rgba(80,140,255,.95);
+  background: rgba(80,140,255,0.03);
+}
+body[data-debug="layout"] .section{
+  outline: 3px dashed rgba(255,200,60,.95);
+  background: rgba(255,200,60,0.03);
+}
+body[data-debug="layout"] .card{
+  outline: 3px dashed rgba(80,220,140,.95);
+  background: rgba(80,220,140,0.03);
+}
+
+/* make outlines very visible above everything */
+body[data-debug="layout"] .node, body[data-debug="layout"] .section, body[data-debug="layout"] .card { position: relative; z-index: 9999 }
