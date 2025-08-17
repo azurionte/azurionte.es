@@ -245,15 +245,18 @@ function adoptSectionsToCurrentLayout(){
   const rail = getRailHolder();     // null unless side layout is active
   const plus = $('#canvasAdd');
 
-  // Move any loose sections into main first
-  const loose = Array.from(document.querySelectorAll('.section'))
-    .filter(n => !main.contains(n) && (!rail || !rail.contains(n)));
-  loose.forEach(n => main.insertBefore(n, plus || null));
+  // Move any loose .node wrappers (which contain .section) into main first.
+  // This keeps the wrapper as the grid child so our CSS rules apply.
+  const looseWrappers = Array.from(document.querySelectorAll('.node'))
+    .filter(w => w.querySelector && w.querySelector('.section'))
+    .filter(w => !main.contains(w) && (!rail || !rail.contains(w)));
+  looseWrappers.forEach(w => main.insertBefore(w, plus || null));
 
   // Skills to rail if that choice was made
   if (rail && (S?.skillsInSidebar)){
-    const skills = main.querySelector('.section[data-section="skills"]');
-    if (skills) rail.appendChild(skills);
+    // Prefer the wrapper (node[data-section="skills"]) if present, otherwise fall back
+    const skillsWrapper = main.querySelector('.node[data-section="skills"]') || main.querySelector('.section[data-section="skills"]')?.closest('.node');
+    if (skillsWrapper) rail.appendChild(skillsWrapper);
   }
 
   ensureAddAnchor(true);
