@@ -97,6 +97,18 @@ export function getSideMain(){
   return stackEl();
 }
 
+// Sanitize .node wrappers inside the main zone by removing inline width styles
+export function sanitizeMainNodes(){
+  try{
+    const main = getSideMain(); if(!main) return;
+    Array.from(main.querySelectorAll('.node')).forEach(n=>{
+      try{ n.style.width=''; n.style.maxWidth=''; n.style.minWidth=''; n.style.removeProperty('width'); n.style.removeProperty('max-width'); }catch(e){}
+      // also clear inline width on immediate children (like .section or .card)
+      Array.from(n.querySelectorAll('[style]')).forEach(c=>{ try{ c.style.width=''; c.style.maxWidth=''; c.style.minWidth=''; }catch(e){} });
+    });
+  }catch(e){}
+}
+
 /* Avatar */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
@@ -269,6 +281,8 @@ export function morphTo(kind){
 
   // NEW: immediately re-home any existing sections for the new layout
   adoptSectionsToCurrentLayout();
+  // sanitize wrappers after re-home
+  sanitizeMainNodes();
 
   const after=temp.getBoundingClientRect();
 
@@ -297,7 +311,7 @@ export function ensureAddAnchor(show){
   if(!s || !add) return null;
   if(add.parentElement!==s) s.appendChild(add);
   if(typeof show==='boolean') add.style.display=show?'flex':'none';
-  // Re-home any existing section wrappers into the current main zone.
-  try{ adoptSectionsToCurrentLayout(); }catch(e){ /* best-effort */ }
+  // Re-home any existing section wrappers into the current main zone and sanitize
+  try{ adoptSectionsToCurrentLayout(); sanitizeMainNodes(); }catch(e){ /* best-effort */ }
   return add;
 }

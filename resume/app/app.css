@@ -116,8 +116,9 @@ a{color:inherit;text-decoration:none}
 
 /* DEBUG: visual layout overlay (enable with `document.body.setAttribute('data-debug','layout')`) */
 body[data-debug="layout"] [data-zone="main"]{
-  outline: 3px dashed rgba(255,80,80,.95);
-  background: rgba(255,80,80,0.03);
+  outline: 4px solid rgba(255,80,80,.9);
+  background: linear-gradient(90deg, rgba(255,80,80,0.06), rgba(255,80,80,0.02));
+  box-shadow: inset 0 0 0 2px rgba(255,80,80,0.12);
 }
 body[data-debug="layout"] .node{
   outline: 3px dashed rgba(80,140,255,.95);
