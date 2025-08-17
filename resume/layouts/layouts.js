@@ -237,6 +237,36 @@ export function restyleContactChips(scope=document){
   const head=getHeaderNode(); if(!head) return;
   $$('.chip', head).forEach(styleOneChip);
 }
+
+// chip add menu: opens a small pop with icons to add phone/email/address/linkedin
+function openChipMenu(anchor){
+  let pop = document.getElementById('chipAddPop');
+  if (!pop){
+    pop = document.createElement('div'); pop.id='chipAddPop'; pop.className='pop';
+    pop.innerHTML = `<div style="display:flex;gap:8px;padding:8px">
+      <button data-k="phone" title="Phone">📞</button>
+      <button data-k="email" title="Email">✉️</button>
+      <button data-k="address" title="Address">📍</button>
+      <button data-k="linkedin" title="LinkedIn">in</button>
+    </div>`;
+    document.body.appendChild(pop);
+    pop.addEventListener('click', e=>{
+      const k = e.target.closest('button')?.dataset.k; if(!k) return;
+      const val = prompt('Enter '+k);
+      if (!val) return;
+      S.contact = S.contact || {};
+      if (k==='linkedin') S.contact[k] = val.replace(/^https?:\/\//,'').replace(/^linkedin.com\//,''); else S.contact[k]=val;
+      save();
+      applyContact();
+      pop.classList.remove('open');
+    });
+  }
+  const r = anchor.getBoundingClientRect();
+  pop.style.left = `${Math.round(r.left + (r.width/2))}px`;
+  pop.style.top  = `${Math.round(r.top  - 12)}px`;
+  pop.style.transform = `translate(-50%,-100%)`;
+  pop.classList.add('open');
+}
 export function applyContact(){
   const head=getHeaderNode(); if(!head) return;
   const nm=head.querySelector('.name'); if(nm) nm.textContent=S?.contact?.name||'YOUR NAME';
@@ -266,7 +296,10 @@ function buildHeader(kind){
         <div class="rail">
           <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
           <div class="name" contenteditable>YOUR NAME</div>
-          <div class="chips" data-info></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="chips" data-info></div>
+            <button id="chipAddBtn" title="Add contact" style="border:0;background:transparent;color:inherit">+</button>
+          </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
         <div data-zone="main"></div>
@@ -300,6 +333,13 @@ function buildHeader(kind){
   const s=stackEl();
   s.insertBefore(node, $('#canvasAdd'));
   initAvatars(node);
+  // wire chip add btn
+  try{
+    const btn = node.querySelector('#chipAddBtn');
+    if (btn){
+      btn.addEventListener('click', ()=> openChipMenu(btn));
+    }
+  }catch(e){}
 
   S.layout=(kind==='header-side')?'side':(kind==='header-fancy')?'fancy':'top';
   // reflect current layout on body so global styles can react (e.g. sheet width)

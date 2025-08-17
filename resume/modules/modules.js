@@ -45,6 +45,14 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .add-pop .bar{display:inline-flex;gap:6px;padding:6px 8px;border-radius:10px;background:#0b0f1d;border:1px solid #1f2540;box-shadow:0 20px 60px rgba(0,0,0,.5)}
     .add-pop .bar button{width:28px;height:28px;border-radius:8px;border:1px solid #2a3354;background:#12182a;color:#e8ecff;display:grid;place-items:center}
     .add-pop .bar button:hover{transform:translateY(-1px)}
+  /* section remove button positioned top-right */
+  .sec-remove{position:absolute;right:12px;top:12px;border:0;background:transparent;color:inherit;cursor:pointer}
+  .section{position:relative}
+  /* skill row remove button (floating left) */
+  .skill-row{position:relative}
+  .skill-remove{position:absolute;left:-6px;top:50%;transform:translateY(-50%);border:0;background:#fff;border-radius:999px;width:28px;height:28px;box-shadow:0 6px 16px rgba(0,0,0,.12);cursor:pointer}
+  .sec-adds{display:flex;gap:8px;margin-left:8px}
+  .sec-adds button{border:0;background:transparent;color:inherit;cursor:pointer;padding:6px;border-radius:8px}
   `;
   document.head.appendChild(st);
 })();
@@ -177,8 +185,32 @@ export function renderSkills(list, opts = {}){
       try{ refreshPlusVisibility(); }catch(_){}
     });
     row.appendChild(remove);
+    // make name editable
+    row.querySelector('.name').setAttribute('contenteditable','true');
+    // make stars/slider interactive
+    if (it.type === 'star'){
+      row.querySelectorAll('.star').forEach((s,i)=>{
+        s.style.cursor='pointer';
+        s.addEventListener('click', ()=>{
+          const stars = i+1;
+          // update visuals
+          row.querySelectorAll('.star path').forEach((p,idx)=> p.setAttribute('fill', (idx<stars)?'currentColor':'none'));
+          try{ S.skills = (S.skills||[]).map(x=> x.label===it.label ? Object.assign({},x,{stars}) : x); save(); }catch(_){}
+        });
+      });
+    } else {
+      // slider: allow dragging (native range is OK) — no extra wiring needed for now
+    }
     wrap.appendChild(row);
   });
+  // add controls for skill types
+  const adds = document.createElement('div'); adds.className='sec-adds';
+  const btnStar = document.createElement('button'); btnStar.innerHTML='<i class="fa-solid fa-star"></i>'; btnStar.title='Add star skill';
+  const btnSlider = document.createElement('button'); btnSlider.innerHTML='<i class="fa-solid fa-sliders"></i>'; btnSlider.title='Add slider skill';
+  btnStar.addEventListener('click', ()=>{ renderSkills([{type:'star',label:'New skill',stars:3}], {}); });
+  btnSlider.addEventListener('click', ()=>{ renderSkills([{type:'slider',label:'New skill',value:60}], {}); });
+  adds.appendChild(btnStar); adds.appendChild(btnSlider);
+  body.appendChild(adds);
   body.appendChild(wrap);
   putSection(sec, { toRail: !!opts.toRail });
 }
@@ -215,6 +247,13 @@ export function renderEdu(items){
   });
 
   body.appendChild(grid);
+  // add controls: hat / scroll
+  const adds = document.createElement('div'); adds.className='sec-adds';
+  const btnHat = document.createElement('button'); btnHat.innerHTML='<i class="fa-solid fa-graduation-cap"></i>'; btnHat.title='Add education';
+  const btnScroll = document.createElement('button'); btnScroll.innerHTML='<i class="fa-solid fa-scroll"></i>'; btnScroll.title='Add course';
+  btnHat.addEventListener('click', ()=>{ renderEdu([{kind:'degree',title:'New degree',dates:'2020',academy:'School'}]); });
+  btnScroll.addEventListener('click', ()=>{ renderEdu([{kind:'course',title:'New course',dates:'2020',academy:'School'}]); });
+  body.appendChild(adds); adds.appendChild(btnHat); adds.appendChild(btnScroll);
   putSection(sec);
 }
 
@@ -223,6 +262,12 @@ export function renderExp(items){
   if (document.querySelector('.section[data-section="exp"]')) return;
   const sec = sectionEl('exp', 'Work experience');
   const body = $('.sec-body', sec);
+
+  // add control: add experience
+  const adds = document.createElement('div'); adds.className='sec-adds';
+  const btnExp = document.createElement('button'); btnExp.innerHTML='<i class="fa-solid fa-plus"></i>'; btnExp.title='Add experience';
+  btnExp.addEventListener('click', ()=>{ renderExp([{dates:'Now',role:'New role',org:'Company',desc:'Describe.'}]); });
+  body.appendChild(adds); adds.appendChild(btnExp);
 
   items.forEach(it => {
     const card = document.createElement('div');
@@ -243,7 +288,9 @@ export function renderExp(items){
       try{ refreshPlusVisibility(); }catch(_){}
     });
     card.style.position='relative'; card.appendChild(remove);
-    body.appendChild(card);
+  // make displayed texts editable
+  Array.from(card.querySelectorAll('div')).forEach(d=> d.setAttribute('contenteditable','true'));
+  body.appendChild(card);
   });
 
   putSection(sec);
