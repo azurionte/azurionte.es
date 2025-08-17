@@ -1,265 +1,286 @@
 // /resume/modules/modules.js
-// [modules.js] v2.6 — sections, horizontal add menu, rail-aware Skills, themed chips/cards
-console.log('[modules.js] v2.6');
+// [modules.js] v2.7.0 — safe insert; icon-only add menu; renderers for Skills/Edu/Exp/Bio
+console.log('[modules.js] v2.7.0');
 
 import { S } from '../app/state.js';
-import { ensureAddAnchor, getHeaderNode, getRailHolder, getSideMain, isSidebarActive } from '../layouts/layouts.js';
+import {
+  ensureCanvas,
+  getSideMain,
+  getRailHolder,
+  isSidebarActive,
+  ensureAddAnchor,
+} from '../layouts/layouts.js';
 
-/* --- styles ------------------------------------------------------------- */
-(function ensureModuleStyles(){
+/* ------------------------------------------------------------------ */
+/* Styles (once)                                                      */
+/* ------------------------------------------------------------------ */
+(function ensureStyle(){
   if (document.getElementById('modules-style')) return;
-  const st = document.createElement('style'); st.id = 'modules-style';
+  const st = document.createElement('style');
+  st.id = 'modules-style';
   st.textContent = `
-    /* host & growth */
-    #sheet{width:100%}
-    .stack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
-    .stack > .node, .stack > .section, .stack > .module, .stack > #canvasAdd{grid-column:1/-1;min-width:0}
+    /* section shell */
+    .module{position:relative;border-radius:14px;padding:14px;background:var(--mod-bg,#0c1324);
+      border:1px solid var(--mod-br,#1f2540); box-shadow:0 12px 26px rgba(0,0,0,.14)}
+    .module .title{display:grid;justify-items:center;gap:6px;margin-bottom:10px;font-weight:900}
+    .module .title .u{height:4px;width:120px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+    .mod-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-    /* section basics */
-    .section{position:relative;border-radius:14px;padding:12px 12px 14px;background:var(--sec-bg,#fff);box-shadow:0 8px 28px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.06);border:1px solid rgba(0,0,0,.06)}
-    [data-dark="1"] .section{--sec-bg:#0e1220;border-color:#1b213a;box-shadow:0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
-    .section .title{display:grid;justify-items:center;gap:6px;margin-bottom:8px}
-    .section .title h3{margin:0;font-weight:900}
-    .section .title .underline{height:4px;width:120px;border-radius:999px;background:linear-gradient(135deg,var(--accent2),var(--accent))}
-    .section .body{display:grid;gap:10px}
+    /* EDU / EXP cards (light tint, theme-reactive) */
+    .k-card{border-radius:12px;padding:10px;background:var(--kbg,#111425);
+      border:1px solid var(--kbr,#232a45); box-shadow:inset 0 1px 0 #ffffff12}
+    .k-chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;font-weight:800;
+      background:var(--chip-bg,#141a2e);color:var(--chip-fg,#e8ecff);border:1px solid #ffffff14}
 
-    /* add menu (horizontal, icon-only) */
-    .add-pop{position:absolute;inset:auto auto calc(100% + 8px) 50%;transform:translateX(-50%);background:#0f1424;color:#e6e8ff;border:1px solid #1f2540;border-radius:12px;padding:8px 10px;display:none;z-index:12000;box-shadow:0 12px 40px rgba(0,0,0,.48)}
-    .add-pop.open{display:flex}
-    .add-pop .i{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;margin:0 4px;cursor:pointer;border:1px solid #1f2540;transition:transform .12s ease}
-    .add-pop .i:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.35)}
-    .add-pop .i i{color:#fff}
-
-    /* cards (edu/exp) share structure */
-    .card{position:relative;border-radius:16px;padding:10px;background:var(--card-bg);border:1px solid var(--card-bd);box-shadow:0 8px 24px var(--card-shadow)}
-    :root{--card-bg:#ffffff;--card-bd:rgba(0,0,0,.06);--card-shadow:rgba(0,0,0,.10)}
-    [data-dark="1"] :root{--card-bg:#0c1224;--card-bd:#1b2340;--card-shadow:rgba(0,0,0,.35)}
-    .tint-edu{background:color-mix(in oklab, var(--card-bg) 82%, var(--accent) 18%)}
-    .tint-exp{background:color-mix(in oklab, var(--card-bg) 86%, var(--accent2) 14%)}
-    .card .row{display:grid;gap:6px}
-    .chip-year{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;font-weight:800;line-height:1;border:1px solid #0000}
-    /* year chip uses darker end of gradient; flip text if too dark */
-    .chip-year{background:color-mix(in oklab, var(--accent) 78%, var(--accent2) 22%); color:#101215}
-    [data-dark="1"] .chip-year{color:#fff}
-    .chip-year i{opacity:.95}
-
-    /* experience layout */
-    .exp-head{display:flex;align-items:center;gap:8px}
-    .exp-head .job{font-weight:800}
-    .muted{opacity:.75}
-
-    /* skills — shared section list */
+    /* skills */
     .skills-list{display:grid;gap:8px}
-    .skill-row{position:relative;display:grid;grid-template-columns: 1fr auto;align-items:center;gap:10px;padding:6px 8px;border-radius:10px}
-    .skill-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .skill-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:center;gap:10px}
+    .skill-name[contenteditable]{outline:none;border-radius:10px;padding:6px 10px;background:transparent;border:1px solid transparent}
+    .skill-row.editing{position:relative}
+    .skill-row.editing::after{content:'';position:absolute;inset:-4px;border:2px dotted #7c99ff;border-radius:12px;box-shadow:0 0 18px #7c99ff44}
+    .skill-floating{position:absolute;top:50%;transform:translateY(-50%);display:grid;gap:6px}
+    .skill-floating.left{left:-26px}
+    .skill-floating.right{right:-26px}
+    .skill-btn{width:20px;height:20px;border-radius:10px;background:#0b1024;border:1px solid #243057;color:#e8ecff;
+      display:grid;place-items:center;font-size:12px;cursor:pointer}
+    .stars{display:inline-grid;grid-auto-flow:column;gap:6px;justify-content:end}
+    .star{width:16px;height:16px;fill:#8892a6;cursor:pointer}
+    .star.on{fill:#f59e0b}
+    .meter{appearance:none;width:100%;height:6px;border-radius:999px;background:#272f50;outline:none}
+    .meter::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #0c1324}
 
-    /* stars/slider visuals */
-    .stars{display:inline-grid;grid-auto-flow:column;gap:6px}
-    .star{width:16px;height:16px;display:inline-block;mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>') center/contain no-repeat;background:#cbd5e1}
-    .star.on{background:#f59e0b}
-    .sld{appearance:none;width:120px;height:4px;border-radius:999px;background:#2a3152;outline:none}
-    .sld::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:999px;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-
-    /* SKILLS in RAIL (sidebar) — 2/3 label, 1/3 control; tiny overlay handles that float */
-    .rail .skills-list .skill-row{grid-template-columns: 2fr 1fr;background:transparent}
-    .rail .stars .star{width:12px;height:12px}
-    .rail .sld{width:90px}
-
-    /* inline edit affordances (don’t affect layout) */
-    .floating-handle, .floating-del{
-      position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;display:grid;place-items:center;border-radius:8px;background:#0f1424;color:#e6e8ff;border:1px solid #1f2540;z-index:5
-    }
-    .floating-handle{left:-28px}
-    .floating-del{right:-28px}
-    .edit-outline{outline:2px dotted color-mix(in oklab, var(--accent) 60%, transparent); outline-offset:6px; border-radius:12px}
-
-    /* grid helpers inside main column (skills can be 2 cols on canvas) */
-    .skills-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-    /* utilities */
-    .mut-btn{appearance:none;border:none;background:#0f1424;color:#e6e8ff;border:1px solid #1f2540;border-radius:10px;padding:6px 10px;cursor:pointer}
-    .mut-btn:hover{filter:brightness(1.1)}
+    /* add menu (icon-only, horizontal, above +, centered) */
+    .add-pop{position:fixed;inset:0;display:none;align-items:center;justify-content:center}
+    .add-pop[aria-hidden="false"]{display:flex}
+    .add-tray{position:absolute;display:flex;gap:8px;background:#0c1324;border:1px solid #1f2540;padding:8px 10px;
+      border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+    .add-tray .i{width:36px;height:36px;border-radius:10px;border:1px solid #2b3458;background:#0f172f;color:#e8ecff;
+      display:grid;place-items:center;cursor:pointer}
+    .add-tray .i:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(0,0,0,.35)}
   `;
   document.head.appendChild(st);
 })();
 
-/* --- tiny helpers ------------------------------------------------------- */
-function h(tag, attrs={}, children=[]){
-  const el = document.createElement(tag);
-  Object.entries(attrs).forEach(([k,v])=>{
-    if (k==='class') el.className = v;
-    else if (k==='style') Object.assign(el.style, v);
-    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
-    else el.setAttribute(k, v);
-  });
-  (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>{
-    if (typeof c === 'string') el.appendChild(document.createTextNode(c)); else el.appendChild(c);
-  });
-  return el;
+/* ------------------------------------------------------------------ */
+/* Utilities                                                          */
+/* ------------------------------------------------------------------ */
+function hostForMainSections(){
+  // Main column (grid or stack), not the rail
+  ensureCanvas();            // makes sure stack & #canvasAdd exist
+  return getSideMain();      // returns right side for sidebar layout, otherwise #stack
 }
 
-function host({ preferRail=false }={}){
-  const rail = getRailHolder?.();
-  if (preferRail && rail) { rail.classList.add('rail'); return rail; }
-  return getSideMain?.() || document.getElementById('stack');
-}
+function safeInsertInHost(node, { preferBeforeAdd=true } = {}){
+  // Robustly place node in the current host, before the big "+" if possible.
+  const host = hostForMainSections();
+  const { add } = ensureCanvas();   // #canvasAdd
+  if (!host) return;
 
-function sectionShell(icon, title){
-  const sec = h('div', { class:'section' }, [
-    h('div', { class:'title' }, [
-      h('h3',{}, [h('span',{ style:{display:'inline-flex',alignItems:'center',gap:'8px'}},[
-        h('i',{ class:`fa-solid ${icon}` }), ' ', title
-      ])]),
-      h('div',{ class:'underline'})
-    ]),
-    h('div',{ class:'body'})
-  ]);
-  return sec;
-}
+  // Keep the + anchored in the current host.
+  ensureAddAnchor(true);
 
-function ensureInHost(node, opts){ host(opts).insertBefore(node, ensureAddAnchor?.() || null); }
+  // If the add isn't a direct child of this host, just append at end.
+  // (This prevents NotFoundError when the + is hosted elsewhere.)
+  const addIsHere = add && add.parentElement === host;
 
-function chipYear(text, icon){
-  return h('span', { class:'chip-year' }, [ h('i',{ class:`fa-solid ${icon}` }), text ]);
-}
-
-/* --- Add Menu (horizontal icons) --------------------------------------- */
-let addMenuEl=null, addTrayEl=null;
-function ensureAddMenuDom(){
-  if (addMenuEl) return;
-  addMenuEl = document.getElementById('addMenu') || h('div',{ id:'addMenu', class:'add-pop' });
-  addTrayEl = document.getElementById('addTray') || h('div',{ id:'addTray', style:{display:'flex',alignItems:'center'}});
-  if (!addMenuEl.parentElement){
-    addMenuEl.appendChild(addTrayEl);
-    document.body.appendChild(addMenuEl);
+  try{
+    if (preferBeforeAdd && addIsHere){
+      host.insertBefore(node, add);
+    } else {
+      host.appendChild(node);
+    }
+  }catch(_){
+    // Absolute safety: never crash the flow
+    host.appendChild(node);
   }
 }
-export function openAddMenu(anchor){
-  ensureAddMenuDom();
-  addTrayEl.innerHTML = '';
-  const items = [
-    { k:'skills', icon:'fa-layer-group', title:'Skills' },
-    { k:'edu',    icon:'fa-graduation-cap', title:'Education' },
-    { k:'exp',    icon:'fa-briefcase', title:'Work' },
-    { k:'bio',    icon:'fa-id-card-clip', title:'Profile' },
-  ];
-  items.forEach(it=>{
-    const btn = h('button',{ class:'i', title:it.title, onclick:()=>{ addMenuEl.classList.remove('open'); addMenuEl.style.display='none'; addByKey(it.k); } },[
-      h('i',{ class:`fa-solid ${it.icon}` })
-    ]);
-    addTrayEl.appendChild(btn);
+
+function wipeExisting(kind){
+  // Remove any existing module of same kind in either main host or rail
+  const all = document.querySelectorAll(`.module[data-k="${kind}"]`);
+  all.forEach(el => el.remove());
+}
+
+function icon(name){ return `<i class="fa-solid ${name}"></i>`; }
+
+/* ------------------------------------------------------------------ */
+/* Public: Add menu                                                   */
+/* ------------------------------------------------------------------ */
+export function openAddMenu(plusBtn){
+  let pop = document.getElementById('addPop');
+  if (!pop){
+    pop = document.createElement('div');
+    pop.id = 'addPop'; pop.className = 'add-pop'; pop.setAttribute('aria-hidden','true');
+    pop.innerHTML = `<div class="add-tray" id="addTray"></div>`;
+    document.body.appendChild(pop);
+  }
+  const tray = pop.querySelector('#addTray');
+  tray.innerHTML = `
+    <div class="i" title="Skills"      data-k="skills">${icon('fa-layer-group')}</div>
+    <div class="i" title="Education"   data-k="edu">${icon('fa-graduation-cap')}</div>
+    <div class="i" title="Work"        data-k="exp">${icon('fa-briefcase')}</div>
+    <div class="i" title="Profile/Bio" data-k="bio">${icon('fa-id-card-clip')}</div>
+  `;
+
+  // Position it centered above the plus
+  const r = plusBtn.getBoundingClientRect();
+  const tw = 36*4 + 8*3 + 20; // rough width (buttons + gaps + padding)
+  const th = 36 + 20;
+  tray.style.left = Math.round(r.left + r.width/2 - tw/2) + 'px';
+  tray.style.top  = Math.round(r.top - th - 14) + 'px';
+
+  pop.setAttribute('aria-hidden', 'false');
+
+  const close = (ev)=>{
+    if (!pop.contains(ev.target) || ev.target === pop) {
+      pop.setAttribute('aria-hidden','true');
+      document.removeEventListener('mousedown', close, true);
+    }
+  };
+  document.addEventListener('mousedown', close, true);
+
+  tray.querySelectorAll('.i').forEach(btn=>{
+    btn.onclick = ()=>{
+      const k = btn.dataset.k;
+      if (k === 'skills') renderSkills([{type:'star',label:'Skill',stars:3}], { toRail:false });
+      if (k === 'edu')    renderEdu([{kind:'degree',title:'Title',dates:'2018–2022',academy:'Academy'}]);
+      if (k === 'exp')    renderExp([{dates:'Jan 2024 – Present',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]);
+      if (k === 'bio')    renderBio('Add a short summary of your profile, strengths and what you’re great at.');
+      pop.setAttribute('aria-hidden','true');
+    };
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Renderers used by Wizard + Add menu                                */
+/* ------------------------------------------------------------------ */
+
+/* ---- Skills ------------------------------------------------------- */
+export function renderSkills(items, opts={}){
+  // items: [{ type:'star'|'slider', label, stars|value }]
+  const toRail = !!opts.toRail && isSidebarActive() && getRailHolder();
+  wipeExisting('skills');
+
+  const box = document.createElement('div');
+  box.className = 'module'; box.dataset.k = 'skills';
+  box.innerHTML = `
+    <div class="title"><div>Skills</div><div class="u"></div></div>
+    <div class="skills-list"></div>
+  `;
+
+  const list = box.querySelector('.skills-list');
+
+  const rowStar = (label, stars=0)=>{
+    const r = document.createElement('div'); r.className = 'skill-row';
+    r.innerHTML = `
+      <div class="cell">
+        <span class="skill-name" contenteditable="true">${label || 'Skill'}</span>
+      </div>
+      <div class="cell">
+        <span class="stars">
+          ${[1,2,3,4,5].map(i=>`<svg class="star ${i<=stars?'on':''}" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}
+        </span>
+      </div>`;
+    // editing affordance on hover (floating drag / delete placeholders)
+    r.onmouseenter = ()=> r.classList.add('editing');
+    r.onmouseleave = ()=> r.classList.remove('editing');
+    return r;
+  };
+
+  const rowMeter = (label, val=60)=>{
+    const r = document.createElement('div'); r.className = 'skill-row';
+    r.innerHTML = `
+      <div class="cell"><span class="skill-name" contenteditable="true">${label || 'Skill'}</span></div>
+      <div class="cell"><input type="range" class="meter" min="0" max="100" value="${val}"></div>`;
+    r.onmouseenter = ()=> r.classList.add('editing');
+    r.onmouseleave = ()=> r.classList.remove('editing');
+    return r;
+  };
+
+  (items||[]).forEach(it=>{
+    if (it.type === 'slider') list.appendChild(rowMeter(it.label, it.value));
+    else list.appendChild(rowStar(it.label, it.stars));
   });
 
-  const r = anchor.getBoundingClientRect();
-  addMenuEl.style.left = (r.left + r.width/2) + 'px';
-  addMenuEl.style.top  = (r.top - 10) + 'px';
-  addMenuEl.style.display = 'flex';
-  requestAnimationFrame(()=> addMenuEl.classList.add('open'));
-  const off = (ev)=>{ if(!addMenuEl.contains(ev.target) && ev.target!==anchor){ addMenuEl.classList.remove('open'); addMenuEl.style.display='none'; document.removeEventListener('mousedown',off,true);} };
-  document.addEventListener('mousedown',off,true);
-}
-function addByKey(k){
-  if (k==='skills') renderSkills([{type:'star',label:'Skill',stars:3},{type:'slider',label:'Skill',value:60}], { toRail:false, twoCol:true, forceNew:true });
-  if (k==='edu')    renderEdu([{kind:'degree',title:'Title',dates:'2018–2022',academy:'Academy'}]);
-  if (k==='exp')    renderExp([{dates:'Jan 2024 – Present', role:'Job title', org:'@Company', desc:'Describe impact, scale and results.'}]);
-  if (k==='bio')    renderBio('Add a short summary of your profile, strengths and what you’re great at.');
+  if (toRail){
+    // Sidebar rail skills
+    const rail = getRailHolder();
+    rail && rail.appendChild(box);
+  }else{
+    safeInsertInHost(box);
+  }
 }
 
-/* --- SKILLS -------------------------------------------------------------- */
-export function renderSkills(items=[], opts={}){
-  const { toRail=false, twoCol=false, forceNew=false } = opts;
-  // Find an existing Skills section (rail or canvas), unless forcing new
-  let targetHost = host({ preferRail: toRail && isSidebarActive?.() });
-  const existing = !forceNew && [...targetHost.querySelectorAll('.section[data-type="skills"]')][0];
+/* ---- Education ---------------------------------------------------- */
+export function renderEdu(items){
+  wipeExisting('edu');
 
-  const sec = existing || sectionShell('fa-layer-group','Skills');
-  sec.dataset.type='skills';
-  const body = sec.querySelector('.body'); body.innerHTML='';
+  const box = document.createElement('div');
+  box.className = 'module'; box.dataset.k = 'edu';
+  box.innerHTML = `
+    <div class="title"><div>Education</div><div class="u"></div></div>
+    <div class="mod-grid-2" id="eduGrid"></div>
+  `;
 
-  // GRID: on canvas we may show 2 columns
-  if (!toRail && twoCol) body.classList.add('skills-grid-2'); else body.classList.remove('skills-grid-2');
+  const grid = box.querySelector('#eduGrid');
 
-  const list = h('div',{ class:'skills-list' });
-  items.forEach(it=>{
-    const row = h('div',{ class:'skill-row'},[
-      h('div',{ class:'skill-label', contenteditable:'plaintext-only' }, it.label||'Skill'),
-      it.type==='star'
-        ? h('div', { class:'stars', 'data-kind':'star' }, Array.from({length:5}).map((_,i)=>h('span',{ class:'star'+(i<(it.stars||0)?' on':''), onclick:(e)=>{ const n=i+1; [...e.currentTarget.parentElement.children].forEach((s,j)=>s.classList.toggle('on', j<n)); } })))
-        : h('input',{ class:'sld', type:'range', min:'0', max:'100', value: String(it.value ?? 60) })
-    ]);
+  const eduCard = (it)=>{
+    const icon = it.kind === 'degree' ? 'fa-graduation-cap' : 'fa-scroll';
+    const el = document.createElement('div');
+    el.className = 'k-card';
+    el.innerHTML = `
+      <div class="k-chip">${icon('fa-solid '+icon)} <span contenteditable="true">${it.dates || '2018–2022'}</span></div>
+      <div style="height:8px"></div>
+      <div contenteditable="true" style="font-weight:800">${it.title || 'Title'}</div>
+      <div contenteditable="true" style="opacity:.85">${it.academy || 'Academy'}</div>
+    `;
+    return el;
+  };
 
-    // editing affordances (float)
-    row.classList.add('edit-outline');
-    const drag = h('div',{ class:'floating-handle'}, [h('i',{ class:'fa-solid fa-grip-vertical' })]);
-    const del  = h('div',{ class:'floating-del', onclick:()=>row.remove() }, [h('i',{ class:'fa-solid fa-xmark' })]);
-    row.appendChild(drag); row.appendChild(del);
-    list.appendChild(row);
-  });
-
-  body.appendChild(list);
-
-  // Put/keep the section in correct host
-  if (!existing) ensureInHost(sec, { preferRail: toRail && isSidebarActive?.() });
-  // Ensure rail class on parent if in sidebar
-  if (toRail && sec.closest('[data-rail-sections]')) sec.closest('[data-rail-sections]').classList.add('rail');
+  (items||[]).forEach(it=> grid.appendChild(eduCard(it)));
+  safeInsertInHost(box);
 }
 
-/* --- EDUCATION ----------------------------------------------------------- */
-export function renderEdu(items=[]){
-  // Always add to main/canvas side
-  const sec = sectionShell('fa-graduation-cap','Education'); sec.dataset.type='edu';
-  const body = sec.querySelector('.body');
+/* ---- Experience --------------------------------------------------- */
+export function renderExp(items){
+  // items: [{dates, role, org, desc}]
+  let holder = document.querySelector('.module[data-k="exp"]');
+  if (!holder){
+    holder = document.createElement('div');
+    holder.className = 'module'; holder.dataset.k = 'exp';
+    holder.innerHTML = `
+      <div class="title"><div>Work experience</div><div class="u"></div></div>
+      <div id="expList" style="display:grid;gap:10px"></div>
+    `;
+    safeInsertInHost(holder);
+  }
+  const list = holder.querySelector('#expList');
 
-  const grid = h('div',{ style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}});
-  items.forEach(it=>{
-    const card = h('div',{ class:'card tint-edu'},[
-      h('div',{ class:'row' },[
-        chipYear(it.dates||'2018–2022','fa-book'),
-        h('div',{ class:'muted' }, it.academy||'Academy'),
-        h('div',{}, it.title||'Title')
-      ])
-    ]);
-    grid.appendChild(card);
-  });
-  body.appendChild(grid);
-  ensureInHost(sec);
+  const expCard = (d)=>{
+    const el = document.createElement('div'); el.className = 'k-card';
+    el.innerHTML = `
+      <div class="k-chip">${icon('fa-solid fa-bars')} <span contenteditable="true">${d.dates || 'Jan 2024 – Present'}</span></div>
+      <div style="height:8px"></div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center">
+        <div style="font-weight:800" contenteditable="true">${d.role || 'Job title'}</div>
+      </div>
+      <div contenteditable="true" style="opacity:.9">${d.org || '@Company'}</div>
+      <div contenteditable="true" style="opacity:.9">${d.desc || 'Describe impact, scale and results.'}</div>
+    `;
+    return el;
+  };
+
+  (items||[]).forEach(d=> list.appendChild(expCard(d)));
 }
 
-/* --- EXPERIENCE ---------------------------------------------------------- */
-export function renderExp(items=[]){
-  const sec = sectionShell('fa-briefcase','Work experience'); sec.dataset.type='exp';
-  const body = sec.querySelector('.body');
-
-  items.forEach(it=>{
-    const card = h('div',{ class:'card tint-exp'},[
-      h('div',{ class:'row' },[
-        h('div',{ class:'exp-head'},[
-          chipYear(it.dates||'Jan 2024 – Present','fa-bars'),
-          h('div',{ class:'job'}, it.role||'Job title')
-        ]),
-        h('div',{ class:'muted'}, it.org||'@Company'),
-        h('div',{}, it.desc || 'Describe impact, scale and results.')
-      ])
-    ]);
-    body.appendChild(card);
-  });
-
-  ensureInHost(sec);
+/* ---- Bio ---------------------------------------------------------- */
+export function renderBio(text){
+  wipeExisting('bio');
+  const box = document.createElement('div');
+  box.className = 'module'; box.dataset.k = 'bio';
+  box.innerHTML = `
+    <div class="title"><div>Profile</div><div class="u"></div></div>
+    <div contenteditable="true" style="min-height:80px;line-height:1.45">${(text||'').replace(/\n/g,'<br>')}</div>
+  `;
+  safeInsertInHost(box);
 }
-
-/* --- BIO ----------------------------------------------------------------- */
-export function renderBio(text=''){
-  const sec = sectionShell('fa-id-card-clip','Profile'); sec.dataset.type='bio';
-  sec.querySelector('.body').appendChild(
-    h('div',{}, text || 'Add a short summary of your profile, strengths and what you’re great at.')
-  );
-  ensureInHost(sec);
-}
-
-/* --- make sure canvas grows & add button stays last --------------------- */
-(function ensureGrowth(){
-  // Make page grow with content even when sidebar is long
-  const page = document.getElementById('page') || document.querySelector('.page');
-  if (page) page.style.minHeight = 'auto';
-  const add = ensureAddAnchor?.(); if (add) add.style.display='flex';
-})();
