@@ -1,9 +1,8 @@
-// /resume/editor/editor.js
-// Builds top bar, theme menu, preview/print and the canvas shell
-// [editor.js] v1.6.0
-console.log('[editor.js] v1.6.0');
+// [editor.js] v1.6.1 — top bar + theme + preview + canvas shell + old horizontal add menu
+console.log('[editor.js] v1.6.1');
+
 import { S, save } from '../app/state.js';
-import { morphTo } from '../layouts/layouts.js';
+import { morphTo, ensureCanvas } from '../layouts/layouts.js';
 import { openAddMenu } from '../modules/modules.js';
 
 export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCustomGradient }){
@@ -59,7 +58,7 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     </div>
   `;
 
-  // dropdown wiring
+  // dropdowns
   const dds = [...top.querySelectorAll('.dropdown')];
   dds.forEach(dd => dd.querySelector('button').onclick = () => dd.classList.toggle('open'));
   document.addEventListener('click', e => dds.forEach(dd => { if(!dd.contains(e.target)) dd.classList.remove('open'); }));
@@ -102,71 +101,22 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     document.body.classList.add('preview'); setTimeout(() => { window.print(); if(!was) document.body.classList.remove('preview'); }, 60);
   };
 
-  // quick layout switch (keeps morphing)
+  // canvas shell
+  const { add } = ensureCanvas();
+  // restore old horizontal icon-only add menu
+  document.getElementById('dotAdd').onclick = (e)=> openAddMenu(e.currentTarget);
+
+  // quick morph
   top.querySelector('#layoutQuick').addEventListener('click', e => {
     const k = e.target.closest('[data-layout]')?.dataset.layout; if(!k) return;
-    const prevHeaderRect = document.querySelector('[data-header]')?.getBoundingClientRect();
     morphTo(k);
-    setTimeout(ensurePlusAtEnd, prevHeaderRect ? 380 : 50);
+    setTimeout(()=>{}, 380);
     top.querySelector('#ddLayout').classList.remove('open');
   });
-
-  // build canvas shell (page + stack + add btn)
-  const root = document.getElementById('canvas-root');
-  root.innerHTML = `
-    <div class="page" id="page"><div id="sheet">
-      <div class="stack" id="stack">
-        <div class="add-squircle" id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
-      </div>
-    </div></div>
-    <div class="pop" id="addMenu" aria-hidden="true"><div class="tray" id="addTray"></div></div>
-  `;
-
-  // --- PLUS BUTTON HOSTING (Sidebar support) ------------------------------
-  const addWrap = root.querySelector('#canvasAdd');
-  const addDot  = root.querySelector('#dotAdd');
-  const stackEl = root.querySelector('#stack');
-
-  // click opens anchored menu perfectly centered above the squircle
-  addDot.addEventListener('click', (e) => {
-    e.preventDefault(); e.stopPropagation();
-    openAddMenu(addWrap);
-  });
-  addWrap.setAttribute('tabindex','0');
-  addWrap.addEventListener('keydown', (e)=>{
-    if (e.key==='Enter' || e.key===' '){
-      e.preventDefault();
-      openAddMenu(addWrap);
-    }
-  });
-
-  function currentHost(){
-    // Sidebar layout -> host sections in the main zone (right of the rail)
-    const main = document.querySelector('[data-header] [data-zone="main"]');
-    return (S.layout === 'side' && main) ? main : stackEl;
-  }
-
-  function ensurePlusAtEnd(){
-    const host = currentHost();
-    if (!host) return;
-    if (addWrap.parentElement !== host) host.appendChild(addWrap);
-    addWrap.style.display = 'flex';
-  }
-
-  // initial placement
-  ensurePlusAtEnd();
-
-  // re-place after morphs (if layouts.js emits)
-  document.addEventListener('layout:changed', ensurePlusAtEnd);
-
-  // robust fallback: observe header insertion/replacement (works even without events)
-  const mo = new MutationObserver(() => ensurePlusAtEnd());
-  mo.observe(stackEl, { childList:true, subtree:true });
 }
 
-// ---- tiny helper to render the small layout mocks in the dropdown --------
 function mock(layoutKey,label){
-  const kind = layoutKey.split('-')[1]; // side/fancy/top
+  const kind = layoutKey.split('-')[1];
   const hero = (kind==='side')
     ? `<div style="position:absolute;inset:12px auto 12px 12px;width:32%;border-radius:10px;background:linear-gradient(135deg,#5b6fb7,#2f3d7a)"></div>
        <div style="position:absolute;left:30px;top:30px;width:42px;height:42px;border-radius:50%;background:#cfd6ff;border:3px solid #fff"></div>
