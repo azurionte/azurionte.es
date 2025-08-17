@@ -44,6 +44,13 @@ export function hydrateFromStorage() {
 export function setTheme(k){
   S.theme = k; save();
   document.body.setAttribute('data-theme', k);
+  // update chip tint from theme defaults (modules expect --chipBg)
+  const themes = {
+    coral:['#ff7b54','#ffd166'], sea:['#4facfe','#38d2ff'], city:['#34d399','#9ca3af'],
+    magentaPurple:['#c026d3','#9333ea'], magentaPink:['#ec4899','#f97316'], blueGreen:['#22c1c3','#2ecc71'], grayBlack:['#8892a6','#414b57']
+  };
+  const c = themes[k] ? themes[k][0] : '#8b5cf6';
+  document.documentElement.style.setProperty('--chipBg', c);
 }
 export function setCustomGradient(a,b){
   document.documentElement.style.setProperty('--accent', a);
@@ -52,6 +59,15 @@ export function setCustomGradient(a,b){
 export function setDark(on){
   S.dark = on; save();
   document.body.setAttribute('data-dark', on ? '1' : '0');
+  if (on){
+    document.documentElement.style.setProperty('--secBg', '#0f1420');
+    document.documentElement.style.setProperty('--cardBg', '#0c1222');
+    document.documentElement.style.setProperty('--cardBorder', 'rgba(255,255,255,0.08)');
+  } else {
+    document.documentElement.style.setProperty('--secBg', '#ffffff');
+    document.documentElement.style.setProperty('--cardBg', 'rgba(0,0,0,0.03)');
+    document.documentElement.style.setProperty('--cardBorder', 'rgba(0,0,0,0.08)');
+  }
 }
 export function setMaterial(m){
   S.material = m; save();

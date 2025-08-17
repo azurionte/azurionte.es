@@ -83,6 +83,18 @@ a{color:inherit;text-decoration:none}
 .add-dot{width:86px;height:86px;border-radius:22px;border:2px dashed #a3aed0;display:grid;place-items:center;color:#64748b;cursor:pointer;background:#fff;box-shadow:var(--shadow);font-size:28px;font-weight:900}
 .add-dot:hover{border-color:#7c99ff;color:#7c99ff}
 
+/* Force sections and cards to occupy the full canvas area inside sidebar main */
+.sidebar-layout [data-zone="main"] > .section,
+.sidebar-layout [data-zone="main"] > #canvasAdd{
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+}
+
+.sidebar-layout [data-zone="main"] .card{ width:100%; box-sizing:border-box }
+
 /* floating add menu (shared) */
 .pop{position:fixed;background:#0f1420;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:10px;display:none;z-index:18000}
 .pop.open{display:block}

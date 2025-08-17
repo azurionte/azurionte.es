@@ -80,6 +80,8 @@ function hostRail(){
 
 function putSection(node, { toRail=false } = {}){
   const host = (toRail && hostRail()) || hostMain();
+  // clear any inline width styles that may have been copied from mocks so grid can size sections
+  try { node.style.width = ''; node.style.maxWidth = ''; } catch(_){}
   const plus = ensurePlusIn(host);
   if (plus) host.insertBefore(node, plus); else host.appendChild(node);
 }
