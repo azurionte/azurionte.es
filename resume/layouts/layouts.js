@@ -2,7 +2,7 @@
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
 console.log('[layouts.js] v2.5.2');
 
-import { S } from '../app/state.js';
+import { S, save } from '../app/state.js';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -196,7 +196,19 @@ function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
   el.contentEditable = 'true';         // editable directly
-  el.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
+  el.innerHTML = `<i class="${icon}"></i><span>${text}</span><button class="chip-rm" title="Remove" style="margin-left:8px;border-radius:8px;padding:2px 6px">×</button>`;
+  // remove handler (best-effort: clears matching contact value)
+  el.querySelector('.chip-rm').addEventListener('click', ()=>{
+    try{
+      const txt = el.textContent.trim();
+      if (S && S.contact){
+        ['phone','email','address','linkedin'].forEach(k=>{ if (S.contact[k] && txt.includes(S.contact[k])) S.contact[k]=''; });
+        save();
+      }
+      el.remove();
+      restyleContactChips();
+    }catch(e){}
+  });
   return el;
 }
 function setChips(containers, items){

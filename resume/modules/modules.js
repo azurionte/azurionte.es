@@ -2,7 +2,7 @@
 // [modules.js] v2.9.0 — sections + add popover + safe host insertion + remember rail choice
 console.log('[modules.js] v2.9.2');
 
-import { S } from '../app/state.js';
+import { S, save } from '../app/state.js';
 import { ensureCanvas, isSidebarActive, getRailHolder, getSideMain } from '../layouts/layouts.js';
 
 const $  = (s, r=document) => r.querySelector(s);
@@ -117,9 +117,26 @@ function sectionEl(key, title){
   el.innerHTML = `
     <div class="sec-head">
       <div class="sec-title">${title}</div>
+      <button class="sec-remove" title="Remove section" style="margin-left:8px;border-radius:8px;padding:4px 8px;">×</button>
       <div class="sec-underline"></div>
     </div>
     <div class="sec-body"></div>`;
+  // wire remove handler
+  el.querySelector('.sec-remove').addEventListener('click', e=>{
+    const s = el.dataset.section;
+    // remove from DOM (wrapper) — find closest .node and remove
+    const wrapper = el.closest('.node') || el;
+    wrapper.remove();
+    // update persisted state if applicable
+    try{
+      if (s === 'skills') S.skills = [];
+      if (s === 'edu') S.edu = [];
+      if (s === 'exp') S.exp = [];
+      if (s === 'bio') S.bio = '';
+      save();
+    }catch(_){}
+    try{ refreshPlusVisibility(); }catch(_){}
+  });
   return el;
 }
 
@@ -152,6 +169,14 @@ export function renderSkills(list, opts = {}){
         ? `<div class="stars">${[1,2,3,4,5].map(i => svgStar((it.stars||0) >= i)).join('')}</div>`
         : `<input class="meter" type="range" min="0" max="100" value="${it.value ?? 60}" disabled>`}
       </div>`;
+    const remove = document.createElement('button'); remove.textContent='×'; remove.title='Remove skill';
+    remove.style.cssText='margin-left:8px;border-radius:8px;padding:4px 8px;';
+    remove.addEventListener('click', ()=>{
+      row.remove();
+      try{ S.skills = (S.skills||[]).filter(x=> x.label !== it.label); save(); }catch(_){}
+      try{ refreshPlusVisibility(); }catch(_){}
+    });
+    row.appendChild(remove);
     wrap.appendChild(row);
   });
   body.appendChild(wrap);
@@ -176,6 +201,16 @@ export function renderEdu(items){
       <div style="height:8px"></div>
       <div style="font-weight:800">${it.title || ''}</div>
       <div>${it.academy || ''}</div>`;
+    // add remove control
+    const remove = document.createElement('button'); remove.textContent='×'; remove.title='Remove';
+    remove.style.cssText = 'position:absolute;right:12px;top:12px;border-radius:8px;padding:4px 8px;';
+    remove.addEventListener('click', ()=>{
+      card.remove();
+      // update S.edu to remove the corresponding item (best-effort by title)
+      try{ S.edu = (S.edu||[]).filter(x=> x.title !== it.title); save(); }catch(_){}
+      try{ refreshPlusVisibility(); }catch(_){}
+    });
+    card.style.position='relative'; card.appendChild(remove);
     grid.appendChild(card);
   });
 
@@ -200,6 +235,14 @@ export function renderExp(items){
       <div style="opacity:.9">@${(it.org||'Company').replace(/^@/, '')}</div>
       <div style="height:8px"></div>
       <div>${it.desc || 'Describe impact, scale and results.'}</div>`;
+    const remove = document.createElement('button'); remove.textContent='×'; remove.title='Remove';
+    remove.style.cssText = 'position:absolute;right:12px;top:12px;border-radius:8px;padding:4px 8px;';
+    remove.addEventListener('click', ()=>{
+      card.remove();
+      try{ S.exp = (S.exp||[]).filter(x=> x.role !== it.role); save(); }catch(_){}
+      try{ refreshPlusVisibility(); }catch(_){}
+    });
+    card.style.position='relative'; card.appendChild(remove);
     body.appendChild(card);
   });
 
