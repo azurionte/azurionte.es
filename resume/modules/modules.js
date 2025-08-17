@@ -33,8 +33,10 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
     /* skills list (canvas + sidebar) */
     .skills-wrap{display:grid;gap:8px}
-    .skill-row{display:grid;grid-template-columns:1fr 120px;align-items:center;gap:10px}
+  /* layout: handle | name | value | control */
+  .skill-row{display:grid;grid-template-columns:34px 1fr 120px 44px;align-items:center;gap:10px}
     .skill-row .name{min-width:0}
+  .skill-row > .ctrl-circle{justify-self:end}
     .stars{display:inline-grid;grid-auto-flow:column;gap:6px;justify-content:end}
     .star{width:14px;height:14px;display:inline-block;transform:translateY(1px)}
     .meter{width:120px}
