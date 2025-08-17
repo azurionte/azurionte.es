@@ -1,20 +1,22 @@
 // /resume/modules/modules.js
-// v1.9 — section add/edit from wizard, safe deletes, full width on canvas,
-//        no default Experience card, rail <-> canvas moves solid.
+// v1.9.1 — wizard-aware data in, full-width fixes, safe insertion & rail/canvas moves
 
 import { ensureCanvas, isSidebarActive, getSideMain, getRailHolder, ensureAddAnchor } from '../layouts/layouts.js';
-console.log('%c[modules.js] v1.9 loaded', 'color:#22c1c3');
+console.log('%c[modules.js] v1.9.1 loaded', 'color:#22c1c3');
 
 const $  = (s,r)=> (r||document).querySelector(s);
 const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
 
-/* ---------- CSS (forces full width when on canvas) ---------- */
+/* ---------- CSS (adds full-width overrides on canvas & main zone) ---------- */
 (function injectModulesCSS(){
   if (document.getElementById('modules-css')) return;
   const css = `
-  /* full width on canvas */
+  /* full width for anything we add on the page/canvas */
   #sheet .stack .node{ width:100%; }
   #sheet .stack .node > *{ width:100%; max-width:100%; }
+
+  /* force full width on sidebar layout right column too */
+  .sidebar-layout [data-zone="main"] > *{ width:100% !important; max-width:none !important; box-sizing:border-box; }
 
   .section{background:#f7f9ff;border:1px solid #ebf0ff;border-radius:14px;padding:12px;position:relative;width:100%}
   [data-dark="1"] .section{background:#0f1420;border-color:#1f2a44}
@@ -58,7 +60,7 @@ const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
   document.head.appendChild(tag);
 })();
 
-/* ---------- small utilities ---------- */
+/* ---------- DnD helper ---------- */
 function attachDnd(container, itemSel){
   if(!container || container._dndAttached) return;
   container._dndAttached = true;
@@ -99,9 +101,8 @@ function attachDnd(container, itemSel){
   }
 }
 
-function contentHost(){
-  return isSidebarActive() ? (getSideMain() || ensureCanvas().stack) : ensureCanvas().stack;
-}
+/* ---------- host helpers ---------- */
+function contentHost(){ return isSidebarActive() ? (getSideMain() || ensureCanvas().stack) : ensureCanvas().stack; }
 function hostAndAdd(){
   const host = contentHost();
   const { add } = ensureCanvas();
@@ -109,36 +110,27 @@ function hostAndAdd(){
   return { host, add };
 }
 function insertBeforeSafe(host, node, anchor){
+  if (!host) return;
   if (anchor && anchor.parentElement === host) host.insertBefore(node, anchor);
   else host.appendChild(node);
 }
 
-/* ---------- title builder (safer delete) ---------- */
-function mkTitle(icon, text){
+/* ---------- title builder ---------- */
+function mkTitle(icon, text, onDelete, withHandle=true){
   const t = document.createElement('div');
   t.className = 'title-item';
   t.innerHTML = `<div class="trow">${icon?`<i class="fa-solid ${icon}"></i>`:''}<h2>${text}</h2></div><div class="u"></div>`;
   const tools = document.createElement('div');
   tools.className = 'sec-tools';
-
-  const h=document.createElement('button'); h.className='handle'; h.title='Drag section';
-  tools.appendChild(h);
-
+  if(withHandle){ const h=document.createElement('button'); h.className='handle'; h.title='Drag section'; tools.appendChild(h); }
   const del=document.createElement('button'); del.className='rm'; del.type='button'; del.textContent='×'; del.title='Delete section';
-  del.onclick = ()=>{
-    if(!confirm(`Delete "${text}" section?`)) return;
-    const sec = t.closest('.section');
-    const wrap = sec?.closest('.node');
-    (wrap || sec)?.remove();  // remove only the section/wrapper, never the whole column
-    ensureAddAnchor();
-  };
-  tools.appendChild(del);
-  t.appendChild(tools);
+  del.onclick = ()=>{ if(confirm(`Delete "${text}" section?`)){ t.parentElement?.parentElement?.remove(); ensureAddAnchor(); }};
+  tools.appendChild(del); t.appendChild(tools);
   return t;
 }
 
 /* ===================== SKILLS ===================== */
-function starRow(label='Skill'){
+function starRow(label='Skill', active=0){
   const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.dataset.type='star';
   d.innerHTML = `
     <span class="handle" title="Drag"></span>
@@ -146,21 +138,22 @@ function starRow(label='Skill'){
     <span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span>
     <button class="rm" title="Remove" type="button">×</button>
   `;
-  d.querySelectorAll('.star').forEach(s=>{
+  d.querySelectorAll('.star').forEach((s,ix)=>{
+    if(ix<active) s.classList.add('active');
     s.addEventListener('click', e=>{
       const n = +e.currentTarget.dataset.i;
-      d.querySelectorAll('.star').forEach((el,ix)=> el.classList.toggle('active', ix<n));
+      d.querySelectorAll('.star').forEach((el,i)=> el.classList.toggle('active', i<n));
     });
   });
   d.querySelector('.rm').onclick = (e)=>{ e.stopPropagation(); d.remove(); };
   return d;
 }
-function sliderRow(label='Skill'){
+function sliderRow(label='Skill', val=60){
   const d=document.createElement('div'); d.className='skill'; d.setAttribute('draggable','true'); d.dataset.type='slider';
   d.innerHTML = `
     <span class="handle" title="Drag"></span>
     <span contenteditable>${label}</span>
-    <input type="range" min="0" max="100" value="60">
+    <input type="range" min="0" max="100" value="${val}">
     <button class="rm" title="Remove" type="button">×</button>
   `;
   d.querySelector('.rm').onclick = (e)=>{ e.stopPropagation(); d.remove(); };
@@ -183,183 +176,196 @@ function sizeSkillsGrid(grid){
   else grid.classList.add(n>=3?'cols-3':n===2?'cols-2':'cols-1');
   attachDnd(grid,'.skill');
 }
-export function renderSkills(){
-  if (document.querySelector('.grid-skills')) { ensureAddAnchor(); return; }
 
-  const sec = document.createElement('div'); sec.className='section';
-  sec.appendChild(mkTitle('fa-layer-group','Skills'));
-  sec.innerHTML += `
-    <div class="help">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
-    <div class="grid-skills cols-1"></div>
-    <div class="ctrl-mini">
-      <button class="mini" type="button" data-add-star>+ ★</button>
-      <button class="mini" type="button" data-add-slider>+ <i class="fa-solid fa-sliders"></i></button>
-      ${isSidebarActive()? `<button class="mini" type="button" data-move-out>Move to canvas</button>` : `<button class="mini" type="button" data-move-in>Move to sidebar</button>`}
-    </div>
-  `;
+export function renderSkills(items){
+  // if exists, only populate once
+  let sec = document.querySelector('.section .grid-skills')?.closest('.section');
+  if(!sec){
+    sec = document.createElement('div'); sec.className='section';
+    sec.appendChild(mkTitle('fa-layer-group','Skills', ()=> sec.remove()));
+    sec.innerHTML += `
+      <div class="help">Use ★ or the slider to rate your confidence. You can add languages, tools or any ability here.</div>
+      <div class="grid-skills cols-1"></div>
+      <div class="ctrl-mini">
+        <button class="mini" type="button" data-add-star>+ ★</button>
+        <button class="mini" type="button" data-add-slider>+ <i class="fa-solid fa-sliders"></i></button>
+        ${isSidebarActive()? `<button class="mini" type="button" data-move-out>Move to canvas</button>` : `<button class="mini" type="button" data-move-in>Move to sidebar</button>`}
+      </div>
+    `;
 
-  const { host, add } = hostAndAdd();
+    const { host, add } = hostAndAdd();
+    if (isSidebarActive()){
+      const rail = getRailHolder();
+      insertBeforeSafe(rail || host, sec, add);
+      const h = sec.querySelector('.handle'); if (h) h.style.display='none';
+    } else {
+      const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
+      insertBeforeSafe(host, wrap, add);
+    }
 
-  if (isSidebarActive()){
-    const rail = getRailHolder();
-    insertBeforeSafe(rail || host, sec, add);
-    const h = sec.querySelector('.handle'); if (h) h.style.display='none';
-  } else {
-    const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    insertBeforeSafe(host, wrap, add);
+    const grid = sec.querySelector('.grid-skills');
+    sec.querySelector('[data-add-star]').onclick   = ()=>{ grid.appendChild(starRow()); groupSkills(grid); sizeSkillsGrid(grid); };
+    sec.querySelector('[data-add-slider]').onclick = ()=>{ grid.appendChild(sliderRow()); groupSkills(grid); sizeSkillsGrid(grid); };
+
+    const moveIn  = sec.querySelector('[data-move-in]');
+    const moveOut = sec.querySelector('[data-move-out]');
+    moveIn && (moveIn.onclick = ()=>{
+      const rail = getRailHolder();
+      if (rail){ rail.appendChild(sec); const h = sec.querySelector('.handle'); if (h) h.style.display='none'; ensureAddAnchor(); }
+    });
+    moveOut && (moveOut.onclick = ()=>{
+      const w = document.createElement('div'); w.className='node'; w.appendChild(sec);
+      const { host: h2, add: a2 } = hostAndAdd();
+      insertBeforeSafe(h2, w, a2);
+      const h = sec.querySelector('.handle'); if (h) h.style.removeProperty('display');
+      ensureAddAnchor();
+    });
   }
 
-  const grid = sec.querySelector('.grid-skills');
-  sec.querySelector('[data-add-star]').onclick   = ()=>{ grid.appendChild(starRow()); groupSkills(grid); sizeSkillsGrid(grid); };
-  sec.querySelector('[data-add-slider]').onclick = ()=>{ grid.appendChild(sliderRow()); groupSkills(grid); sizeSkillsGrid(grid); };
-  sizeSkillsGrid(grid); // start empty
-
-  const moveIn  = sec.querySelector('[data-move-in]');
-  const moveOut = sec.querySelector('[data-move-out]');
-  moveIn && (moveIn.onclick = ()=>{
-    const { host: h, add: a } = hostAndAdd();
-    insertBeforeSafe(getRailHolder() || h, sec, a);
-    const hh = sec.querySelector('.handle'); if (hh) hh.style.display='none';
-    ensureAddAnchor();
-  });
-  moveOut && (moveOut.onclick = ()=>{
-    const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    const { host: h2, add: a2 } = hostAndAdd();
-    insertBeforeSafe(h2, wrap, a2);
-    const hh = sec.querySelector('.handle'); if (hh) hh.style.removeProperty('display');
-    ensureAddAnchor();
-  });
+  // populate from wizard (only if provided)
+  if (items && items.length){
+    const grid = sec.querySelector('.grid-skills');
+    if (!grid.children.length){ // avoid double-populate
+      items.forEach(it=>{
+        if(it.type==='star') grid.appendChild(starRow(it.label||'Skill', it.stars||0));
+        else grid.appendChild(sliderRow(it.label||'Skill', it.value??60));
+      });
+      groupSkills(grid); sizeSkillsGrid(grid);
+    }
+  }
 
   ensureAddAnchor();
 }
-
-/* Helpers for wizard */
-export function ensureSkillsSection(){ if(!document.querySelector('.grid-skills')) renderSkills(); return document.querySelector('.grid-skills')?.closest('.section'); }
-export function addSkillStar(){ const grid = (ensureSkillsSection()||document).querySelector('.grid-skills'); if(grid){ grid.appendChild(starRow()); groupSkills(grid); sizeSkillsGrid(grid);} }
-export function addSkillSlider(){ const grid = (ensureSkillsSection()||document).querySelector('.grid-skills'); if(grid){ grid.appendChild(sliderRow()); groupSkills(grid); sizeSkillsGrid(grid);} }
 
 /* ===================== EDUCATION ===================== */
-export function renderEdu(){
-  if (document.querySelector('.edu-grid')) { ensureAddAnchor(); return; }
-
-  const sec = document.createElement('div'); sec.className='section';
-  sec.appendChild(mkTitle('fa-user-graduate','Education'));
-  sec.innerHTML += `
-    <div class="edu-grid"></div>
-    <div class="ctrl-mini">
-      <button class="mini" type="button" data-add-course>+ Add course</button>
-      <button class="mini" type="button" data-add-degree>+ Add degree</button>
+export function renderEdu(items){
+  let sec = document.querySelector('.edu-grid')?.closest('.section');
+  if(!sec){
+    sec = document.createElement('div'); sec.className='section';
+    sec.appendChild(mkTitle('fa-user-graduate','Education', ()=> sec.remove()));
+    sec.innerHTML += `
+      <div class="edu-grid"></div>
+      <div class="ctrl-mini">
+        <button class="mini" type="button" data-add-course>+ Add course</button>
+        <button class="mini" type="button" data-add-degree>+ Add degree</button>
     </div>`;
 
-  const { host, add } = hostAndAdd();
+    const { host, add } = hostAndAdd();
+    if (isSidebarActive()){
+      insertBeforeSafe(host, sec, add);
+      const h = sec.querySelector('.handle'); if (h) h.style.display='none';
+    } else {
+      const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
+      insertBeforeSafe(host, wrap, add);
+    }
 
-  if (isSidebarActive()){
-    insertBeforeSafe(host, sec, add);
-    const h = sec.querySelector('.handle'); if (h) h.style.display='none';
-  } else {
-    const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    insertBeforeSafe(host, wrap, add);
+    const grid = sec.querySelector('.edu-grid');
+    const mkCard = (kind='course', data={})=>{
+      const icon = kind==='degree' ? 'fa-graduation-cap degree' : 'fa-scroll course';
+      const c = document.createElement('div'); c.className='edu-card'; c.setAttribute('draggable','true');
+      c.innerHTML = `
+        <div class="edu-tools"><span class="handle" title="Drag"></span><button class="rm" type="button">×</button></div>
+        <div class="edu-line1"><i class="fa-solid ${icon} edu-title-icon"></i><span class="editable" contenteditable>${data.title||'Title'}</span></div>
+        <span class="badge" contenteditable>${data.dates||'2018–2022'}</span>
+        <span class="editable edu-academy" contenteditable>${data.academy||'Academy name (wraps to two lines if needed)'}</span>`;
+      c.querySelector('.rm').onclick = e=>{ e.stopPropagation(); c.remove(); };
+      return c;
+    };
+    sec.querySelector('[data-add-course]').onclick = ()=>{ grid.appendChild(mkCard('course')); attachDnd(grid,'.edu-card'); };
+    sec.querySelector('[data-add-degree]').onclick = ()=>{ grid.appendChild(mkCard('degree')); attachDnd(grid,'.edu-card'); };
+
+    // stash for external population
+    sec._mkCard = mkCard;
+    attachDnd(grid,'.edu-card');
   }
 
-  const grid = sec.querySelector('.edu-grid');
-  const mkCard = (kind='course')=>{
-    const icon = kind==='degree' ? 'fa-graduation-cap degree' : 'fa-scroll course';
-    const c = document.createElement('div'); c.className='edu-card'; c.setAttribute('draggable','true');
-    c.innerHTML = `
-      <div class="edu-tools"><span class="handle" title="Drag"></span><button class="rm" type="button">×</button></div>
-      <div class="edu-line1"><i class="fa-solid ${icon} edu-title-icon"></i><span class="editable" contenteditable>Title</span></div>
-      <span class="badge" contenteditable>2018–2022</span>
-      <span class="editable edu-academy" contenteditable>Academy name (wraps to two lines if needed)</span>`;
-    c.querySelector('.rm').onclick = e=>{ e.stopPropagation(); c.remove(); };
-    return c;
-  };
-  sec.querySelector('[data-add-course]').onclick = ()=>{ grid.appendChild(mkCard('course')); attachDnd(grid,'.edu-card'); };
-  sec.querySelector('[data-add-degree]').onclick = ()=>{ grid.appendChild(mkCard('degree')); attachDnd(grid,'.edu-card'); };
-  attachDnd(grid,'.edu-card');
+  if (items && items.length){
+    const grid = sec.querySelector('.edu-grid');
+    if (!grid.children.length){ // first populate only
+      items.forEach(it => grid.appendChild(sec._mkCard(it.kind||'course', it)));
+      attachDnd(grid,'.edu-card');
+    }
+  }
+
   ensureAddAnchor();
 }
-
-/* helpers for wizard */
-export function ensureEduSection(){ if(!document.querySelector('.edu-grid')) renderEdu(); return document.querySelector('.edu-grid')?.closest('.section'); }
-export function addEduCourse(){ const grid=(ensureEduSection()||document).querySelector('.edu-grid'); if(grid){ grid.appendChild(grid.ownerDocument.createElement('div')); grid.lastElementChild.replaceWith(grid.lastElementChild); } /* no-op placeholder to ensure section exists */ }
-export function addEduDegree(){ const grid=(ensureEduSection()||document).querySelector('.edu-grid'); if(grid){ grid.closest('.section').querySelector('[data-add-degree]').click(); } }
-(function patchAddCourseDegree(){
-  // makes add helpers actually add correct cards even if called before buttons exist
-  document.addEventListener('click', (e)=>{
-    // no global patches needed; real add done via button clicks above
-  });
-})();
 
 /* ===================== EXPERIENCE ===================== */
-export function renderExp(){
-  if (document.querySelector('.exp-list')) { ensureAddAnchor(); return; }
+export function renderExp(items){
+  let sec = document.querySelector('.exp-list')?.closest('.section');
+  if(!sec){
+    sec = document.createElement('div'); sec.className='section';
+    sec.appendChild(mkTitle('fa-briefcase','Work experience', ()=> sec.remove()));
+    sec.innerHTML += `
+      <div class="exp-list"></div>
+      <div class="ctrl-mini"><button class="mini" type="button" data-add-exp>+ Add role</button></div>`;
+    const { host, add } = hostAndAdd();
+    if (isSidebarActive()){
+      insertBeforeSafe(host, sec, add);
+      const h = sec.querySelector('.handle'); if (h) h.style.display='none';
+    } else {
+      const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
+      insertBeforeSafe(host, wrap, add);
+    }
 
-  const sec = document.createElement('div'); sec.className='section';
-  sec.appendChild(mkTitle('fa-briefcase','Work experience'));
-  sec.innerHTML += `
-    <div class="exp-list"></div>
-    <div class="ctrl-mini"><button class="mini" type="button" data-add-exp>+ Add role</button></div>`;
+    const grid = sec.querySelector('.exp-list');
+    const mk = (data={})=>{
+      const c = document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
+      c.innerHTML = `
+        <div class="exp-tools"><span class="handle" title="Drag"></span><button class="rm" type="button">×</button></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span class="badge" contenteditable>${(data.dates||'Jan 2022').slice(0,32)}</span>
+          <div style="font-weight:800" contenteditable>${data.role||'Job title'}</div>
+        </div>
+        <div style="font-weight:700;color:#374151" contenteditable>${data.org||'@Company'}</div>
+        <div contenteditable>${data.desc||'Describe impact, scale and results.'}</div>`;
+      c.querySelector('.rm').onclick = e=>{ e.stopPropagation(); c.remove(); };
+      return c;
+    };
+    sec.querySelector('[data-add-exp]').onclick = ()=>{ grid.appendChild(mk()); attachDnd(grid,'.exp-card'); };
 
-  const { host, add } = hostAndAdd();
-
-  if (isSidebarActive()){
-    insertBeforeSafe(host, sec, add);
-    const h = sec.querySelector('.handle'); if (h) h.style.display='none';
-  } else {
-    const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    insertBeforeSafe(host, wrap, add);
+    sec._mkExp = mk;
+    attachDnd(grid,'.exp-card');
   }
 
-  const grid = sec.querySelector('.exp-list');
-  const mk = (dates='Jan 2022',role='Job title',org='@Company',desc='Describe impact, scale and results.')=>{
-    const c = document.createElement('div'); c.className='exp-card'; c.setAttribute('draggable','true');
-    c.innerHTML = `
-      <div class="exp-tools"><span class="handle" title="Drag"></span><button class="rm" type="button">×</button></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span class="badge" contenteditable>${dates.slice(0,32)}</span>
-        <div style="font-weight:800" contenteditable>${role}</div>
-      </div>
-      <div style="font-weight:700;color:#374151" contenteditable>${org}</div>
-      <div contenteditable>${desc}</div>`;
-    c.querySelector('.rm').onclick = e=>{ e.stopPropagation(); c.remove(); };
-    return c;
-  };
-  sec.querySelector('[data-add-exp]').onclick = ()=>{ grid.appendChild(mk()); attachDnd(grid,'.exp-card'); };
-  attachDnd(grid,'.exp-card');
+  // external population from wizard
+  if (items && items.length){
+    const grid = sec.querySelector('.exp-list');
+    items.forEach(it => grid.appendChild(sec._mkExp(it)));
+    attachDnd(grid,'.exp-card');
+  }
+
   ensureAddAnchor();
 }
 
-/* helpers for wizard */
-export function ensureExpSection(){ if(!document.querySelector('.exp-list')) renderExp(); return document.querySelector('.exp-list')?.closest('.section'); }
-export function addExpRole(){ const grid=(ensureExpSection()||document).querySelector('.exp-list'); grid?.closest('.section').querySelector('[data-add-exp]')?.click(); }
-
 /* ===================== BIO ===================== */
-export function renderBio(){
-  if (document.querySelector('[data-bio]')) { ensureAddAnchor(); return; }
+export function renderBio(text){
+  if (!text || !text.trim()) { ensureAddAnchor(); return; } // optional – add only if edited
+  let sec = document.querySelector('[data-bio]')?.closest('.section');
+  if(!sec){
+    sec = document.createElement('div'); sec.className='section'; sec.setAttribute('data-bio','1');
+    sec.appendChild(mkTitle('fa-user','Profile', ()=> sec.remove()));
+    const body = document.createElement('div');
+    body.contentEditable = 'true';
+    sec.appendChild(body);
 
-  const sec = document.createElement('div'); sec.className='section'; sec.setAttribute('data-bio','1');
-  sec.appendChild(mkTitle('fa-user','Profile'));
-  const body = document.createElement('div');
-  body.contentEditable = 'true';
-  body.textContent = 'Add a short summary of your profile, strengths and what you’re looking for.';
-  sec.appendChild(body);
-
-  const { host, add } = hostAndAdd();
-
-  if (isSidebarActive()){
-    insertBeforeSafe(host, sec, add);
-    const h = sec.querySelector('.handle'); if (h) h.style.display='none';
-  } else {
-    const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
-    insertBeforeSafe(host, wrap, add);
+    const { host, add } = hostAndAdd();
+    if (isSidebarActive()){
+      insertBeforeSafe(host, sec, add);
+      const h = sec.querySelector('.handle'); if (h) h.style.display='none';
+    } else {
+      const wrap = document.createElement('div'); wrap.className='node'; wrap.appendChild(sec);
+      insertBeforeSafe(host, wrap, add);
+    }
   }
+  sec.querySelector('[contenteditable]').textContent = text.trim();
   ensureAddAnchor();
 }
 
 /* ---------- + menu ---------- */
 export function openAddMenu(anchorBtn){
   const { add } = ensureCanvas();
-  const menu = $('#addMenu'); const tray = $('#addTray');
+  const menu = document.getElementById('addMenu'); const tray = document.getElementById('addTray');
   if(!menu || !tray) return;
 
   tray.innerHTML = '';
@@ -396,10 +402,10 @@ export function openAddMenu(anchorBtn){
   tray.onclick = (e)=>{
     const k = e.target.closest('.sq')?.dataset.add; if(!k) return;
     menu.classList.remove('open');
-    if(k==='skills') renderSkills();
-    if(k==='edu')    renderEdu();
-    if(k==='exp')    renderExp();
-    if(k==='bio')    renderBio();
+    if(k==='skills') renderSkills([]);
+    if(k==='edu')    renderEdu([]);
+    if(k==='exp')    renderExp([{ }]); // start with one card visible
+    if(k==='bio')    renderBio('Add a short summary of your profile, strengths and what you’re looking for.');
     ensureAddAnchor();
   };
 }
