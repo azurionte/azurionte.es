@@ -75,8 +75,12 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   /* name block anchors the add button so it's always centered under the name */
   .sidebar-layout .rail .name-block{ position:relative; width:100%; display:block; text-align:center }
   /* explicit wrapper for chips + add button to ensure the add button is centered */
-  .sidebar-layout .rail .chip-wrap{ display:flex;flex-direction:column;gap:8px;align-items:center }
+  .sidebar-layout .rail .chip-wrap{ display:flex;flex-direction:column;gap:8px;align-items:stretch; width:100%; box-sizing:border-box; position:relative; padding:0 0 6px; text-align:center }
   .sidebar-layout .rail .chip-wrap .chips{ width:100%; display:flex; flex-direction:column; gap:8px }
+  /* Primary centering via text-align + inline-block button ensures the button remains centered even when child widths vary */
+  .sidebar-layout .rail .chip-wrap #chipAddBtn{ display:inline-flex; margin:8px auto 6px; left:auto; transform:none }
+  /* Fallback centering (keeps previous behavior) */
+  .sidebar-layout .rail .chip-wrap #chipAddBtn[style]{ position:relative; left:50%; transform:translateX(-50%) }
   /* place the add button in-flow after the chips so it naturally sits below the latest chip
     while remaining centered across the full rail width */
   /* In sidebar layout, chips are single-column (one per row) */
