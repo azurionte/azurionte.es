@@ -306,9 +306,9 @@ function buildHeader(kind){
         <div class="rail">
           <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
           <div class="name" contenteditable>YOUR NAME</div>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
             <div class="chips" data-info></div>
-            <button id="chipAddBtn" title="Add contact" style="border:0;background:transparent;color:inherit">+</button>
+            <button id="chipAddBtn" title="Add contact" class="ctrl-circle" style="border:0;background:transparent;color:inherit"><i class='fa-solid fa-plus'></i></button>
           </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>

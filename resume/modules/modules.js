@@ -38,8 +38,9 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .skill-row .name{min-width:0}
   .skill-row > .ctrl-circle{justify-self:end}
     .stars{display:inline-grid;grid-auto-flow:column;gap:6px;justify-content:end}
+  .stars{color:var(--accent)}
     .star{width:14px;height:14px;display:inline-block;transform:translateY(1px)}
-    .meter{width:120px}
+  .meter{width:120px;accent-color:var(--accent)}
 
     /* add menu (icon-only, centered above the plus) */
     .add-pop{position:absolute;z-index:20050;display:none}
@@ -254,6 +255,31 @@ export function renderSkills(list, opts = {}){
   anchorWrap.appendChild(addStar); anchorWrap.appendChild(addSlider);
   body.appendChild(anchorWrap);
   body.appendChild(wrap);
+
+  // move-to-rail control: allow moving the skills section to the sidebar
+  try{
+    const head = sec.querySelector('.sec-head');
+    const moveBtn = document.createElement('button'); moveBtn.className='ctrl-circle'; moveBtn.title='Toggle rail placement'; moveBtn.innerHTML = '<i class="fa-solid fa-arrows-left-right"></i>';
+    moveBtn.addEventListener('click', ()=>{
+      try{
+        const wrapper = sec.closest('.node') || sec;
+        const rail = getRailHolder();
+        const main = hostMain();
+        if (rail && rail.contains(wrapper)){
+          // move back to main
+          main.appendChild(wrapper);
+          S.skillsInSidebar = false;
+        } else if (rail){
+          rail.appendChild(wrapper);
+          S.skillsInSidebar = true;
+        }
+        save();
+        try{ refreshPlusVisibility(); }catch(_){ }
+      }catch(_){ }
+    });
+    head.appendChild(moveBtn);
+  }catch(_){ }
+
   putSection(sec, { toRail: !!opts.toRail });
 }
 
