@@ -1,58 +1,97 @@
 // /resume/wizard/wizard.js
-// [wizard.js] v2.9.2
-console.log('[wizard.js] v2.9.2');
+// [wizard.js] v2.10.0 — in-wizard editors for Skills/Edu/Exp + conditional adds
+console.log('[wizard.js] v2.10.0');
 
 import { S } from '../app/state.js';
 import { morphTo, getHeaderNode, applyContact } from '../layouts/layouts.js';
-import {
-  renderSkills, renderEdu, renderExp, renderBio,
-  ensureSkillsSection, addSkillStar, addSkillSlider,
-  ensureEduSection, addEduCourse, addEduDegree,
-  ensureExpSection, addExpRole
-} from '../modules/modules.js';
+import { renderSkills, renderEdu, renderExp, renderBio } from '../modules/modules.js';
 
-/* ---------- mock styles (unchanged) ---------- */
+/* ---------- mock styles (unchanged from your v2.9.1) ---------- */
 (function ensureWizardStyle(){
   if (document.getElementById('wizard-style')) return;
   const st = document.createElement('style');
   st.id = 'wizard-style';
   st.textContent = `
-    #wizard .wz-mock{ width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease; }
-    #wizard .wz-mock:hover{ transform:translateY(-2px); box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset; }
+    #wizard .wz-mock{width:450px;height:158px;position:relative;cursor:pointer;margin:8px 0;border-radius:18px;transition:transform .15s ease, box-shadow .15s ease, outline .15s ease}
+    #wizard .wz-mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 2px #7c99ff44 inset}
     #wizard .wz-mock.sel{ outline:2px solid #ffb86c; }
-    #wizard .wz-card{ position:absolute; inset:0; border-radius:16px; padding:12px; background:linear-gradient(135deg,#5d71b4,#2e3c79); box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38); overflow:hidden; }
+    #wizard .wz-card{position:absolute; inset:0; border-radius:16px; padding:12px;background:linear-gradient(135deg,#5d71b4,#2e3c79);box-shadow:inset 0 1px 0 #ffffff12, 0 10px 28px rgba(0,0,0,.38);overflow:hidden}
     #wizard .wz-pill{ height:10px; border-radius:999px; background:#2b375f; }
-    #wizard .wz-pp{ width:74px;height:74px;border-radius:50%; background:#cfd6ff; border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35); }
+    #wizard .wz-pp{width:74px;height:74px;border-radius:50%; background:#cfd6ff;border:4px solid #ffffffc0; box-shadow:0 10px 24px rgba(0,0,0,.35)}
 
-    /* Sidebar */
-    #wizard .wz-mock--side .wz-left{ position:absolute; left:12px; top:12px; bottom:12px; width:162px; border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
-    #wizard .wz-mock--side .wz-right{ position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px; }
-    #wizard .wz-mock--side .wz-right .wz-l1{ width:72%; } #wizard .wz-mock--side .wz-right .wz-l2{ width:56%; } #wizard .wz-mock--side .wz-left .wz-under{ width:72%; }
+    /* side */
+    #wizard .wz-mock--side .wz-left{position:absolute; left:12px; top:12px; bottom:12px; width:162px;border-radius:14px; background:linear-gradient(160deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px}
+    #wizard .wz-mock--side .wz-right{position:absolute; left:192px; right:20px; top:24px; display:grid; row-gap:12px}
+    #wizard .wz-mock--side .wz-right .wz-l1{ width:72% }  #wizard .wz-mock--side .wz-right .wz-l2{ width:56% }  #wizard .wz-mock--side .wz-left .wz-under{ width:72% }
 
-    /* Top fancy (restored) */
-    #wizard .wz-mock--fancy .wz-hero{ position:absolute; left:12px; right:12px; top:12px; height:68px; border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; }
-    #wizard .wz-mock--fancy .wz-pp{ position:absolute; left:50%; transform:translateX(-50%); top:28px; width:92px; height:92px; z-index:1; }
-    #wizard .wz-mock--fancy .wz-b1, #wizard .wz-mock--fancy .wz-b2, #wizard .wz-mock--fancy .wz-b3{ position:absolute; left:50%; transform:translateX(-50%); z-index:0; }
-    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px; } #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px; } #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px; }
+    /* fancy */
+    #wizard .wz-mock--fancy .wz-hero{position:absolute; left:12px; right:12px; top:12px; height:68px;border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14}
+    #wizard .wz-mock--fancy .wz-pp{position:absolute; left:50%; transform:translateX(-50%); top:28px; width:92px; height:92px; z-index:1}
+    #wizard .wz-mock--fancy .wz-b1, #wizard .wz-mock--fancy .wz-b2, #wizard .wz-mock--fancy .wz-b3{position:absolute; left:50%; transform:translateX(-50%); z-index:0}
+    #wizard .wz-mock--fancy .wz-b1{ width:140px; bottom:26px } #wizard .wz-mock--fancy .wz-b2{ width:78%;  bottom:14px } #wizard .wz-mock--fancy .wz-b3{ width:160px; bottom:6px }
 
-    /* Top bar */
-    #wizard .wz-mock--top .wz-hero{ position:absolute; left:12px; right:12px; top:12px; height:66px; border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14; }
-    #wizard .wz-mock--top .wz-pp{ position:absolute; right:26px; top:15px; width:60px; height:60px; }
-    #wizard .wz-mock--top .wz-txt{ position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px; }
-    #wizard .wz-mock--top .wz-t1{ width:52%; height:10px; } #wizard .wz-mock--top .wz-t2{ width:70%; height:10px; }
-    #wizard .wz-mock--top .wz-b1, #wizard .wz-mock--top .wz-b2, #wizard .wz-mock--top .wz-b3{ position:absolute; left:50%; transform:translateX(-50%); }
-    #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px; } #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px; } #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px; }
+    /* top */
+    #wizard .wz-mock--top .wz-hero{position:absolute; left:12px; right:12px; top:12px; height:66px;border-radius:14px; background:linear-gradient(135deg,#6c7fca,#3b4b93); box-shadow:inset 0 1px 0 #ffffff14}
+    #wizard .wz-mock--top .wz-pp{position:absolute; right:26px; top:15px;width:60px; height:60px}
+    #wizard .wz-mock--top .wz-txt{position:absolute; left:32px; right:130px; top:30px; display:grid; row-gap:12px}
+    #wizard .wz-mock--top .wz-t1{ width:52%; height:10px } #wizard .wz-mock--top .wz-t2{ width:70%; height:10px }
+    #wizard .wz-mock--top .wz-b1, #wizard .wz-mock--top .wz-b2, #wizard .wz-mock--top .wz-b3{position:absolute; left:50%; transform:translateX(-50%)}
+    #wizard .wz-mock--top .wz-b1{ width:160px; bottom:42px } #wizard .wz-mock--top .wz-b2{ width:78%;  bottom:24px } #wizard .wz-mock--top .wz-b3{ width:170px; bottom:8px }
+
+    /* inline editors */
+    #wizGrid{display:grid;gap:10px}
+    .wiz-mini .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center}
+    .wiz-mini .row input[type=text]{background:#0c1328;color:#e7ebff;border:1px solid #243057;border-radius:10px;padding:8px 10px;width:100%}
+    .wiz-mini .row .stars{display:inline-flex;gap:6px}
+    .wiz-mini .row .star{cursor:pointer;width:16px;height:16px;fill:#d1d5db}
+    .wiz-mini .row .star.active{fill:#f59e0b}
+    .wiz-mini .btns{display:flex;gap:8px;margin-top:8px}
+    .wiz-pill{background:#0c1328;border:1px solid #243057;color:#e7ebff;border-radius:10px;padding:8px 10px}
+    .wiz-badge{background:#1a2036;border:1px solid #2b3458;color:#cfe1ff;border-radius:999px;padding:4px 10px;font-weight:700}
+    .wiz-card{background:#0c1324;border:1px solid #1f2540;border-radius:12px;padding:10px;display:grid;gap:8px}
+    .wiz-added{display:grid;place-items:center;height:90px;border:1px dashed #2b3458;border-radius:12px;opacity:.85}
+    .wiz-added .spark{animation:wPop .6s ease;display:inline-flex;gap:8px;align-items:center;font-weight:800}
+    @keyframes wPop{0%{transform:scale(.9);opacity:.2}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
   `;
   document.head.appendChild(st);
 })();
 
-/* ---------- Public API -------------------------------------------------- */
+/* ---------- tiny DnD for wizard lists ---------- */
+function wizAttachDnd(container, itemSel){
+  if(!container || container._dndWiz) return; container._dndWiz = true;
+  let dragEl=null, ph=null;
+  container.addEventListener('dragstart', e=>{
+    const it = e.target.closest(itemSel); if(!it) return;
+    dragEl=it; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain','');}catch(_){}
+    ph = document.createElement('div'); ph.style.height = it.offsetHeight+'px';
+    setTimeout(()=> it.style.opacity='.35',0);
+  });
+  container.addEventListener('dragend', ()=>{ if(dragEl){ dragEl.style.opacity=''; ph&&ph.remove(); dragEl=null; ph=null; } });
+  container.addEventListener('dragover', e=>{
+    if(!dragEl) return; e.preventDefault();
+    const after = Array.from(container.querySelectorAll(itemSel)).filter(x=>x!==dragEl)
+      .reduce((c,ch)=>{const b=ch.getBoundingClientRect(); const off=e.clientY-b.top-b.height/2; return off<0 && off>c.o?{o:off,el:ch}:c;},{o:-1e9}).el;
+    if(!after) container.appendChild(dragEl); else container.insertBefore(dragEl, after);
+  });
+}
+
+/* ---------- wizard state for in-step editors ---------- */
+let W = {
+  skills: [],          // {type:'star'|'slider', label, stars|value}
+  edu: [],             // {kind:'course'|'degree', title, dates, academy}
+  exp: [],             // collected items added via "Add another" button
+  expDraft: { dates:'', role:'', org:'', desc:'' }, // current editor values
+  bio: ''
+};
+
+/* ---------- Public API ---------- */
 export function mountWelcome() {
   if (document.getElementById('welcome')) return;
   const wrap = document.createElement('div');
   wrap.id = 'welcome';
   wrap.setAttribute('data-overlay', '');
   Object.assign(wrap.style, { position:'fixed', inset:'0', display:'grid', placeItems:'center', background:'rgba(0,0,0,.45)', zIndex:'20000' });
+
   wrap.innerHTML = `
     <div class="wcard" style="width:min(880px,94vw);min-height:320px;background:#0f1420;border:1px solid #1f2540;border-radius:18px;padding:32px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);display:grid;justify-items:center;gap:16px">
       <div class="wtitle" style="font-weight:900;font-size:22px">Welcome to the Easy Resume Builder</div>
@@ -70,7 +109,7 @@ export function mountWelcome() {
   document.body.appendChild(wrap);
 
   wrap.querySelector('#startWizard').addEventListener('click', () => { wrap.style.display = 'none'; mountWizard(); openWizard(); });
-  wrap.querySelector('#startBlank').addEventListener('click', () => { wrap.remove(); const plus = document.getElementById('canvasAdd'); if (plus) plus.style.display = 'flex'; });
+  wrap.querySelector('#startBlank').addEventListener('click', () => { wrap.remove(); document.getElementById('canvasAdd')?.style && (document.getElementById('canvasAdd').style.display = 'flex'); });
 }
 
 export function mountWizard() {
@@ -84,9 +123,7 @@ export function mountWizard() {
 
   modal.innerHTML = `
     <div class="wiz" style="width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden">
-      <div class="wiz-left" style="background:#0c111f;border-right:1px solid #1b2340;padding:16px">
-        <div class="step-list" id="stepList" style="display:grid;gap:8px"></div>
-      </div>
+      <div class="wiz-left" style="background:#0c111f;border-right:1px solid #1b2340;padding:16px"><div class="step-list" id="stepList" style="display:grid;gap:8px"></div></div>
       <div class="wiz-right" style="padding:20px 22px;display:flex;flex-direction:column;min-height:480px">
         <div id="wizBody" style="flex:1"></div>
         <div class="navline" style="display:flex;gap:10px;justify-content:flex-end">
@@ -100,7 +137,7 @@ export function mountWizard() {
   buildWizard();
 }
 
-/* ---------- Wizard internals ------------------------------------------ */
+/* ---------- Wizard internals ---------- */
 const STEPS = [
   { k: 'layout',    label: 'Layout' },
   { k: 'theme',     label: 'Theme' },
@@ -122,18 +159,13 @@ function buildWizard(){
   list.innerHTML = '';
   STEPS.forEach((s,i) => {
     const el = document.createElement('div');
-    el.className = 'step';
-    el.dataset.i = i;
+    el.className = 'step'; el.dataset.i = i;
     el.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;color:#c9d1ff80';
     el.innerHTML = `<div class="dot" style="width:8px;height:8px;border-radius:50%;background:#2e3b66"></div><div>${s.label}</div>`;
     list.appendChild(el);
   });
-
   document.getElementById('wizBack').onclick = () => { if(stepIdx>0){ stepIdx--; backCount++; renderStep(); } };
-  document.getElementById('wizStartOver').onclick = () => {
-    Object.assign(S,{ contact:{name:'',phone:'',email:'',address:'',linkedin:''}, skills:[], edu:[], exp:[], bio:'' });
-    stepIdx=0; backCount=0; renderStep();
-  };
+  document.getElementById('wizStartOver').onclick = () => { Object.assign(S,{ contact:{name:'',phone:'',email:'',address:'',linkedin:''} }); W={skills:[],edu:[],exp:[],expDraft:{dates:'',role:'',org:'',desc:''},bio:''}; stepIdx=0; backCount=0; renderStep(); };
   document.getElementById('wizNext').onclick = advance;
 }
 
@@ -154,6 +186,7 @@ function renderStep(){
   markSteps();
   document.getElementById('wizStartOver').style.display = (backCount>=2 ? 'inline-flex' : 'none');
 
+  /* ----- LAYOUT ----- */
   if (s === 'layout'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose your layout</div>
@@ -167,10 +200,11 @@ function renderStep(){
     const row = body.querySelector('#mockRow');
     const current = (S.layout==='side')?'header-side':(S.layout==='fancy')?'header-fancy':(S.layout==='top')?'header-top':null;
     if (current) row.querySelector(`[data-layout="${current}"]`)?.classList.add('sel');
-    row.addEventListener('click', e=>{ const m = e.target.closest('.wz-mock'); if(!m) return; row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); morphTo(m.dataset.layout); });
+    row.addEventListener('click', e=>{ const m=e.target.closest('.wz-mock'); if(!m) return; row.querySelectorAll('.wz-mock').forEach(x=>x.classList.remove('sel')); m.classList.add('sel'); morphTo(m.dataset.layout); });
     body.querySelector('#wizAddPhoto').onclick = () => getHeaderNode()?.querySelector('[data-avatar] input')?.click();
   }
 
+  /* ----- THEME ----- */
   if (s === 'theme'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Choose a color theme</div>
@@ -180,12 +214,13 @@ function renderStep(){
       </div>
       <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="wizDark" class="switch ${S.dark?'on':''}"></div></div>
       <div class="k-row"><span>Material</span><button class="mbtn" id="wizPaper">Paper</button><button class="mbtn" id="wizGlass">Glass</button></div>`;
-    body.querySelectorAll('.swatch').forEach(swatch=>{ const k = swatch.dataset.k; swatch.onclick = ()=> { document.body.setAttribute('data-theme', k); S.theme=k; }; });
+    body.querySelectorAll('.swatch').forEach(swatch=>{ const k=swatch.dataset.k; swatch.onclick=()=>{ document.body.setAttribute('data-theme', k); S.theme=k; };});
     body.querySelector('#wizDark').onclick = e=>{ e.currentTarget.classList.toggle('on'); S.dark = e.currentTarget.classList.contains('on'); document.body.setAttribute('data-dark', S.dark ? '1' : '0'); };
     body.querySelector('#wizPaper').onclick = ()=>{ S.mat='paper'; document.body.setAttribute('data-mat','paper'); };
     body.querySelector('#wizGlass').onclick = ()=>{ S.mat='glass'; document.body.setAttribute('data-mat','glass'); };
   }
 
+  /* ----- CONTACT ----- */
   if (s === 'contact'){
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Profile data</div>
@@ -197,63 +232,121 @@ function renderStep(){
         <input class="wipt" id="ad" placeholder="City, Country" value="${S.contact.address||''}">
         <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center"><span style="opacity:.7">linkedin.com/in/</span><input class="wipt" id="ln" placeholder="username" style="flex:1" value="${S.contact.linkedin||''}"></div>
       </div>`;
-    ['nm','ph','em','ad','ln'].forEach(id=>{
-      body.querySelector('#'+id).oninput = ()=>{
-        S.contact = {
-          name: body.querySelector('#nm').value,
-          phone: body.querySelector('#ph').value,
-          email: body.querySelector('#em').value,
-          address: body.querySelector('#ad').value,
-          linkedin: body.querySelector('#ln').value
-        };
-        applyContact?.();
-      };
-    });
+    ['nm','ph','em','ad','ln'].forEach(id=> body.querySelector('#'+id).oninput = ()=>{
+      S.contact = { name: body.querySelector('#nm').value, phone: body.querySelector('#ph').value, email: body.querySelector('#em').value, address: body.querySelector('#ad').value, linkedin: body.querySelector('#ln').value };
+      applyContact?.();
+    }));
   }
 
+  /* ----- SKILLS (inline list) ----- */
   if (s === 'skills'){
-    ensureSkillsSection(); // create empty section once
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Add your skills</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:12px">Use stars or a slider; you can fine-tune on the canvas later.</div>
-      <div class="ctrl-mini" style="display:flex;gap:8px">
-        <button class="mbtn" id="wAddStar">+ ★</button>
-        <button class="mbtn" id="wAddSlider">+ Slider</button>
+      <div class="wsub" style="opacity:.8;margin-bottom:10px">Use stars or a slider; you can fine-tune on the canvas later.</div>
+      <div class="wiz-mini">
+        <div id="wizSkills" class="list"></div>
+        <div class="btns">
+          <button class="mbtn" id="addStar">+ ★</button>
+          <button class="mbtn" id="addSlider">+ <i class="fa-solid fa-sliders"></i></button>
+        </div>
       </div>`;
-    body.querySelector('#wAddStar').onclick   = addSkillStar;
-    body.querySelector('#wAddSlider').onclick = addSkillSlider;
+    const list = body.querySelector('#wizSkills');
+
+    const rowStar = (label='Skill', active=0)=>{
+      const r = document.createElement('div'); r.className='row'; r.setAttribute('draggable','true');
+      r.innerHTML = `<span class="handle">⋮⋮</span><input type="text" value="${label}"><span class="stars">${[1,2,3,4,5].map(i=>`<svg class="star" data-i="${i}" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`).join('')}</span><button class="mbtn">×</button>`;
+      r.dataset.t='star';
+      r.querySelectorAll('.star').forEach((s,ix)=>{ if(ix<active) s.classList.add('active'); s.onclick = e=>{ const n=+e.currentTarget.dataset.i; r.querySelectorAll('.star').forEach((el,i)=> el.classList.toggle('active', i<n)); }; });
+      r.querySelector('.mbtn').onclick = ()=> r.remove();
+      return r;
+    };
+    const rowSlider = (label='Skill', val=60)=>{
+      const r = document.createElement('div'); r.className='row'; r.setAttribute('draggable','true');
+      r.innerHTML = `<span class="handle">⋮⋮</span><input type="text" value="${label}"><input type="range" min="0" max="100" value="${val}"><button class="mbtn">×</button>`;
+      r.dataset.t='slider'; r.querySelector('.mbtn').onclick = ()=> r.remove(); return r;
+    };
+
+    body.querySelector('#addStar').onclick   = ()=> list.appendChild(rowStar());
+    body.querySelector('#addSlider').onclick = ()=> list.appendChild(rowSlider());
+    wizAttachDnd(list, '.row');
+
+    // restore previously added (if user navigates back)
+    W.skills.forEach(it=> list.appendChild(it.type==='star' ? rowStar(it.label,it.stars) : rowSlider(it.label,it.value)));
   }
 
+  /* ----- EDUCATION (inline cards) ----- */
   if (s === 'education'){
-    ensureEduSection();
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Education</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:12px">Add items now or later from the canvas.</div>
-      <div class="ctrl-mini" style="display:flex;gap:8px">
-        <button class="mbtn" id="wAddCourse">+ Add course</button>
-        <button class="mbtn" id="wAddDegree">+ Add degree</button>
-      </div>`;
-    body.querySelector('#wAddCourse').onclick = ()=>{ ensureEduSection(); document.querySelector('.section .ctrl-mini [data-add-course]')?.click(); };
-    body.querySelector('#wAddDegree').onclick = ()=>{ ensureEduSection(); document.querySelector('.section .ctrl-mini [data-add-degree]')?.click(); };
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">Add items now or later from the canvas.</div>
+      <div id="wizEdu" class="wiz-mini"></div>
+      <div class="btns"><button class="mbtn" id="addCourse">+ Add course</button><button class="mbtn" id="addDegree">+ Add degree</button></div>`;
+    const list = body.querySelector('#wizEdu');
+    const mk = (kind='course', data={})=>{
+      const card = document.createElement('div'); card.className='wiz-card'; card.setAttribute('draggable','true'); card.dataset.k = kind;
+      card.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px"><span class="handle">⋮⋮</span><span class="wiz-badge">${kind==='degree'?'Degree':'Course'}</span><button class="mbtn" title="Remove" style="margin-left:auto">×</button></div>
+        <input type="text" placeholder="Title" class="wiz-pill" value="${data.title||''}">
+        <input type="text" placeholder="Dates (e.g. 2018–2022)" class="wiz-pill" value="${data.dates||''}">
+        <input type="text" placeholder="Academy" class="wiz-pill" value="${data.academy||''}">`;
+      card.querySelector('.mbtn').onclick = ()=> card.remove();
+      return card;
+    };
+    body.querySelector('#addCourse').onclick = ()=> list.appendChild(mk('course'));
+    body.querySelector('#addDegree').onclick = ()=> list.appendChild(mk('degree'));
+    wizAttachDnd(list, '.wiz-card');
+    // restore
+    W.edu.forEach(it=> list.appendChild(mk(it.kind,it)));
   }
 
+  /* ----- EXPERIENCE (one-at-a-time editor) ----- */
   if (s === 'experience'){
-    ensureExpSection();
     body.innerHTML = `
       <div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Experience</div>
-      <div class="wsub" style="opacity:.8;margin-bottom:12px">You can keep adding/editing from the canvas.</div>
-      <div class="ctrl-mini" style="display:flex;gap:8px">
-        <button class="mbtn" id="wAddRole">+ Add role</button>
-      </div>`;
-    body.querySelector('#wAddRole').onclick = addExpRole;
+      <div class="wsub" style="opacity:.8;margin-bottom:8px">You can keep adding/editing from the canvas.</div>
+      <div id="wizExpWrap" class="wiz-mini"></div>
+      <div class="btns"><button class="mbtn" id="addExpNow">+ Add another</button></div>`;
+    const wrap = body.querySelector('#wizExpWrap');
+
+    const mkEditor = (d={})=>{
+      const c = document.createElement('div'); c.className='wiz-card';
+      c.innerHTML = `
+        <input type="text" placeholder="Dates (e.g. Jan 2024 – Present)" class="wiz-pill" id="eDates" value="${d.dates||''}">
+        <input type="text" placeholder="Role (e.g. Front-end Engineer)" class="wiz-pill" id="eRole" value="${d.role||''}">
+        <input type="text" placeholder="Organization (e.g. @Company)" class="wiz-pill" id="eOrg" value="${d.org||''}">
+        <input type="text" placeholder="Short description of impact/results" class="wiz-pill" id="eDesc" value="${d.desc||''}">`;
+      return c;
+    };
+
+    const showAdded = ()=>{
+      wrap.innerHTML = `<div class="wiz-added"><div class="spark">✨ <span>Added</span> <span style="color:#26d07c">+ +</span> ✨</div></div>`;
+      setTimeout(()=>{ wrap.innerHTML=''; wrap.appendChild(mkEditor({})); }, 520);
+    };
+
+    wrap.appendChild(mkEditor(W.expDraft||{}));
+    body.querySelector('#addExpNow').onclick = ()=>{
+      const d = {
+        dates: wrap.querySelector('#eDates').value.trim(),
+        role:  wrap.querySelector('#eRole').value.trim(),
+        org:   wrap.querySelector('#eOrg').value.trim(),
+        desc:  wrap.querySelector('#eDesc').value.trim()
+      };
+      const edited = d.dates || d.role || d.org || d.desc;
+      if(!edited) return; // don't add empty
+      W.exp.push(d);
+      W.expDraft = { };     // reset
+      renderExp([d]);       // append to canvas right away
+      showAdded();
+    };
   }
 
+  /* ----- BIO ----- */
   if (s === 'bio'){
     body.innerHTML = `<div class="wtitle" style="font-weight:900;font-size:18px;margin-bottom:8px">Bio</div>
       <textarea id="bioText" class="wipt" rows="6" placeholder="Short profile…" style="width:100%;min-height:120px"></textarea>`;
     const t = body.querySelector('#bioText');
-    t.value = S.bio || '';
-    t.oninput = ()=>{ S.bio = t.value; };
+    t.value = W.bio || '';
+    t.oninput = ()=>{ W.bio = t.value; };
   }
 
   if (s === 'done'){
@@ -264,12 +357,60 @@ function renderStep(){
   }
 }
 
+/* ---------- Next flow: collect & push to canvas when leaving step ---------- */
 function advance(){
   const cur = STEPS[stepIdx].k;
-  if (cur === 'skills')     renderSkills();
-  if (cur === 'education')  renderEdu();
-  if (cur === 'experience') renderExp();
-  if (cur === 'bio')        renderBio();
+
+  if (cur === 'skills'){
+    // collect rows from wizard list
+    const list = document.getElementById('wizBody').querySelector('#wizSkills');
+    if (list){
+      W.skills = Array.from(list.querySelectorAll('.row')).map(r=>{
+        if(r.dataset.t==='star'){
+          const label = r.querySelector('input[type=text]').value.trim() || 'Skill';
+          const stars = r.querySelectorAll('.star.active').length;
+          return { type:'star', label, stars };
+        }else{
+          const label = r.querySelector('input[type=text]').value.trim() || 'Skill';
+          const value = +r.querySelector('input[type=range]').value;
+          return { type:'slider', label, value };
+        }
+      });
+      if (W.skills.length) renderSkills(W.skills);
+    }
+  }
+
+  if (cur === 'education'){
+    const list = document.getElementById('wizBody').querySelector('#wizEdu');
+    if (list){
+      W.edu = Array.from(list.querySelectorAll('.wiz-card')).map(c=>({
+        kind: c.dataset.k,
+        title: c.querySelectorAll('input')[0].value.trim(),
+        dates: c.querySelectorAll('input')[1].value.trim(),
+        academy: c.querySelectorAll('input')[2].value.trim()
+      })).filter(x=> x.title||x.dates||x.academy);
+      if (W.edu.length) renderEdu(W.edu);
+    }
+  }
+
+  if (cur === 'experience'){
+    // If an editor has unsaved content, add it as one more item.
+    const wrap = document.getElementById('wizBody').querySelector('#wizExpWrap');
+    if (wrap && wrap.querySelector('#eDates')){
+      const d = {
+        dates: wrap.querySelector('#eDates').value.trim(),
+        role:  wrap.querySelector('#eRole').value.trim(),
+        org:   wrap.querySelector('#eOrg').value.trim(),
+        desc:  wrap.querySelector('#eDesc').value.trim()
+      };
+      const edited = d.dates || d.role || d.org || d.desc;
+      if (edited){ W.exp.push(d); renderExp([d]); }
+    }
+  }
+
+  if (cur === 'bio'){
+    if (W.bio && W.bio.trim()) renderBio(W.bio);
+  }
 
   if (cur === 'done'){
     document.getElementById('wizard').style.display = 'none';
@@ -280,54 +421,28 @@ function advance(){
   if (stepIdx < STEPS.length-1){ stepIdx++; renderStep(); }
 }
 
-/* ---------- helpers ---------------------------------------------------- */
+/* ---------- helpers ---------- */
 const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
 const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
 function mock(layoutKey){
   const kind = layoutKey.split('-')[1];
-
   if (kind === 'side'){
-    return `
-      <div class="wz-mock wz-mock--side" data-layout="${layoutKey}">
-        <div class="wz-card">
-          <div class="wz-left">
-            <div class="wz-pp"></div>
-            <div class="wz-pill wz-under"></div>
-          </div>
-          <div class="wz-right">
-            <div class="wz-pill wz-l1"></div>
-            <div class="wz-pill wz-l2"></div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  if (kind === 'fancy'){
-    return `
-      <div class="wz-mock wz-mock--fancy" data-layout="${layoutKey}">
-        <div class="wz-card">
-          <div class="wz-hero"></div>
-          <div class="wz-pp"></div>
-          <div class="wz-pill wz-b1"></div>
-          <div class="wz-pill wz-b2"></div>
-          <div class="wz-pill wz-b3"></div>
-        </div>
-      </div>`;
-  }
-
-  return `
-    <div class="wz-mock wz-mock--top" data-layout="${layoutKey}">
+    return `<div class="wz-mock wz-mock--side" data-layout="${layoutKey}">
       <div class="wz-card">
-        <div class="wz-hero"></div>
-        <div class="wz-pp"></div>
-        <div class="wz-txt">
-          <div class="wz-pill wz-t1"></div>
-          <div class="wz-pill wz-t2"></div>
-        </div>
-        <div class="wz-pill wz-b1"></div>
-        <div class="wz-pill wz-b2"></div>
-        <div class="wz-pill wz-b3"></div>
-      </div>
-    </div>`;
+        <div class="wz-left"><div class="wz-pp"></div><div class="wz-pill wz-under"></div></div>
+        <div class="wz-right"><div class="wz-pill wz-l1"></div><div class="wz-pill wz-l2"></div></div>
+      </div></div>`;
+  }
+  if (kind === 'fancy'){
+    return `<div class="wz-mock wz-mock--fancy" data-layout="${layoutKey}">
+      <div class="wz-card"><div class="wz-hero"></div><div class="wz-pp"></div>
+        <div class="wz-pill wz-b1"></div><div class="wz-pill wz-b2"></div><div class="wz-pill wz-b3"></div>
+      </div></div>`;
+  }
+  return `<div class="wz-mock wz-mock--top" data-layout="${layoutKey}">
+    <div class="wz-card"><div class="wz-hero"></div><div class="wz-pp"></div>
+      <div class="wz-txt"><div class="wz-pill wz-t1"></div><div class="wz-pill wz-t2"></div></div>
+      <div class="wz-pill wz-b1"></div><div class="wz-pill wz-b2"></div><div class="wz-pill wz-b3"></div>
+    </div></div>`;
 }
