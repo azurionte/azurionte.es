@@ -1,9 +1,10 @@
 // /resume/modules/modules.js
-// [modules.js] v2.2 — skills (no overflow + edit overlays + 2 columns), edu/exp theme tint, animated "Added"
-console.log('[modules.js] v2.2');
+// [modules.js] v2.3 — skills (no overflow + edit overlays + 2 columns),
+// edu/exp theme tint, animated "Added", and openAddMenu export
+console.log('[modules.js] v2.3');
 
 import { S } from '../app/state.js';
-import { getRailHolder, getSideMain, darkChipStyle, themeColors } from '../layouts/layouts.js';
+import { getRailHolder, getSideMain, darkChipStyle, themeColors, ensureAddMenuOpen } from '../layouts/layouts.js';
 
 /* ---------- styles for modules ---------- */
 (function ensureModuleStyles(){
@@ -75,9 +76,8 @@ function setYearChip(el){
   el.classList.add('dark');
 }
 function tintCard(node){
-  // light tint using theme accent
   const { a } = themeColors();
-  node.style.setProperty('--card-bg', 'rgba(0,0,0,0)'); // keep base
+  node.style.setProperty('--card-bg', 'rgba(0,0,0,0)');
   node.style.background = `linear-gradient(180deg, ${a}14, transparent)`;
   node.style.setProperty('--card-border', `${a}33`);
 }
@@ -95,8 +95,7 @@ export function renderSkills(items, { toRail=false }={}){
     </div>`;
   const grid = mod.querySelector('.skills-grid');
 
-  // 2 columns per row
-  items.forEach((it, idx)=>{
+  items.forEach((it)=>{
     const row = document.createElement('div'); row.className = 's-row'; row.dataset.edit='1';
     row.innerHTML = `
       <div class="ctrl ctrl-h" title="Drag">⋮⋮</div>
@@ -114,8 +113,7 @@ export function renderSkills(items, { toRail=false }={}){
     grid.appendChild(row);
   });
 
-  // ensure grid is 2 columns in rail but can collapse
-  if (getRailHolder() && host===getRailHolder()){ /* keep 2 columns by default */ } else { grid.classList.add('single'); }
+  if (getRailHolder() && host===getRailHolder()){ /* keep two columns */ } else { grid.classList.add('single'); }
 
   host.insertBefore(mod, host.querySelector('#canvasAdd') || null);
 }
@@ -135,7 +133,6 @@ export function renderEdu(list){
         <span class="year-badge">${d.dates || '—'}</span>
       </div>
       <div class="line2"><div><strong>${d.title||''}</strong></div><div>${d.academy||''}</div></div>`;
-    // theme tint + dark-chip
     tintCard(c);
     setYearChip(c.querySelector('.year-badge'));
     cards.appendChild(c);
@@ -177,4 +174,9 @@ export function renderBio(text){
   mod.className = 'module bio';
   mod.innerHTML = `<div class="mod-head"><i class="fa-solid fa-user"></i><div class="ttl">Profile</div></div><div class="mod-body">${(text||'').replace(/\n/g,'<br>')}</div>`;
   host.insertBefore(mod, host.querySelector('#canvasAdd') || null);
+}
+
+/* ---------- exported helper for editor.js ---------- */
+export function openAddMenu(open=true){
+  ensureAddMenuOpen(open);
 }
