@@ -29,10 +29,15 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
       background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-height:920px;position:relative
     }
     .sidebar-layout [data-zone="main"]{
-      display:grid;grid-template-columns: repeat(12,minmax(0,1fr));gap:16px;align-content:start;min-width:0
+  display:grid;grid-template-columns: repeat(12,minmax(0,1fr));gap:16px;align-content:start;min-width:0;
+  justify-items:stretch; align-items:start; /* ensure children stretch to full column width */
     }
     .sidebar-layout [data-zone="main"] > .section,
     .sidebar-layout [data-zone="main"] > #canvasAdd{ grid-column: 1 / -1; width:100%; max-width:none !important }
+
+    /* Force section children to stretch across the main column and avoid intrinsic-width shrinking */
++
+    .sidebar-layout [data-zone="main"] > .section{ display:block; justify-self:stretch; min-width:0 }
 
     /* Header variants */
     .topbar{border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px}
