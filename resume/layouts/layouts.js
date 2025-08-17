@@ -108,6 +108,30 @@ export function sanitizeMainNodes(){
       // also clear inline width on immediate children (like .section or .card)
       Array.from(n.querySelectorAll('[style]')).forEach(c=>{ try{ c.style.width=''; c.style.maxWidth=''; c.style.minWidth=''; }catch(e){} });
     });
+    // Diagnostic: after sanitizing, log any .node that remains narrower than the main container
+    try{
+      const mainRect = main.getBoundingClientRect();
+      Array.from(main.querySelectorAll('.node')).forEach(n=>{
+        try{
+          const r = n.getBoundingClientRect();
+          if (r.width < Math.max(0, mainRect.width - 8)){
+            const cs = window.getComputedStyle(n);
+            console.group('[layout-diagnostic] Narrow .node detected');
+            console.log('node:', n);
+            console.log('node rect:', r);
+            console.log('main rect:', mainRect);
+            console.log('computed width:', cs.width, 'display:', cs.display, 'box-sizing:', cs.boxSizing);
+            console.log('inline style:', n.getAttribute('style'));
+            // list ancestors up to main
+            let a = n.parentElement; const list=[];
+            while(a && a!==document.body){ list.push({el:a, rect:a.getBoundingClientRect(), style:a.getAttribute('style'), cs:window.getComputedStyle(a)}); if(a===main) break; a=a.parentElement; }
+            console.log('ancestor chain:', list);
+            console.log('stack trace:', new Error().stack);
+            console.groupEnd();
+          }
+        }catch(e){}
+      });
+    }catch(e){}
   }catch(e){}
 }
 
