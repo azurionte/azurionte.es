@@ -1,6 +1,6 @@
 // /resume/editor/editor.js
-// [editor.js] v1.6.3 — theme swatches + menu + preview/print + keeps "+" in right host
-console.log('[editor.js] v1.6.3');
+// [editor.js] v1.6.2 — swatches, stable +, quick morph (unchanged API)
+console.log('[editor.js] v1.6.2');
 
 import { S, save } from '../app/state.js';
 import { morphTo } from '../layouts/layouts.js';
@@ -64,12 +64,10 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     </div>
   `;
 
-  // Dropdown wiring
   const dds = [...top.querySelectorAll('.dropdown')];
   dds.forEach(dd => dd.querySelector('button').onclick = () => dd.classList.toggle('open'));
   document.addEventListener('click', e => dds.forEach(dd => { if(!dd.contains(e.target)) dd.classList.remove('open'); }));
 
-  // File actions
   top.querySelector('#btnSave').onclick = () => {
     save();
     const blob = new Blob([localStorage.getItem('erb3-state')||'{}'], {type:'application/json'});
@@ -88,7 +86,6 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
   };
   top.querySelector('#btnScratch').onclick = () => { localStorage.removeItem('erb3-state'); location.reload(); };
 
-  // Theme actions
   top.querySelectorAll('.swatch').forEach(s => s.onclick = () => onThemePick(s.dataset.k));
   top.querySelector('#darkToggle').onclick = e => {
     const on = e.currentTarget.classList.toggle('on');
@@ -100,18 +97,16 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     top.querySelector('#c1').value, top.querySelector('#c2').value
   );
 
-  // Preview/print
   top.querySelector('#btnPreview').onclick = () => {
     const on = !document.body.classList.contains('preview');
     document.body.classList.toggle('preview', on);
     top.querySelector('#btnPreview').textContent = on ? 'Exit preview' : 'Preview';
   };
-  top.querySelector('#btnPrint').onclick = () => {
+  top.querySelector('#btnPrint').onclick = () => { 
     const was = document.body.classList.contains('preview');
     document.body.classList.add('preview'); setTimeout(() => { window.print(); if(!was) document.body.classList.remove('preview'); }, 60);
   };
 
-  // Canvas shell
   const root = document.getElementById('canvas-root');
   root.innerHTML = `
     <div class="page" id="page"><div id="sheet">
@@ -122,14 +117,11 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     <div class="pop" id="addMenu" aria-hidden="true"><div class="tray" id="addTray"></div></div>
   `;
 
-  // Add menu open
   root.querySelector('#dotAdd').onclick = (e) => openAddMenu(e.currentTarget);
 
-  // Layout morph quick switch
   top.querySelector('#layoutQuick').addEventListener('click', e => {
     const k = e.target.closest('[data-layout]')?.dataset.layout; if(!k) return;
     morphTo(k);
-    // keep the + inside the right host after morph
     setTimeout(() => {
       const plus = document.getElementById('canvasAdd');
       const main = document.querySelector('[data-header] [data-zone="main"]') || document.getElementById('stack');
@@ -140,7 +132,6 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
   });
 }
 
-// ---- tiny helper for layout mocks in dropdown ----
 function mock(layoutKey,label){
   const kind = layoutKey.split('-')[1];
   const hero = (kind==='side')
