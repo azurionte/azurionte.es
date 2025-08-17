@@ -1,9 +1,13 @@
-// [editor.js] v1.6.1 — top bar + theme + preview + canvas shell + old horizontal add menu
-console.log('[editor.js] v1.6.1');
+// /resume/editor/editor.js
+// [editor.js] v1.6.2 — restores theme swatches, stable + menu, no reflows
+console.log('[editor.js] v1.6.2');
 
 import { S, save } from '../app/state.js';
-import { morphTo, ensureCanvas } from '../layouts/layouts.js';
+import { morphTo } from '../layouts/layouts.js';
 import { openAddMenu } from '../modules/modules.js';
+
+const A1 = { coral:'#ff7b54', sea:'#4facfe', city:'#34d399', magentaPurple:'#c026d3', magentaPink:'#ec4899', blueGreen:'#22c1c3', grayBlack:'#8892a6' };
+const A2 = { coral:'#ffd166', sea:'#38d2ff', city:'#9ca3af', magentaPurple:'#9333ea', magentaPink:'#f97316', blueGreen:'#2ecc71', grayBlack:'#414b57' };
 
 export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCustomGradient }){
   const top = document.getElementById('topbar-root');
@@ -34,19 +38,21 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
         <div class="dropdown" id="ddTheme">
           <button class="mbtn">Theme ▾</button>
           <div class="dropdown-menu theme-pop">
-            <div class="theme-row">
+            <div class="theme-row" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px">
               ${['coral','sea','city','magentaPurple','magentaPink','blueGreen','grayBlack']
-                .map(k => `<div class="swatch" data-k="${k}"></div>`).join('')}
+                .map(k => `<div class="swatch" data-k="${k}" title="${k}"
+                     style="height:42px;border-radius:12px;border:1px solid #2b324b;cursor:pointer;
+                            background:linear-gradient(135deg,${A1[k]},${A2[k]})"></div>`).join('')}
             </div>
-            <div class="k-row"><span>Dark mode</span><div id="darkToggle" class="switch ${S.dark?'on':''}"></div></div>
+            <div class="k-row" style="margin-top:12px"><span>Dark mode</span><div id="darkToggle" class="switch ${S.dark?'on':''}"></div></div>
             <div class="k-row"><span>Material</span>
               <button class="mbtn" data-mat="paper">Paper</button>
               <button class="mbtn" data-mat="glass">Glass</button>
             </div>
             <div style="border-top:1px solid #23283b;margin:10px 0"></div>
             <div class="k-row"><span>Custom gradient</span>
-              <input type="color" id="c1" value="#8b5cf6">
-              <input type="color" id="c2" value="#d946ef">
+              <input type="color" id="c1" value="${A1[S.theme]||'#8b5cf6'}">
+              <input type="color" id="c2" value="${A2[S.theme]||'#d946ef'}">
               <button class="mbtn" id="applyGrad">Apply</button>
             </div>
           </div>
@@ -58,12 +64,12 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     </div>
   `;
 
-  // dropdowns
+  // Dropdown wiring
   const dds = [...top.querySelectorAll('.dropdown')];
   dds.forEach(dd => dd.querySelector('button').onclick = () => dd.classList.toggle('open'));
   document.addEventListener('click', e => dds.forEach(dd => { if(!dd.contains(e.target)) dd.classList.remove('open'); }));
 
-  // file actions
+  // File actions
   top.querySelector('#btnSave').onclick = () => {
     save();
     const blob = new Blob([localStorage.getItem('erb3-state')||'{}'], {type:'application/json'});
@@ -82,15 +88,19 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
   };
   top.querySelector('#btnScratch').onclick = () => { localStorage.removeItem('erb3-state'); location.reload(); };
 
-  // theme actions
-  top.querySelector('#darkToggle').onclick = e => onDarkToggle(e.currentTarget.classList.toggle('on'));
-  top.querySelectorAll('[data-mat]').forEach(b => b.onclick = () => onMaterialPick(b.dataset.mat));
+  // Theme actions
   top.querySelectorAll('.swatch').forEach(s => s.onclick = () => onThemePick(s.dataset.k));
+  top.querySelector('#darkToggle').onclick = e => {
+    const on = e.currentTarget.classList.toggle('on');
+    onDarkToggle(on);
+    document.body.setAttribute('data-dark', on ? '1' : '0');
+  };
+  top.querySelectorAll('[data-mat]').forEach(b => b.onclick = () => onMaterialPick(b.dataset.mat));
   top.querySelector('#applyGrad').onclick = () => onCustomGradient(
     top.querySelector('#c1').value, top.querySelector('#c2').value
   );
 
-  // preview/print
+  // Preview/print
   top.querySelector('#btnPreview').onclick = () => {
     const on = !document.body.classList.contains('preview');
     document.body.classList.toggle('preview', on);
@@ -101,20 +111,36 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     document.body.classList.add('preview'); setTimeout(() => { window.print(); if(!was) document.body.classList.remove('preview'); }, 60);
   };
 
-  // canvas shell
-  const { add } = ensureCanvas();
-  // restore old horizontal icon-only add menu
-  document.getElementById('dotAdd').onclick = (e)=> openAddMenu(e.currentTarget);
+  // Canvas shell
+  const root = document.getElementById('canvas-root');
+  root.innerHTML = `
+    <div class="page" id="page"><div id="sheet">
+      <div class="stack" id="stack">
+        <div class="add-squircle" id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
+      </div>
+    </div></div>
+    <div class="pop" id="addMenu" aria-hidden="true"><div class="tray" id="addTray"></div></div>
+  `;
 
-  // quick morph
+  // Add menu open
+  root.querySelector('#dotAdd').onclick = (e) => openAddMenu(e.currentTarget);
+
+  // Layout morph quick switch
   top.querySelector('#layoutQuick').addEventListener('click', e => {
     const k = e.target.closest('[data-layout]')?.dataset.layout; if(!k) return;
     morphTo(k);
-    setTimeout(()=>{}, 380);
+    // keep the + inside the right host after morph
+    setTimeout(() => {
+      const plus = document.getElementById('canvasAdd');
+      const main = document.querySelector('[data-header] [data-zone="main"]') || document.getElementById('stack');
+      if (plus && plus.parentElement !== main) main.appendChild(plus);
+      plus.style.display='flex';
+    }, 380);
     top.querySelector('#ddLayout').classList.remove('open');
   });
 }
 
+// ---- tiny helper for layout mocks in dropdown ----
 function mock(layoutKey,label){
   const kind = layoutKey.split('-')[1];
   const hero = (kind==='side')
