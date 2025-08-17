@@ -125,45 +125,22 @@ a{color:inherit;text-decoration:none}
 .preview .add-dot{display:none!important}
 @media print{ .nav,.pop,[data-overlay]{display:none!important} .page{box-shadow:none} }
 
-/* DEBUG: visual layout overlay (enable with `document.body.setAttribute('data-debug','layout')`) */
-body[data-debug="layout"] [data-zone="main"]{
-  outline: 4px solid rgba(255,80,80,.9);
-  background: linear-gradient(90deg, rgba(255,80,80,0.06), rgba(255,80,80,0.02));
-  box-shadow: inset 0 0 0 2px rgba(255,80,80,0.12);
-}
-body[data-debug="layout"] .node{
-  outline: 3px dashed rgba(80,140,255,.95);
-  background: rgba(80,140,255,0.03);
-}
-body[data-debug="layout"] .section{
-  outline: 3px dashed rgba(255,200,60,.95);
-  background: rgba(255,200,60,0.03);
-}
-body[data-debug="layout"] .card{
-  outline: 3px dashed rgba(80,220,140,.95);
-  background: rgba(80,220,140,0.03);
+/* keep debug helpers removed in cleanup; the sanitization/observer code still runs in JS */
+
+/* Ensure node wrappers inside the sidebar main can't be shrunk by intrinsic child sizing. */
+.sidebar-layout [data-zone="main"] > .node{
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-/* make outlines very visible above everything */
-body[data-debug="layout"] .node, body[data-debug="layout"] .section, body[data-debug="layout"] .card { position: relative; z-index: 9999 }
-
-/* VERY HIGH-SPECIFICITY OVERRIDE: Force node/section to occupy the full main column.
-   This is aggressive (uses !important) to counter inline widths copied from mock nodes. */
-.sidebar-layout [data-zone="main"] > .node,
-.sidebar-layout [data-zone="main"] > .node > .section,
-.sidebar-layout [data-zone="main"] .node .section{
-  grid-column: 1 / -1 !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  display: block !important;
-  box-sizing: border-box !important;
-  justify-self: stretch !important;
-}
-
-/* Also ensure immediate children (cards) don't shrink due to intrinsic sizing */
-.sidebar-layout [data-zone="main"] .node [class] {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
+/* Ensure immediate children (cards/sections) adopt full width inside node */
+.sidebar-layout [data-zone="main"] .node > .section,
+.sidebar-layout [data-zone="main"] .node .card{
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
 }
