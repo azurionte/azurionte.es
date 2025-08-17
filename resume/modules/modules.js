@@ -1,247 +1,235 @@
 // /resume/modules/modules.js
-// [modules.js] v2.8.1 — stable host targeting, horizontal add menu, safe renders
+// [modules.js] v2.8.1 — sections + add popover + safe host insertion
 console.log('[modules.js] v2.8.1');
 
 import { S } from '../app/state.js';
+import { ensureCanvas, isSidebarActive, getRailHolder, getSideMain } from '../layouts/layouts.js';
 
-/* ------------------------------ styles ------------------------------ */
-(function ensureStyles(){
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+/* -------------------------- styles (scoped) -------------------------- */
+(function ensureModuleStyles(){
   if (document.getElementById('modules-style')) return;
   const st = document.createElement('style');
   st.id = 'modules-style';
   st.textContent = `
-  /* section shell */
-  .section{position:relative;border-radius:14px;border:1px solid var(--card-bor,#ececec22);background:var(--card-bg,#0b0f1c);padding:12px 12px;box-shadow:0 18px 44px rgba(0,0,0,.14)}
-  .section[data-skin="paper"]{--card-bg:#fff;--card-bor:#00000014}
-  .section[data-skin="glass"]{backdrop-filter:blur(8px);--card-bg:rgba(255,255,255,.10);--card-bor:#ffffff28}
-  .section .head{display:grid;justify-items:center;gap:6px;margin-bottom:8px}
-  .section .head .title{font-weight:900}
-  .section .underline{height:4px;width:120px;border-radius:999px;background:linear-gradient(135deg,var(--accent2),var(--accent))}
-  .pill-year{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;font-weight:800}
-  .pill-year i{opacity:.9}
-  /* skills in sidebar */
-  [data-rail-sections] .skills-row{display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:center}
-  [data-rail-sections] .skills-row .meter{height:6px;border-radius:999px;background:rgba(0,0,0,.15);position:relative}
-  [data-rail-sections] .skills-row .meter > span{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
-  /* stars */
-  .stars{display:inline-flex;gap:6px}
-  .stars .star{width:14px;height:14px;fill:#d1d5db}
-  .stars .star.on{fill:#f59e0b}
-  /* edu/exp cards in main */
-  .edu-card,.exp-card{border:1px solid var(--card-bor,#ececec22);border-radius:14px;padding:10px;display:grid;gap:6px}
-  .edu-card .line,.exp-card .line{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));width:120px;margin:4px 0}
-  .edu-card .year,.exp-card .year{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--chip,#111);color:var(--chipText,#fff);font-weight:900;box-shadow:inset 0 0 0 2px #00000022}
-  /* add menu */
-  .add-pop{position:absolute;inset:auto auto auto auto;z-index:30000;transform:translate(-50%,-10px)}
-  .add-pop .bar{display:inline-flex;gap:10px;background:#0b0f1c;border:1px solid #1f2540;border-radius:999px;padding:8px 10px;box-shadow:0 18px 44px rgba(0,0,0,.4)}
-  .add-pop .bar button{width:30px;height:30px;border-radius:8px;border:1px solid #2b324b;background:#0e1426;color:#eaf1ff;display:grid;place-items:center}
+    /* sections */
+    .section{position:relative; border-radius:14px; padding:12px; background:var(--secBg, #ffffff); box-shadow:0 10px 28px rgba(0,0,0,.10); border:1px solid rgba(0,0,0,.08)}
+    [data-dark="1"] .section{ --secBg:#0f1420; border-color:#1f2540; box-shadow:0 10px 28px rgba(0,0,0,.35) }
+    .sec-head{display:grid;justify-items:center;margin-bottom:6px}
+    .sec-title{font-weight:900}
+    .sec-underline{height:4px;border-radius:999px;background:linear-gradient(135deg,var(--accent2),var(--accent));width:120px;margin-top:6px}
+
+    /* cards */
+    .card{border-radius:14px;padding:10px;border:1px solid rgba(0,0,0,.08);background:rgba(0,0,0,.03)}
+    [data-dark="1"] .card{border-color:#2a3354;background:#0c1222}
+    .year-chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
+    .year-chip i{width:16px;text-align:center}
+
+    /* theme-driven year chip tint (dark text unless too dark) */
+    .year-chip{background:var(--chipBg, #fff); color:#111}
+    [data-dark="1"] .year-chip{background:rgba(255,255,255,.10); color:#e8edff; border-color:#ffffff28; backdrop-filter:blur(6px)}
+
+    /* skills list (canvas + sidebar) */
+    .skills-wrap{display:grid;gap:8px}
+    .skill-row{display:grid;grid-template-columns:1fr 120px;align-items:center;gap:10px}
+    .skill-row .name{min-width:0}
+    .stars{display:inline-grid;grid-auto-flow:column;gap:6px;justify-content:end}
+    .star{width:14px;height:14px;display:inline-block;transform:translateY(1px)}
+    .meter{width:120px}
+
+    /* add menu (icon-only, centered above the plus) */
+    .add-pop{position:absolute;z-index:20050;display:none}
+    .add-pop.open{display:block}
+    .add-pop .bar{display:inline-flex;gap:6px;padding:6px 8px;border-radius:10px;background:#0b0f1d;border:1px solid #1f2540;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .add-pop .bar button{width:28px;height:28px;border-radius:8px;border:1px solid #2a3354;background:#12182a;color:#e8ecff;display:grid;place-items:center}
+    .add-pop .bar button:hover{transform:translateY(-1px)}
   `;
   document.head.appendChild(st);
 })();
 
-/* ------------------------------ helpers ------------------------------ */
-function isSidebarLayout(){
-  const head = document.querySelector('[data-header]');
-  return (S.layout === 'side') || !!head?.closest('.sidebar-layout');
-}
-function railHolder(){
-  return document.querySelector('[data-header] [data-rail-sections]') || null;
-}
-function mainHost(){
-  return document.querySelector('[data-header] [data-zone="main"]') || document.getElementById('stack');
-}
-function addWrap(){ return document.getElementById('canvasAdd'); }
-
-/** Ensure we target the right host and keep the + button at the end. */
-function ensureInHost(targetHost){
-  const host = targetHost || mainHost();
-  const plus = addWrap();
-  if (!host) return { host: null, before: null };
-
-  // Make sure the + lives in that host
-  if (plus && plus.parentElement !== host) host.appendChild(plus);
-
-  // We will try to insert before the plus; if it's not a child, just append
-  const before = (plus && plus.parentElement === host) ? plus : null;
-  return { host, before };
-}
-
-function sectionShell(title){
-  const el = document.createElement('div');
-  el.className = 'section';
-  el.dataset.skin = S.mat || 'paper';
-  el.innerHTML = `
-    <div class="head">
-      <div class="title">${title}</div>
-      <div class="underline"></div>
-    </div>`;
-  return el;
-}
-
-function svgStar(on=false){
-  return `<svg class="star ${on?'on':''}" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-  </svg>`;
-}
+/* ----------------------------- helpers ------------------------------ */
 function icon(name){
   const map = {
     skills: 'fa-layer-group',
-    edu: 'fa-graduation-cap',
-    exp: 'fa-briefcase',
-    bio: 'fa-user-pen'
+    edu:    'fa-graduation-cap',
+    exp:    'fa-briefcase',
+    bio:    'fa-user-pen'
   };
-  return `<i class="fa-solid ${map[name]||'fa-circle'}"></i>`;
+  // use BACKTICKS (fixes the '||' parser error that happens with quotes)
+  return `<i class="fa-solid ${map[name] || 'fa-circle'}"></i>`;
 }
 
-/* ------------------------------ Add Menu ------------------------------ */
-export function openAddMenu(anchor){
-  // remove any open menu
-  document.querySelectorAll('.add-pop').forEach(x=>x.remove());
-  if (!anchor) return;
-  const r = anchor.getBoundingClientRect();
-  const pop = document.createElement('div');
-  pop.className = 'add-pop';
-  pop.style.left = (r.left + r.width/2) + 'px';
-  pop.style.top  = (r.top) + 'px';
-  pop.innerHTML = `
-    <div class="bar">
-      <button title="Skills" data-k="skills">${icon('skills')}</button>
-      <button title="Education" data-k="edu">${icon('edu')}</button>
-      <button title="Experience" data-k="exp">${icon('exp')}</button>
-      <button title="Bio" data-k="bio">${icon('bio')}</button>
-    </div>`;
-  document.body.appendChild(pop);
-
-  pop.querySelectorAll('button').forEach(b=>{
-    b.onclick = () => {
-      const k = b.dataset.k;
-      if (k === 'skills') renderSkills([{type:'slider',label:'Skill',value:65}], { toRail:true });
-      if (k === 'edu')    renderEdu([{kind:'degree',title:'',dates:'2018–2022',academy:''}]);
-      if (k === 'exp')    renderExp([{dates:'Jan 2024 – Present',role:'Job title',org:'@Company',desc:'Describe impact, scale and results.'}]);
-      if (k === 'bio')    renderBio('Add a short summary of your profile, strengths and what you\'re great at.');
-      pop.remove();
-    };
-  });
-
-  // click-away
-  const away = (e)=>{ if(!pop.contains(e.target) && e.target!==anchor){ pop.remove(); document.removeEventListener('mousedown',away); } };
-  document.addEventListener('mousedown', away);
+// place “+” at the end of whichever host we’re using, then insert before it
+function ensurePlusIn(host){
+  ensureCanvas();
+  const plus = $('#canvasAdd');
+  if (!plus) return null;
+  if (plus.parentElement !== host) host.appendChild(plus);
+  return plus;
 }
 
-/* ------------------------------ Renders ------------------------------ */
-export function renderSkills(items, opts={}){
-  const toRail = !!opts.toRail && isSidebarLayout() && railHolder();
-  const { host } = ensureInHost(toRail ? railHolder() : mainHost());
-  if (!host) return;
+function hostMain(){
+  // sidebar layout -> right column grid; otherwise the page stack
+  return getSideMain() || ensureCanvas().stack;
+}
+function hostRail(){
+  return getRailHolder();
+}
 
-  // section
-  const sec = sectionShell('Skills');
-  sec.dataset.mod = 'skills';
+function putSection(node, { toRail=false } = {}){
+  const host = (toRail && hostRail()) || hostMain();
+  const plus = ensurePlusIn(host);
+  if (plus) host.insertBefore(node, plus); else host.appendChild(node);
+}
 
-  const body = document.createElement('div');
-  body.style.display = 'grid';
-  body.style.gap = '10px';
+function sectionEl(key, title){
+  const el = document.createElement('div');
+  el.className = 'section';
+  el.dataset.section = key;
+  el.innerHTML = `
+    <div class="sec-head">
+      <div class="sec-title">${title}</div>
+      <div class="sec-underline"></div>
+    </div>
+    <div class="sec-body"></div>`;
+  return el;
+}
 
-  items.forEach(it=>{
+function svgStar(on){
+  return `
+    <svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="${on ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6"
+            d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+    </svg>`;
+}
+
+/* ---------------------------- RENDERERS ----------------------------- */
+export function renderSkills(list, opts = {}){
+  // opts: { toRail?:boolean }
+  const sec = sectionEl('skills', 'Skills');
+  const body = $('.sec-body', sec);
+  const wrap = document.createElement('div');
+  wrap.className = 'skills-wrap';
+  list.forEach(it => {
     const row = document.createElement('div');
-    if (toRail){
-      row.className = 'skills-row';
-      row.innerHTML = `
-        <div class="label" contenteditable>${it.label || 'Skill'}</div>
-        <div class="meter"><span style="width:${(it.value ?? it.stars*20 || 60)}%"></span></div>`;
-    } else {
-      // main body version (one column; keep simple)
-      row.style.display = 'grid'; row.style.gridTemplateColumns='1fr auto'; row.style.alignItems='center'; row.style.gap='10px';
-      row.innerHTML = `
-        <div class="label" contenteditable>${it.label || 'Skill'}</div>
-        <div class="stars">
-          ${[1,2,3,4,5].map(i=> svgStar((it.stars||0) >= i)).join('')}
-        </div>`;
-    }
-    body.appendChild(row);
+    row.className = 'skill-row';
+    row.innerHTML = `
+      <div class="name">${it.label || 'Skill'}</div>
+      <div class="val">${it.type === 'star'
+        ? `<div class="stars">${[1,2,3,4,5].map(i => svgStar((it.stars||0) >= i)).join('')}</div>`
+        : `<input class="meter" type="range" min="0" max="100" value="${it.value ?? 60}" disabled>`}
+      </div>`;
+    wrap.appendChild(row);
   });
-
-  sec.appendChild(body);
-  const { before } = ensureInHost(toRail ? railHolder() : mainHost());
-  const plus = addWrap();
-  if (before) host.insertBefore(sec, before); else host.appendChild(sec);
-  if (plus) plus.style.display = 'flex';
+  body.appendChild(wrap);
+  putSection(sec, { toRail: !!opts.toRail });
 }
 
 export function renderEdu(items){
-  const { host } = ensureInHost(mainHost());
-  if (!host) return;
-  const sec = sectionShell('Education'); sec.dataset.mod='edu';
+  const sec = sectionEl('edu', 'Education');
+  const body = $('.sec-body', sec);
+  const grid = document.createElement('div');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = '1fr 1fr';
+  grid.style.gap = '10px';
 
-  const wrap = document.createElement('div');
-  wrap.style.display='grid';
-  wrap.style.gridTemplateColumns='1fr 1fr';
-  wrap.style.gap='10px';
-
-  items.forEach(it=>{
+  items.forEach(it => {
     const card = document.createElement('div');
-    card.className='edu-card';
-    const chipBg = getComputedStyle(document.documentElement).getPropertyValue('--accent2') || '#6c63ff';
-    card.style.setProperty('--chip', chipBg.trim());
-    card.style.setProperty('--chipText', '#fff');
+    card.className = 'card';
     card.innerHTML = `
-      <div class="year">${icon('edu')}<span>${it.dates || '2018–2022'}</span></div>
-      <div contenteditable class="t" placeholder="Title">${it.title||''}</div>
-      <div class="line"></div>
-      <div contenteditable class="a" placeholder="Academy">${it.academy||''}</div>`;
-    wrap.appendChild(card);
+      <div class="year-chip">${icon('edu')}<span>${it.dates || '2018–2022'}</span></div>
+      <div style="height:8px"></div>
+      <div style="font-weight:800">${it.title || ''}</div>
+      <div>${it.academy || ''}</div>`;
+    grid.appendChild(card);
   });
 
-  sec.appendChild(wrap);
-  const { before } = ensureInHost(mainHost());
-  const plus = addWrap();
-  if (before) host.insertBefore(sec, before); else host.appendChild(sec);
-  if (plus) plus.style.display = 'flex';
+  body.appendChild(grid);
+  putSection(sec);
 }
 
 export function renderExp(items){
-  const { host } = ensureInHost(mainHost());
-  if (!host) return;
-  const sec = sectionShell('Work experience'); sec.dataset.mod='exp';
+  const sec = sectionEl('exp', 'Work experience');
+  const body = $('.sec-body', sec);
 
-  const wrap = document.createElement('div');
-  wrap.style.display='grid';
-  wrap.style.gap='12px';
-
-  items.forEach(it=>{
+  items.forEach(it => {
     const card = document.createElement('div');
-    card.className='exp-card';
-    const chipBg = getComputedStyle(document.documentElement).getPropertyValue('--accent2') || '#6c63ff';
-    card.style.setProperty('--chip', chipBg.trim());
-    card.style.setProperty('--chipText', '#fff');
+    card.className = 'card';
+    card.style.marginBottom = '10px';
     card.innerHTML = `
-      <div class="year"><i class="fa-solid fa-bars-staggered"></i><span>${it.dates || 'Jan 2024 – Present'}</span></div>
-      <div class="line"></div>
-      <div contenteditable class="role">${it.role || 'Job title'}</div>
-      <div contenteditable class="org">${it.org || '@Company'}</div>
-      <div contenteditable class="desc">${it.desc || 'Describe impact, scale and results.'}</div>`;
-    wrap.appendChild(card);
+      <div class="year-chip"><i class="fa-solid fa-bars"></i><span>${it.dates || 'Jan 2024 – Present'}</span></div>
+      <div style="height:8px"></div>
+      <div style="font-weight:800">${it.role || 'Job title'}</div>
+      <div style="opacity:.9">@${(it.org||'Company').replace(/^@/, '')}</div>
+      <div style="height:8px"></div>
+      <div>${it.desc || 'Describe impact, scale and results.'}</div>`;
+    body.appendChild(card);
   });
 
-  sec.appendChild(wrap);
-  const { before } = ensureInHost(mainHost());
-  const plus = addWrap();
-  if (before) host.insertBefore(sec, before); else host.appendChild(sec);
-  if (plus) plus.style.display = 'flex';
+  putSection(sec);
 }
 
-export function renderBio(text=''){
-  const { host } = ensureInHost(mainHost());
-  if (!host) return;
-  const sec = sectionShell('Profile'); sec.dataset.mod='bio';
+export function renderBio(text){
+  const sec = sectionEl('bio', 'Profile');
+  const body = $('.sec-body', sec);
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.textContent = (text || '').trim() || 'Add a short summary of your profile, strengths and what you’re great at.';
+  body.appendChild(card);
+  putSection(sec);
+}
 
-  const p = document.createElement('div');
-  p.setAttribute('contenteditable','true');
-  p.textContent = text || 'Add a short summary of your profile, strengths and what you’re great at.';
-  sec.appendChild(p);
+/* ----------------------- PLUS MENU (icon-only) ---------------------- */
+/** Opens a compact, centered, icon-only add menu above the given “+” dot. */
+export function openAddMenu(anchor){
+  // create pop once
+  let pop = $('#addPop');
+  if (!pop){
+    pop = document.createElement('div');
+    pop.id = 'addPop';
+    pop.className = 'add-pop';
+    pop.innerHTML = `
+      <div class="bar">
+        <button data-k="skills" title="Skills"><i class="fa-solid fa-layer-group"></i></button>
+        <button data-k="edu"   title="Education"><i class="fa-solid fa-graduation-cap"></i></button>
+        <button data-k="exp"   title="Experience"><i class="fa-solid fa-briefcase"></i></button>
+        <button data-k="bio"   title="Profile"><i class="fa-solid fa-user-pen"></i></button>
+      </div>`;
+    document.body.appendChild(pop);
 
-  const { before } = ensureInHost(mainHost());
-  const plus = addWrap();
-  if (before) host.insertBefore(sec, before); else host.appendChild(sec);
-  if (plus) plus.style.display = 'flex';
+    // dismiss
+    document.addEventListener('click', e => {
+      if (!pop.classList.contains('open')) return;
+      if (!pop.contains(e.target) && e.target !== anchor) pop.classList.remove('open');
+    });
+
+    // actions
+    pop.addEventListener('click', e=>{
+      const k = e.target.closest('button')?.dataset.k; if(!k) return;
+      if (k === 'skills') renderSkills([{type:'star',label:'Skill',stars:3},{type:'slider',label:'Skill',value:60}]);
+      if (k === 'edu')    renderEdu([{kind:'course',title:'Title',dates:'2018–2022',academy:'Academy'}]);
+      if (k === 'exp')    renderExp([{dates:'Jan 2024 – Present',role:'Job title',org:'Company',desc:'Describe impact, scale and results.'}]);
+      if (k === 'bio')    renderBio('');
+      pop.classList.remove('open');
+    });
+  }
+
+  // position centered above the anchor
+  const r = anchor.getBoundingClientRect();
+  const bar = $('.bar', pop);
+  pop.style.left = `${Math.round(r.left + (r.width/2))}px`;
+  pop.style.top  = `${Math.round(r.top  - 12)}px`;
+  pop.style.transform = `translate(-50%,-100%)`;
+  pop.classList.add('open');
+}
+
+/* ---------------------- tint helpers (optional) --------------------- */
+/* If you want stronger per-theme chip tinting, expose this hook: */
+export function setYearChipTint(bgCss, darkText=false){
+  document.documentElement.style.setProperty('--chipBg', bgCss);
+  if (darkText){
+    $$('.year-chip').forEach(c=> c.style.color='#111');
+  }
 }
