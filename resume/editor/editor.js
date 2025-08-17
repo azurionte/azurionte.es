@@ -1,6 +1,7 @@
 // /resume/editor/editor.js
 // Builds top bar, theme menu, preview/print and the canvas shell
 // [editor.js] v1.6.0
+console.log('[editor.js] v1.6.0');
 import { S, save } from '../app/state.js';
 import { morphTo } from '../layouts/layouts.js';
 import { openAddMenu } from '../modules/modules.js';
