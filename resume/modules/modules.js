@@ -1,6 +1,6 @@
 // /resume/modules/modules.js
 // [modules.js] v2.9.0 — sections + add popover + safe host insertion + remember rail choice
-console.log('[modules.js] v2.9.3');
+console.log('[modules.js] v2.9.4');
 
 import { S, save } from '../app/state.js';
 import { ensureCanvas, isSidebarActive, getRailHolder, getSideMain } from '../layouts/layouts.js';
@@ -34,9 +34,14 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     /* skills list (canvas + sidebar) */
     .skills-wrap{display:grid;gap:8px}
   /* layout: handle | name | value | control */
-  .skill-row{display:grid;grid-template-columns:34px 1fr 120px 44px;align-items:center;gap:10px}
-    .skill-row .name{min-width:0}
-  .skill-row > .ctrl-circle{justify-self:end}
+  /* layout: name (140x21) | meter (95x4) with floating controls */
+  .skill-row{position:relative;display:block;padding:8px 12px 8px 12px}
+  .skill-row .name{display:inline-block;width:140px;height:21px;line-height:21px;vertical-align:middle;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .skill-row .val{display:inline-block;vertical-align:middle;margin-left:12px}
+  .skill-row .val .meter{width:95px;height:4px;border-radius:6px;vertical-align:middle}
+  /* floating controls: drag handle left, remove button right */
+  .skill-row .skill-handle{position:absolute;left:-12px;top:50%;transform:translateY(-50%);z-index:10}
+  .skill-row .ctrl-circle{position:absolute;right:-12px;top:50%;transform:translateY(-50%);z-index:10}
     .stars{display:inline-grid;grid-auto-flow:column;gap:6px;justify-content:end}
   .stars{color:var(--accent)}
     .star{width:14px;height:14px;display:inline-block;transform:translateY(1px)}

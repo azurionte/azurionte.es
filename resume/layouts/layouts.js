@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.3');
+console.log('[layouts.js] v2.5.4');
 
 import { S, save } from '../app/state.js';
 
@@ -77,8 +77,10 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .sidebar-layout .rail .name[contenteditable]:focus{ outline:none !important; box-shadow:none !important; border:none !important }
   .sidebar-layout .rail .name::selection{ background: rgba(255,255,255,0.12); color: #fff }
   /* chip add button: static centered below the name (petroleum blue, not theme-inherited) */
-  .sidebar-layout .rail #chipAddBtn{ position:static; display:inline-block; margin:6px auto 6px; left:auto; transform:none; top:auto; width:44px; height:44px; border-radius:12px; background:#0b7285; color:#fff; border:0; box-shadow:0 8px 20px rgba(11,114,133,.24); font-weight:800 }
-  .sidebar-layout .rail #chipAddBtn:hover{ filter:brightness(1.05) }
+  /* make the chipAddBtn solid petroleum and always centered across the rail width */
+  .sidebar-layout .rail .chips{ width:100%; display:block }
+  .sidebar-layout .rail #chipAddBtn{ position:relative; display:inline-block; margin:6px auto 6px; width:44px; height:44px; border-radius:12px; background:#0b7285 !important; color:#fff !important; border:0; box-shadow:0 8px 20px rgba(11,114,133,.28); font-weight:800 }
+  .sidebar-layout .rail #chipAddBtn:hover{ filter:brightness(1.03) }
 
   /* small floating chip remove */
   .chip{position:relative}
@@ -348,9 +350,9 @@ function buildHeader(kind){
         <div class="rail">
           <label class="avatar" data-avatar data-empty="1"><input type="file" accept="image/*"></label>
           <h2 class="name" contenteditable>YOUR NAME</h2>
-          <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch;">
             <div class="chips" data-info></div>
-            <div style="display:flex;justify-content:center;width:100%"><button id="chipAddBtn" title="Add contact" class="add-dot" style="border:0;background:transparent;color:inherit">+</button></div>
+            <div style="display:flex;justify-content:center;width:100%"><button id="chipAddBtn" title="Add contact" class="add-dot">+</button></div>
           </div>
           <div class="sec-holder" data-rail-sections></div>
         </div>
