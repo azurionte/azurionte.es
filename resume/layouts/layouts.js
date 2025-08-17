@@ -1,41 +1,17 @@
 // /resume/layouts/layouts.js
-// [layouts.js] v2.3.1 — full-width/height canvas + sidebar chip tools + safe morph
-console.log('[layouts.js] v2.3.1');
+// [layouts.js] v2.3.2 — full-width canvas, rail utilities, centered + menu, chip toolbar, theme helpers
+console.log('[layouts.js] v2.3.2');
 
 import { S } from '../app/state.js';
 
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-/* --------------------------------------------------------------- */
-/* styles                                                          */
-/* --------------------------------------------------------------- */
 (function ensureLayoutStyles(){
   if (document.getElementById('layouts-style')) return;
   const st = document.createElement('style');
   st.id = 'layouts-style';
   st.textContent = `
-    /* Page + sheet expand and never crop content */
-    .page{min-height:100vh; padding:18px}
-    #sheet{width:100%; max-width:1120px; margin:0 auto}
-    #stack{
-      display:grid;
-      grid-template-columns:minmax(0,1fr);
-      gap:16px;
-      padding-bottom:160px;       /* room for "+" anchor */
-      min-height:60vh;
-      align-content:start;
-    }
-    #stack .node,
-    #stack .section,
-    #stack .module,
-    #stack #canvasAdd{
-      width:100%;
-      max-width:none !important;
-      box-sizing:border-box;
-    }
-
-    /* Sidebar header grid */
     .sidebar-layout{
       display:grid;
       grid-template-columns: var(--rail) minmax(0,1fr);
@@ -48,15 +24,14 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
       border-radius:14px;
       padding:18px 14px;
       display:flex;flex-direction:column;gap:12px;align-items:center;
-      min-height:100%;
-      align-self:stretch;
+      min-height:1060px;
       position:relative;
     }
     .sidebar-layout .rail .name{font-weight:900;font-size:26px;text-align:center}
     .sidebar-layout .rail .chips{display:flex;flex-direction:column;gap:8px;width:100%}
     .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 
-    /* Right column behaves as mini canvas */
+    /* RIGHT COLUMN = canvas grid, use full width */
     .sidebar-layout [data-zone="main"]{
       display:grid;
       grid-template-columns: repeat(12, minmax(0,1fr));
@@ -75,13 +50,13 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
       box-sizing:border-box;
     }
 
-    /* Top bar */
+    /* top bar */
     .topbar{position:relative;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
     .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
     .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
     .topbar .right{display:flex;justify-content:flex-end}
 
-    /* Fancy */
+    /* fancy */
     .fancy{position:relative;border-radius:14px}
     .fancy .hero{border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
     .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
@@ -89,34 +64,34 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .fancy .avatar-float{position:absolute;left:50%;transform:translateX(-50%);width:140px;height:140px;top:140px;z-index:30}
     .fancy .below{height:88px}
 
-    /* Avatar */
+    /* avatar */
     .avatar{border-radius:999px;overflow:hidden;background:#d1d5db;position:relative;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.18);border:5px solid #fff;width:140px;height:140px}
     .avatar input{display:none}
     .avatar[data-empty="1"]::after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-weight:900;font-size:30px;background:rgba(255,255,255,.6)}
 
-    /* Chips baseline + edit affordances */
     .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08); position:relative}
+    .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .chip i{width:16px;text-align:center}
-    .chip .handle{display:none; position:absolute; left:-18px; top:50%; transform:translateY(-50%); font-weight:900; cursor:grab}
-    .chip .x{display:none; position:absolute; right:-12px; top:-10px; width:20px; height:20px; border-radius:50%; background:#111; color:#fff; font-weight:900; line-height:18px; text-align:center; cursor:pointer}
 
-    .chip-tools{display:flex;gap:6px; margin-top:6px}
-    .chip-tools .btn{appearance:none;border:1px solid #2b324b;border-radius:10px;padding:6px 9px;background:#12182a;color:#e6e8ef;cursor:pointer}
+    /* centered + menu above dotted add */
+    .add-squircle{position:relative;width:100px;height:100px;border:2px dashed #8ea1ff55;border-radius:22px;display:flex;align-items:center;justify-content:center;margin:22px auto}
+    .add-squircle .add-dot{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;border:1px solid #2b3458;background:#11151f;color:#cfe1ff;font-weight:900}
+    .add-squircle .menu{position:absolute;left:50%;bottom:calc(100% + 12px);transform:translateX(-50%);display:none;gap:8px;background:#0e1324;border:1px solid #1f2949;border-radius:12px;padding:8px 10px;box-shadow:0 18px 38px rgba(0,0,0,.45)}
+    .add-squircle[data-open="1"] .menu{display:flex}
 
-    .chips.edit .chip{padding-left:18px}
-    .chips.edit .chip .handle,
-    .chips.edit .chip .x{display:block}
+    /* rail toolbar for data chips */
+    .rail-toolbar{display:flex;gap:8px;position:relative;margin-top:2px}
+    .rail-toolbar .ibtn{width:32px;height:32px;border-radius:10px;border:1px solid #2b3458;background:#10182c;display:grid;place-items:center;color:#cfe1ff;cursor:pointer}
+    .rail-toolbar .ibtn:hover{outline:2px solid #7c99ff55}
+
+    /* reorder hint for chips */
+    .chip.drag-ghost{opacity:.4}
   `;
   document.head.appendChild(st);
 })();
 
-/* --------------------------------------------------------------- */
-/* helpers                                                         */
-/* --------------------------------------------------------------- */
+/* helpers */
 function stackEl(){ return $('#stack'); }
-
-/** Create canvas if missing and expose both stack and addWrap */
 export function ensureCanvas(){
   if (!$('#stack')){
     const root = $('#canvas-root') || document.body;
@@ -125,7 +100,10 @@ export function ensureCanvas(){
     page.innerHTML = `
       <div id="sheet">
         <div id="stack" class="stack">
-          <div class="add-squircle" id="canvasAdd"><div class="add-dot" id="dotAdd">+</div></div>
+          <div class="add-squircle" id="canvasAdd">
+            <div class="menu" id="canvasAddMenu"></div>
+            <div class="add-dot" id="dotAdd">+</div>
+          </div>
         </div>
       </div>`;
     root.appendChild(page);
@@ -157,9 +135,31 @@ export function getSideMain(){
   return $('#stack');
 }
 
-/* --------------------------------------------------------------- */
-/* avatar loading                                                  */
-/* --------------------------------------------------------------- */
+/* theme helpers */
+function hexToRgb(h){
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h.trim());
+  return m ? { r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16)} : {r:0,g:0,b:0};
+}
+function luminance({r,g,b}){ // sRGB
+  const srgb=[r,g,b].map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)});
+  return 0.2126*srgb[0]+0.7152*srgb[1]+0.0722*srgb[2];
+}
+export function themeColors(){
+  const cs = getComputedStyle(document.body);
+  const a = cs.getPropertyValue('--accent')?.trim() || '#6d28d9';
+  const a2= cs.getPropertyValue('--accent2')?.trim() || '#d946ef';
+  return { a, a2 };
+}
+export function darkChipStyle(){
+  const { a, a2 } = themeColors();              // use darker end of gradient
+  const rgb = hexToRgb(a2);
+  const useWhite = luminance(rgb) < 0.45;
+  const text = useWhite ? '#fff' : '#111';
+  const bg = a2;
+  return { bg, text, border: 'transparent' };
+}
+
+/* avatar loading */
 function initAvatars(root){
   $$('[data-avatar]', root).forEach(w=>{
     if (w._inited) return; w._inited = true;
@@ -190,15 +190,12 @@ function initAvatars(root){
   });
 }
 
-/* --------------------------------------------------------------- */
-/* chips + contact                                                 */
-/* --------------------------------------------------------------- */
+/* chips + contact */
 function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
-  el.innerHTML = `<i class="${icon}"></i><span>${text}</span><span class="handle">⋮⋮</span><span class="x">×</span>`;
+  el.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
   el.style.borderRadius = '999px';
-  el.setAttribute('draggable','true');
   return el;
 }
 function setChips(containers, items){
@@ -227,63 +224,6 @@ export function restyleContactChips(scope=document){
   const head=getHeaderNode(); if(!head) return;
   $$('.chip', head).forEach(styleOneChip);
 }
-
-function enableChipToolbar(){
-  const head=getHeaderNode(); if(!head) return;
-  const holders=[ head.querySelector('[data-info]'),
-                  head.querySelector('[data-info-left]'),
-                  head.querySelector('[data-info-right]') ].filter(Boolean);
-  if(!holders.length) return;
-
-  // toolbar only once per first holder
-  let tools = head.querySelector('.chip-tools');
-  if(!tools){
-    tools = document.createElement('div');
-    tools.className='chip-tools';
-    tools.innerHTML = `
-      <button class="btn" data-k="edit"><i class="fa-solid fa-up-down-left-right"></i> Reorder</button>
-      <button class="btn" data-k="add"><i class="fa-solid fa-plus"></i> Add</button>
-    `;
-    holders[0].insertAdjacentElement('afterend', tools);
-
-    tools.querySelector('[data-k="edit"]').onclick = ()=>{
-      holders.forEach(h=> h.classList.toggle('edit'));
-    };
-    tools.querySelector('[data-k="add"]').onclick = ()=>{
-      const txt = prompt('Label (e.g., portfolio.com/me):'); if(!txt) return;
-      const icon = prompt('FontAwesome class (e.g., fa-solid fa-link):','fa-solid fa-link') || 'fa-solid fa-link';
-      const el = chip(icon, txt);
-      holders[0].appendChild(el); hookChipDnD(holders[0]);
-      holders.forEach(h=> styleOneChip(el));
-    };
-  }
-
-  holders.forEach(h=>{
-    h.addEventListener('click', e=>{
-      const x = e.target.closest('.x'); if(x){ x.parentElement.remove(); }
-    });
-    hookChipDnD(h);
-  });
-}
-function hookChipDnD(container){
-  if(container._chipDnD) return; container._chipDnD = true;
-  let dragEl=null;
-  container.addEventListener('dragstart', e=>{
-    const it=e.target.closest('.chip'); if(!it) return;
-    if(!container.classList.contains('edit')){ e.preventDefault(); return; }
-    dragEl=it; e.dataTransfer.effectAllowed='move';
-    try{ e.dataTransfer.setData('text/plain',''); }catch(_){}
-    setTimeout(()=> it.style.opacity='.35',0);
-  });
-  container.addEventListener('dragend', ()=>{ if(dragEl){ dragEl.style.opacity=''; dragEl=null; }});
-  container.addEventListener('dragover', e=>{
-    if(!dragEl) return; e.preventDefault();
-    const els = $$('.chip', container).filter(x=>x!==dragEl);
-    const after = els.reduce((c,ch)=>{ const b=ch.getBoundingClientRect(); const off=e.clientY - (b.top+b.height/2); return (off<0 && off>c.o)?{o:off,el:ch}:c; },{o:-1e9}).el;
-    if(!after) container.appendChild(dragEl); else container.insertBefore(dragEl, after);
-  });
-}
-
 export function applyContact(){
   const head=getHeaderNode(); if(!head) return;
   const nm=head.querySelector('.name'); if(nm) nm.textContent=S?.contact?.name||'YOUR NAME';
@@ -299,12 +239,9 @@ export function applyContact(){
                   head.querySelector('[data-info-right]') ].filter(Boolean);
   setChips(holders, items);
   restyleContactChips();
-  enableChipToolbar();
 }
 
-/* --------------------------------------------------------------- */
-/* build headers + morph                                           */
-/* --------------------------------------------------------------- */
+/* build headers + morph */
 function buildHeader(kind){
   const node=document.createElement('div');
   node.className='node';
@@ -319,6 +256,16 @@ function buildHeader(kind){
           </label>
           <div class="name" contenteditable>YOUR NAME</div>
           <div class="chips" data-info></div>
+
+          <!-- quick chip toolbar -->
+          <div class="rail-toolbar" id="railChipBar" title="Quick add contact chips">
+            <div class="ibtn" data-act="phone"><i class="fa-solid fa-phone"></i></div>
+            <div class="ibtn" data-act="email"><i class="fa-solid fa-envelope"></i></div>
+            <div class="ibtn" data-act="addr"><i class="fa-solid fa-location-dot"></i></div>
+            <div class="ibtn" data-act="linkedin"><i class="fa-brands fa-linkedin"></i></div>
+            <div class="ibtn" data-act="info"><i class="fa-solid fa-circle-info"></i></div>
+          </div>
+
           <div class="sec-holder" data-rail-sections></div>
         </div>
         <div data-zone="main"></div>
@@ -362,6 +309,7 @@ function buildHeader(kind){
   document.body.setAttribute('data-mat',  S.mat||'paper');
 
   ensureAddAnchor(true);
+  wireRailChipToolbar(node);
   applyContact();
   queueMicrotask(()=> document.dispatchEvent(new CustomEvent('layout:changed', { detail:{ kind:S.layout } })));
   return node;
@@ -391,11 +339,61 @@ export function morphTo(kind){
   }
 }
 
-/* --------------------------------------------------------------- */
 export function ensureAddAnchor(show){
-  const s=stackEl(), add=$('#canvasAdd');
+  const s=stackEl(), add=$('#canvasAdd'), menu=$('#canvasAddMenu'), dot=$('#dotAdd');
   if(!s || !add) return null;
   if(add.parentElement!==s) s.appendChild(add);
   if(typeof show==='boolean') add.style.display=show?'flex':'none';
+
+  if (menu && !menu._wired){
+    menu._wired = true;
+    // simple sample entries; you likely already replace these
+    menu.innerHTML = `
+      <button class="ibtn" title="Add Skills"><i class="fa-solid fa-layer-group"></i></button>
+      <button class="ibtn" title="Add Education"><i class="fa-solid fa-graduation-cap"></i></button>
+      <button class="ibtn" title="Add Experience"><i class="fa-solid fa-briefcase"></i></button>`;
+  }
+  if (dot && !add._wired){
+    add._wired = true;
+    dot.addEventListener('click', ()=>{
+      add.setAttribute('data-open', add.getAttribute('data-open')==='1' ? '0' : '1');
+    });
+  }
   return add;
 }
+
+/* Rail toolbar: quick chip add */
+function wireRailChipToolbar(root){
+  const bar = root.querySelector('#railChipBar'); if(!bar) return;
+  bar.addEventListener('click', (e)=>{
+    const b = e.target.closest('.ibtn'); if(!b) return;
+    const act=b.dataset.act;
+    const c=S.contact||(S.contact={});
+    if(act==='phone'){ c.phone = prompt('Phone', c.phone||'')||''; }
+    if(act==='email'){ c.email = prompt('Email', c.email||'')||''; }
+    if(act==='addr'){  c.address = prompt('City, Country', c.address||'')||''; }
+    if(act==='linkedin'){ c.linkedin = prompt('LinkedIn username', c.linkedin||'')||''; }
+    if(act==='info'){
+      const val = prompt('Custom info (icon not shown here):','');
+      if(val){
+        // append as generic chip in left half set (not persisted in S.contact)
+        const infoHolder = root.querySelector('[data-info]');
+        const el = document.createElement('div'); el.className='chip';
+        el.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${val}</span>`;
+        infoHolder?.appendChild(el);
+        restyleContactChips();
+      }
+    }
+    S.contact = c;
+    applyContact();
+  });
+}
+
+/* expose */
+export function ensureAddMenuOpen(open=true){
+  const add=$('#canvasAdd'); if(!add) return;
+  add.setAttribute('data-open', open?'1':'0');
+}
+
+/* keep existing anchor */
+export function ensureAddAnchorOnly(){ return ensureAddAnchor(); }
