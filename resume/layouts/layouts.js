@@ -52,9 +52,9 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
     .chip i{width:16px;text-align:center}
     .chip[contenteditable="true"]{outline:none}
-  /* light/dark text rules */
-  body[data-dark="1"]{ color: #fff }
-  body:not([data-dark="1"]){ color: #111 }
+  /* scope text color to the sheet (canvas) only */
+  #sheet{ color: #111 }
+  body[data-dark="1"] #sheet{ color: #fff }
 
   /* chip add pop (pill) */
   #chipAddPop{position:absolute;z-index:20060;display:none}
@@ -69,7 +69,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
   /* section delete (prominent red) and header controls */
   .sec-head{position:relative}
-  .sec-remove{position:absolute;right:12px;top:12px;background:#ff4d4f;color:#fff;border:0;padding:6px;border-radius:10px;cursor:pointer}
+  .sec-remove{position:absolute;right:12px;top:12px;background:#ff4d4f;color:#fff;border:0;width:28px;height:28px;padding:0;border-radius:999px;display:grid;place-items:center;cursor:pointer;font-size:12px}
   .sec-head .ctrl-circle.move-rail{position:absolute;right:56px;top:10px}
 
   /* card controls and smaller ctrl-circles floating near the edge */
@@ -280,14 +280,14 @@ function openChipMenu(anchor){
       // only add if not already present
       if (S.contact[k] && S.contact[k].trim()) { pop.classList.remove('open'); return; }
       const placeholder = (k==='linkedin') ? 'linkedin.com/in/your-handle' : (k==='phone'?'+1 555 555 5555': (k==='email'?'you@domain.com':'Your address'));
-      S.contact[k] = '';
+      S.contact[k] = placeholder;
       save();
       applyContact();
       // focus the new chip after a tick
       Promise.resolve().then(()=>{
         const head=getHeaderNode(); if(!head) return;
         const chips = head.querySelectorAll('.chip');
-        const last = chips[chips.length-1]; if(last){ last.focus(); last.click(); last.setAttribute('contenteditable','true'); }
+        const last = chips[chips.length-1]; if(last){ last.focus(); last.setAttribute('contenteditable','true'); }
       });
       pop.classList.remove('open');
     });

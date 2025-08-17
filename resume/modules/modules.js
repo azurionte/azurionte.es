@@ -67,8 +67,9 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .ctrl-circle{width:36px;height:36px;border-radius:999px;background:#071827;color:#fff;display:grid;place-items:center;box-shadow:0 8px 20px rgba(2,10,18,.6);cursor:pointer;border:1px solid rgba(255,255,255,.06)}
   .ctrl-circle:active{transform:translateY(1px)}
   /* drag handle (left vertical dots) */
-  .drag-handle{width:36px;height:36px;border-radius:999px;background:#071827;color:#fff;display:grid;place-items:center;cursor:grab;border:1px solid rgba(255,255,255,.06)}
-  .skill-handle{width:34px;height:34px;border-radius:8px;background:#071827;color:#fff;display:grid;place-items:center;margin-right:10px}
+  .drag-handle{width:22px;height:22px;border-radius:6px;background:#071827;color:#fff;display:grid;place-items:center;cursor:grab;border:1px solid rgba(255,255,255,.06);font-size:12px}
+  .skill-handle{width:22px;height:22px;border-radius:6px;background:#071827;color:#fff;display:grid;place-items:center;margin-right:8px;font-size:12px}
+  .ctrl-circle.small{width:28px;height:28px}
   `;
   document.head.appendChild(st);
 })();
@@ -320,17 +321,20 @@ export function renderEdu(items){
   });
 
   body.appendChild(grid);
-  // add controls: hat / scroll
-  const adds = document.createElement('div'); adds.className='sec-adds';
-  const btnHat = document.createElement('button'); btnHat.innerHTML='<i class="fa-solid fa-graduation-cap"></i>'; btnHat.title='Add education';
-  const btnScroll = document.createElement('button'); btnScroll.innerHTML='<i class="fa-solid fa-scroll"></i>'; btnScroll.title='Add course';
-  btnHat.addEventListener('click', ()=>{ renderEdu([{kind:'degree',title:'New degree',dates:'2020',academy:'School'}]); });
-  btnScroll.addEventListener('click', ()=>{ renderEdu([{kind:'course',title:'New course',dates:'2020',academy:'School'}]); });
-  body.appendChild(adds); adds.appendChild(btnHat); adds.appendChild(btnScroll);
-  // centered squircle add anchor for education
+  // add controls: use ctrl-circle add button and position after grid (below latest card)
   const eAnchor = document.createElement('div'); eAnchor.className='sec-add-anchor';
-  const eHat = document.createElement('button'); eHat.className='squircle-add'; eHat.innerHTML='<i class="fa-solid fa-graduation-cap"></i>'; eHat.title='Add education';
-  eHat.addEventListener('click', ()=>{ renderEdu([{kind:'degree',title:'New degree',dates:'2020',academy:'School'}]); });
+  const eHat = document.createElement('button'); eHat.className='ctrl-circle'; eHat.innerHTML='<i class="fa-solid fa-graduation-cap"></i>'; eHat.title='Add education';
+  eHat.addEventListener('click', ()=>{
+    const it = {kind:'degree',title:'New degree',dates:'2020',academy:'School'};
+    S.edu = (S.edu||[]); S.edu.push(it); save();
+    // append card after grid
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<div class="year-chip">${icon('edu')}<span>${it.dates}</span></div><div style="height:8px"></div><div style="font-weight:800">${it.title}</div><div>${it.academy}</div>`;
+    card.style.position='relative';
+    const removeBtn = document.createElement('button'); removeBtn.className='ctrl-circle'; removeBtn.innerHTML='×'; removeBtn.title='Remove'; removeBtn.addEventListener('click', ()=>{ card.remove(); S.edu = (S.edu||[]).filter(x=> x.title!==it.title); save(); });
+    const controls = document.createElement('div'); controls.className='card-controls'; controls.appendChild(removeBtn); card.appendChild(controls);
+    grid.appendChild(card);
+  });
   eAnchor.appendChild(eHat); body.appendChild(eAnchor);
   putSection(sec);
 }
@@ -342,13 +346,17 @@ export function renderExp(items){
   const body = $('.sec-body', sec);
 
   // add control: add experience
-  const adds = document.createElement('div'); adds.className='sec-adds';
-  const btnExp = document.createElement('button'); btnExp.innerHTML='<i class="fa-solid fa-plus"></i>'; btnExp.title='Add experience';
-  btnExp.addEventListener('click', ()=>{ renderExp([{dates:'Now',role:'New role',org:'Company',desc:'Describe.'}]); });
-  body.appendChild(adds); adds.appendChild(btnExp);
   const xAnchor = document.createElement('div'); xAnchor.className='sec-add-anchor';
-  const xBtn = document.createElement('button'); xBtn.className='squircle-add'; xBtn.innerHTML='<i class="fa-solid fa-plus"></i>'; xBtn.title='Add experience';
-  xBtn.addEventListener('click', ()=>{ renderExp([{dates:'Now',role:'New role',org:'Company',desc:'Describe.'}]); });
+  const xBtn = document.createElement('button'); xBtn.className='ctrl-circle'; xBtn.innerHTML='<i class="fa-solid fa-plus"></i>'; xBtn.title='Add experience';
+  xBtn.addEventListener('click', ()=>{
+    const it = {dates:'Now',role:'New role',org:'Company',desc:'Describe.'};
+    S.exp = (S.exp||[]); S.exp.push(it); save();
+    const card = document.createElement('div'); card.className='card'; card.style.marginBottom='10px';
+    card.innerHTML = `<div class="year-chip"><i class="fa-solid fa-bars"></i><span>${it.dates}</span></div><div style="height:8px"></div><div style="font-weight:800">${it.role}</div><div style="opacity:.9">@${it.org}</div><div style="height:8px"></div><div>${it.desc}</div>`;
+    const removeX = document.createElement('button'); removeX.className='ctrl-circle'; removeX.title='Remove'; removeX.innerHTML='×'; removeX.addEventListener('click', ()=>{ card.remove(); S.exp=(S.exp||[]).filter(x=>x.role!==it.role); save(); });
+    const controlsX = document.createElement('div'); controlsX.className='card-controls'; controlsX.appendChild(removeX); card.appendChild(controlsX);
+    grid.appendChild(card);
+  });
   xAnchor.appendChild(xBtn); body.appendChild(xAnchor);
 
   items.forEach(it => {
