@@ -420,7 +420,31 @@ export function applyContact(){
     const allKeys = ['phone','email','address','linkedin'];
     const used = allKeys.filter(k=> !!(S.contact && S.contact[k] && S.contact[k].trim()));
     const btn = head.querySelector('#chipAddBtn');
-    if (btn) btn.style.display = (used.length === allKeys.length) ? 'none' : 'block';
+    if (btn) {
+      btn.style.display = (used.length === allKeys.length) ? 'none' : 'block';
+      try{
+        // If there are no chips, center the add button under the name-block (matches UX when empty)
+        const chipWrap = head.querySelector('.chip-wrap');
+        const nameBlock = head.querySelector('.name-block');
+        if ((items||[]).length === 0 && nameBlock){
+          // move button into name-block to ensure horizontal centering under the name
+          if (btn.parentElement !== nameBlock) nameBlock.appendChild(btn);
+          // reset any positional styles so name-block centering applies
+          btn.style.position = '';
+          btn.style.left = '';
+          btn.style.transform = '';
+          btn.style.margin = '';
+        } else if (chipWrap){
+          // ensure button sits after chips when chips exist
+          if (btn.parentElement !== chipWrap) chipWrap.appendChild(btn);
+          // restore chip-wrap centering rules
+          btn.style.position = '';
+          btn.style.left = '';
+          btn.style.transform = '';
+          btn.style.margin = '';
+        }
+      }catch(e){}
+    }
   }catch(e){}
 }
 
