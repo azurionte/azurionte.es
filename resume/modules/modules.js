@@ -1,6 +1,6 @@
 // /resume/modules/modules.js
 // [modules.js] v2.9.0 — sections + add popover + safe host insertion + remember rail choice
-console.log('[modules.js] v2.9.1');
+console.log('[modules.js] v2.9.2');
 
 import { S } from '../app/state.js';
 import { ensureCanvas, isSidebarActive, getRailHolder, getSideMain } from '../layouts/layouts.js';

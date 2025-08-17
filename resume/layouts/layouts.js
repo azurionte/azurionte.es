@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.1');
+console.log('[layouts.js] v2.5.2');
 
 import { S } from '../app/state.js';
 
@@ -158,6 +158,16 @@ function startLayoutObserver(){
   };
   __layoutObserver = new MutationObserver(cb);
   __layoutObserver.observe(document.body, { subtree:true, childList:true, attributes:true, attributeFilter:['style'] });
+  // Diagnostic: also watch for inline style changes that introduce width or max-width and log stack
+  const origSet = CSSStyleDeclaration.prototype.setProperty;
+  try{
+    CSSStyleDeclaration.prototype.setProperty = function(k,v,prio){
+      if((k==='width' || k==='max-width') && v && v!==''){
+        try{ console.warn('[layout-diagnostic] inline style set', k, v, this.ownerElement || this.__ownerElement || null, new Error().stack); }catch(e){}
+      }
+      return origSet.call(this,k,v,prio);
+    };
+  }catch(e){}
 }
 
 /* Avatar */

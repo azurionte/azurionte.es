@@ -1,6 +1,6 @@
 // App entry — wires everything together
 import { S, setTheme, setCustomGradient, setDark, setMaterial, hydrateFromStorage } from './state.js';
-const APP_VERSION = 'resume-app@2025.08.17-001';
+const APP_VERSION = 'resume-app@2025.08.17-002';
 console.log('[app.js] ' + APP_VERSION);
 import { mountEditor } from '../editor/editor.js';
 import { mountWelcome } from '../wizard/wizard.js';
