@@ -1,5 +1,6 @@
-// resume/editor/editor.js
+// /resume/editor/editor.js
 // Builds top bar, theme menu, preview/print and the canvas shell
+// [editor.js] v1.6.0
 import { S, save } from '../app/state.js';
 import { morphTo } from '../layouts/layouts.js';
 import { openAddMenu } from '../modules/modules.js';
@@ -104,8 +105,7 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
   top.querySelector('#layoutQuick').addEventListener('click', e => {
     const k = e.target.closest('[data-layout]')?.dataset.layout; if(!k) return;
     const prevHeaderRect = document.querySelector('[data-header]')?.getBoundingClientRect();
-    morphTo(k); // implemented in layouts/layouts.js
-    // fallback: if layouts.js doesn't dispatch an event, still nudge the + after morph
+    morphTo(k);
     setTimeout(ensurePlusAtEnd, prevHeaderRect ? 380 : 50);
     top.querySelector('#ddLayout').classList.remove('open');
   });
@@ -121,15 +121,26 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
     <div class="pop" id="addMenu" aria-hidden="true"><div class="tray" id="addTray"></div></div>
   `;
 
-  // add menu
-  root.querySelector('#dotAdd').onclick = (e) => openAddMenu(e.currentTarget);
-
   // --- PLUS BUTTON HOSTING (Sidebar support) ------------------------------
   const addWrap = root.querySelector('#canvasAdd');
+  const addDot  = root.querySelector('#dotAdd');
   const stackEl = root.querySelector('#stack');
 
+  // click opens anchored menu perfectly centered above the squircle
+  addDot.addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    openAddMenu(addWrap);
+  });
+  addWrap.setAttribute('tabindex','0');
+  addWrap.addEventListener('keydown', (e)=>{
+    if (e.key==='Enter' || e.key===' '){
+      e.preventDefault();
+      openAddMenu(addWrap);
+    }
+  });
+
   function currentHost(){
-    // if Sidebar layout, place sections on the right side of the rail
+    // Sidebar layout -> host sections in the main zone (right of the rail)
     const main = document.querySelector('[data-header] [data-zone="main"]');
     return (S.layout === 'side' && main) ? main : stackEl;
   }
@@ -144,7 +155,7 @@ export function mountEditor({ onThemePick, onDarkToggle, onMaterialPick, onCusto
   // initial placement
   ensurePlusAtEnd();
 
-  // listen for layout changes if layouts.js emits a custom event
+  // re-place after morphs (if layouts.js emits)
   document.addEventListener('layout:changed', ensurePlusAtEnd);
 
   // robust fallback: observe header insertion/replacement (works even without events)
