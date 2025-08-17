@@ -79,6 +79,12 @@ function hostRail(){
 }
 
 function putSection(node, { toRail=false } = {}){
+  // Prevent inserting duplicate sections (one of each type only)
+  try{
+    const key = node.dataset && node.dataset.section;
+    if (key && document.querySelector('.section[data-section="'+key+'"]')) return;
+  }catch(_){}
+
   const host = (toRail && hostRail()) || hostMain();
   // clear any inline width styles that may have been copied from mocks so grid can size sections
   try {
@@ -100,6 +106,8 @@ function putSection(node, { toRail=false } = {}){
 
   const plus = ensurePlusIn(host);
   if (plus) host.insertBefore(wrapper, plus); else host.appendChild(wrapper);
+  // Refresh the plus visibility after adding a section
+  try{ refreshPlusVisibility(); }catch(e){}
 }
 
 function sectionEl(key, title){
@@ -128,6 +136,9 @@ export function renderSkills(list, opts = {}){
   // remember the rail choice so a later morph can re-home correctly
   try { S.skillsInSidebar = !!opts.toRail; } catch {}
 
+  // avoid duplicates
+  if (document.querySelector('.section[data-section="skills"]')) return;
+
   const sec = sectionEl('skills', 'Skills');
   const body = $('.sec-body', sec);
   const wrap = document.createElement('div');
@@ -148,6 +159,8 @@ export function renderSkills(list, opts = {}){
 }
 
 export function renderEdu(items){
+  // avoid duplicates
+  if (document.querySelector('.section[data-section="edu"]')) return;
   const sec = sectionEl('edu', 'Education');
   const body = $('.sec-body', sec);
   const grid = document.createElement('div');
@@ -171,6 +184,8 @@ export function renderEdu(items){
 }
 
 export function renderExp(items){
+  // avoid duplicates
+  if (document.querySelector('.section[data-section="exp"]')) return;
   const sec = sectionEl('exp', 'Work experience');
   const body = $('.sec-body', sec);
 
@@ -192,6 +207,8 @@ export function renderExp(items){
 }
 
 export function renderBio(text){
+  // avoid duplicates
+  if (document.querySelector('.section[data-section="bio"]')) return;
   const sec = sectionEl('bio', 'Profile');
   const body = $('.sec-body', sec);
   const card = document.createElement('div');
@@ -232,6 +249,7 @@ export function openAddMenu(anchor){
       if (k === 'exp')    renderExp([{dates:'Jan 2024 – Present',role:'Job title',org:'Company',desc:'Describe impact, scale and results.'}]);
       if (k === 'bio')    renderBio('');
       pop.classList.remove('open');
+      try{ refreshPlusVisibility(); }catch(e){}
     });
   }
 
@@ -241,8 +259,36 @@ export function openAddMenu(anchor){
   pop.style.left = `${Math.round(r.left + (r.width/2))}px`;
   pop.style.top  = `${Math.round(r.top  - 12)}px`;
   pop.style.transform = `translate(-50%,-100%)`;
+
+  // hide buttons for sections that already exist and determine missing options
+  const all = ['skills','edu','exp','bio'];
+  const host = getSideMain() || ensureCanvas().stack;
+  const missing = all.filter(k => !host.querySelector('.section[data-section="'+k+'"]'));
+  bar.querySelectorAll('button').forEach(b=>{
+    const k = b.dataset.k;
+    if (!k) return;
+    b.style.display = (missing.indexOf(k)===-1) ? 'none' : 'inline-block';
+  });
+
+  // if no missing options, hide the plus anchor and don't open the menu
+  const plus = document.getElementById('canvasAdd') || ensureCanvas().add;
+  if (missing.length===0){ if(plus) plus.style.display='none'; return; }
+  if (plus) plus.style.display='flex';
   pop.classList.add('open');
 }
+
+// Refresh plus visibility: hide the canvas add button if all sections exist, show otherwise
+function refreshPlusVisibility(){
+  const all = ['skills','edu','exp','bio'];
+  const host = getSideMain() || ensureCanvas().stack;
+  const plus = document.getElementById('canvasAdd') || ensureCanvas().add;
+  if (!plus) return;
+  const missing = all.filter(k => !host.querySelector('.section[data-section="'+k+'"]'));
+  plus.style.display = (missing.length===0) ? 'none' : 'flex';
+}
+
+// initial visibility update
+try{ refreshPlusVisibility(); }catch(e){}
 
 /* ---------------------- tint helpers (optional) --------------------- */
 export function setYearChipTint(bgCss, darkText=false){
