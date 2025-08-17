@@ -244,20 +244,30 @@ function openChipMenu(anchor){
   if (!pop){
     pop = document.createElement('div'); pop.id='chipAddPop'; pop.className='pop';
     pop.innerHTML = `<div style="display:flex;gap:8px;padding:8px">
-      <button data-k="phone" title="Phone">📞</button>
-      <button data-k="email" title="Email">✉️</button>
-      <button data-k="address" title="Address">📍</button>
-      <button data-k="linkedin" title="LinkedIn">in</button>
+      <button data-k="phone" title="Phone"><i class='fa-solid fa-phone'></i></button>
+      <button data-k="email" title="Email"><i class='fa-solid fa-envelope'></i></button>
+      <button data-k="address" title="Address"><i class='fa-solid fa-location-dot'></i></button>
+      <button data-k="linkedin" title="LinkedIn"><i class='fa-brands fa-linkedin'></i></button>
     </div>`;
     document.body.appendChild(pop);
     pop.addEventListener('click', e=>{
-      const k = e.target.closest('button')?.dataset.k; if(!k) return;
-      const val = prompt('Enter '+k);
-      if (!val) return;
+      const btn = e.target.closest('button'); const k = btn?.dataset.k; if(!k) return;
+      // create the chip inline and focus it for editing
       S.contact = S.contact || {};
-      if (k==='linkedin') S.contact[k] = val.replace(/^https?:\/\//,'').replace(/^linkedin.com\//,''); else S.contact[k]=val;
+      const placeholder = (k==='linkedin') ? 'linkedin.com/in/your-handle' : (k==='phone'?'+1 555 555 5555': (k==='email'?'you@domain.com':'Your address'));
+      if (k==='linkedin') {
+        S.contact[k] = S.contact[k] || '';
+      } else {
+        S.contact[k] = S.contact[k] || '';
+      }
       save();
       applyContact();
+      // focus the new chip after a tick
+      Promise.resolve().then(()=>{
+        const head=getHeaderNode(); if(!head) return;
+        const chips = head.querySelectorAll('.chip');
+        const last = chips[chips.length-1]; if(last){ last.focus(); last.setAttribute('contenteditable','true'); }
+      });
       pop.classList.remove('open');
     });
   }

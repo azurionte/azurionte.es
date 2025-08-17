@@ -183,52 +183,75 @@ export function renderSkills(list, opts = {}){
   const body = $('.sec-body', sec);
   const wrap = document.createElement('div');
   wrap.className = 'skills-wrap';
-  list.forEach(it => {
+
+  // helper: create a skill-row element and wire interactions
+  function makeRow(it){
     const row = document.createElement('div');
     row.className = 'skill-row';
-    row.innerHTML = `
-      <div class="name">${it.label || 'Skill'}</div>
-      <div class="val">${it.type === 'star'
-        ? `<div class="stars">${[1,2,3,4,5].map(i => svgStar((it.stars||0) >= i)).join('')}</div>`
-        : `<input class="meter" type="range" min="0" max="100" value="${it.value ?? 60}" disabled>`}
-      </div>`;
-    // left handle for dragging / visual affordance
-    const handle = document.createElement('div'); handle.className = 'skill-handle'; handle.innerHTML = '<i class="fa-solid fa-grip-lines-vertical"></i>';
-    row.insertBefore(handle, row.firstChild);
-    // control circle for remove (styled squircle)
-    const ctrl = document.createElement('button'); ctrl.className = 'ctrl-circle'; ctrl.title = 'Remove skill'; ctrl.innerHTML = '×';
+    // structure: handle | name | value | control
+    const name = document.createElement('div'); name.className='name'; name.textContent = it.label || 'Skill'; name.setAttribute('contenteditable','true');
+    const val = document.createElement('div'); val.className='val';
+    if (it.type === 'star'){
+      val.innerHTML = `<div class="stars">${[1,2,3,4,5].map(i => svgStar((it.stars||0) >= i)).join('')}</div>`;
+    } else {
+      const range = document.createElement('input'); range.className='meter'; range.type='range'; range.min=0; range.max=100; range.value = it.value ?? 60; range.disabled = false;
+      val.appendChild(range);
+    }
+    const handle = document.createElement('div'); handle.className='skill-handle'; handle.innerHTML = '<i class="fa-solid fa-grip-lines-vertical"></i>';
+    const ctrl = document.createElement('button'); ctrl.className='ctrl-circle'; ctrl.title='Remove skill'; ctrl.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    // remove handler
     ctrl.addEventListener('click', ()=>{
       row.remove();
-      try{ S.skills = (S.skills||[]).filter(x=> x.label !== it.label); save(); }catch(_){ }
+      try{ S.skills = (S.skills||[]).filter(x=> x !== it); save(); }catch(_){ }
       try{ refreshPlusVisibility(); }catch(_){ }
     });
-    row.appendChild(ctrl);
-    // make name editable
-    row.querySelector('.name').setAttribute('contenteditable','true');
-    // make stars/slider interactive
+    // star interactivity
     if (it.type === 'star'){
-      row.querySelectorAll('.star').forEach((s,i)=>{
-        s.style.cursor='pointer';
-        s.addEventListener('click', ()=>{
-          const stars = i+1;
-          // update visuals
-          row.querySelectorAll('.star path').forEach((p,idx)=> p.setAttribute('fill', (idx<stars)?'currentColor':'none'));
-          try{ S.skills = (S.skills||[]).map(x=> x.label===it.label ? Object.assign({},x,{stars}) : x); save(); }catch(_){}
-        });
+      // delegate clicks
+      row.addEventListener('click', e=>{
+        const s = e.target.closest('.star'); if(!s) return;
+        const stars = Array.from(row.querySelectorAll('.star')).indexOf(s) + 1;
+        row.querySelectorAll('.star path').forEach((p,idx)=> p.setAttribute('fill', (idx<stars)?'currentColor':'none'));
+        try{ S.skills = (S.skills||[]).map(x=> x === it ? Object.assign({},x,{stars}) : x); save(); }catch(_){ }
       });
     } else {
-      // slider: allow dragging (native range is OK) — no extra wiring needed for now
+      // slider updates value on input
+      const range = val.querySelector('.meter'); if(range){ range.addEventListener('input', ()=>{ try{ S.skills = (S.skills||[]).map(x=> x === it ? Object.assign({},x,{value: Number(range.value)}) : x); save(); }catch(_){ } }); }
     }
-    wrap.appendChild(row);
+
+    // name editing persists on blur
+    name.addEventListener('blur', ()=>{ try{ S.skills = (S.skills||[]).map(x=> x === it ? Object.assign({},x,{label: name.textContent.trim() || 'Skill'}) : x); save(); }catch(_){ } });
+
+    // assemble
+    row.appendChild(handle);
+    row.appendChild(name);
+    row.appendChild(val);
+    row.appendChild(ctrl);
+    return row;
+  }
+
+  // initial list
+  list.forEach(it => {
+    // ensure S.skills tracks initial list
+    try{ S.skills = S.skills || []; if(!S.skills.includes(it)) S.skills.push(it); }catch(_){ }
+    wrap.appendChild(makeRow(it));
   });
-  // centered squircle add anchor (below content)
+
+  // centered add anchor using control-circle + icons to match editor aesthetics
   const anchorWrap = document.createElement('div'); anchorWrap.className='sec-add-anchor';
-  const squircleStar = document.createElement('button'); squircleStar.className='squircle-add'; squircleStar.innerHTML='<i class="fa-solid fa-star"></i>';
-  const squircleSlider = document.createElement('button'); squircleSlider.className='squircle-add'; squircleSlider.innerHTML='<i class="fa-solid fa-sliders"></i>';
-  squircleStar.title='Add star skill'; squircleSlider.title='Add slider skill';
-  squircleStar.addEventListener('click', ()=>{ renderSkills([{type:'star',label:'New skill',stars:3}], {}); });
-  squircleSlider.addEventListener('click', ()=>{ renderSkills([{type:'slider',label:'New skill',value:60}], {}); });
-  anchorWrap.appendChild(squircleStar); anchorWrap.appendChild(squircleSlider);
+  const addStar = document.createElement('button'); addStar.className='ctrl-circle'; addStar.title='Add star skill'; addStar.innerHTML = '<i class="fa-solid fa-star"></i>';
+  const addSlider = document.createElement('button'); addSlider.className='ctrl-circle'; addSlider.title='Add slider skill'; addSlider.innerHTML = '<i class="fa-solid fa-sliders"></i>';
+  addStar.addEventListener('click', ()=>{
+    const it = { type:'star', label:'New skill', stars:3 };
+    S.skills = (S.skills||[]); S.skills.push(it); save();
+    const r = makeRow(it); wrap.appendChild(r); r.querySelector('.name').focus();
+  });
+  addSlider.addEventListener('click', ()=>{
+    const it = { type:'slider', label:'New skill', value:60 };
+    S.skills = (S.skills||[]); S.skills.push(it); save();
+    const r = makeRow(it); wrap.appendChild(r); r.querySelector('.name').focus();
+  });
+  anchorWrap.appendChild(addStar); anchorWrap.appendChild(addSlider);
   body.appendChild(anchorWrap);
   body.appendChild(wrap);
   putSection(sec, { toRail: !!opts.toRail });
