@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,8 +14,8 @@
   --bg:#0e1117; --panel:#0f1420; --line:#23283b; --card:#ffffff;
   --shadow:0 10px 30px rgba(0,0,0,.25);
   --rail:300px;
-  --star-gap:4px;
-  --skill-right:120px;
+  --star-gap:4px;           /* tighter stars by default */
+  --skill-right:120px;      /* stars/slider width match */
 }
 body[data-theme="coral"]{ --accent:#ff7b54; --accent2:#ffd166 }
 body[data-theme="sea"]{ --accent:#4facfe; --accent2:#38d2ff }
@@ -87,14 +88,14 @@ animation:spark .6s ease}
 .sidebar-layout .rail .sec-holder{width:100%;padding-top:6px}
 .sidebar-layout [data-zone="main"]{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-content:start}
 
-/* Top bar */
+/* Top bar (sticky at top) */
 .topbar{position:sticky;top:0;z-index:5;border-radius:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:16px;min-height:160px}
 .topbar-grid{display:grid;grid-template-columns:60% 40%;align-items:center;gap:18px}
 .topbar .name{font-weight:900;font-size:34px;margin:0;text-align:left}
 .topbar .right{display:flex;justify-content:flex-end}
 .topbar .right .avatar{width:120px;height:120px;border-width:4px}
 
-/* Top fancy */
+/* Top fancy (sticky hero and floating avatar half-over edge) */
 .fancy{position:relative;border-radius:14px}
 .fancy .hero{position:sticky;top:0;z-index:5;border-radius:14px;padding:18px 14px 26px;min-height:200px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;flex-direction:column;align-items:center}
 .fancy .name{font-weight:900;font-size:34px;margin:0;text-align:center}
@@ -118,7 +119,7 @@ body[data-mat="glass"] .node:not([data-locked="1"]){background:rgba(255,255,255,
 .chip{display:flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid rgba(0,0,0,.08)}
 .chip i{width:16px;text-align:center}
 
-/* skills */
+/* skills (canvas) */
 .grid-skills{display:grid;gap:10px}
 .grid-skills.cols-2{grid-template-columns:1fr 1fr}
 .skill{display:grid;grid-template-columns:1fr var(--skill-right);align-items:center;gap:10px;padding:4px 0}
@@ -129,14 +130,14 @@ body[data-mat="glass"] .node:not([data-locked="1"]){background:rgba(255,255,255,
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));outline:1px solid rgba(0,0,0,.22)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
 
-/* canvas controls */
+/* canvas controls (handle + delete) */
 .ctrls{position:absolute;top:6px;right:6px;display:flex;gap:6px;z-index:10}
 .ctrls .btn{width:28px;height:28px;border-radius:12px;background:#0f1428;color:#e6e8ef;border:1px solid #223058;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .ctrls .btn:hover{box-shadow:0 0 0 3px rgba(124,153,255,.25) inset}
 .ctrls .handle{cursor:grab}
 .ctrls .handle:active{cursor:grabbing}
 
-/* drag placeholder */
+/* drag placeholder for sections */
 .node.ph{outline:2px dashed #3a4a7a;border-radius:14px;min-height:64px}
 
 /* ==== WELCOME ============================================================ */
@@ -148,7 +149,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .wbtn{appearance:none;border:1px solid #2b324b;background:#12182a;color:#e6e8ef;padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.3)}
 .wbtn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#111;border:none}
 
-/* ==== WIZARD ============================================================= */
+/* ==== WIZARD (kept, not changed beyond earlier fixes) ==================== */
 .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:21000}
 .wiz{width:min(1040px,96vw);display:grid;grid-template-columns:260px 1fr;background:#0f1420;border:1px solid #1f2540;border-radius:18px;color:#e6e8ef;box-shadow:0 40px 140px rgba(0,0,0,.6);overflow:hidden}
 .wiz-left{background:#0c111f;border-right:1px solid #1b2340;padding:16px}
@@ -165,7 +166,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .wipt{background:#0c1328;color:#e7ebff;border:1px solid #243057;outline:none;border-radius:10px;padding:10px 12px;width:100%;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 .wipt::placeholder{color:#95a0c7}
 
-/* layout mocks */
+/* layout mocks (unchanged from your last good) */
 .mock{flex:1;min-width:220px;min-height:130px;background:#0c1324;border:1px solid #1f2540;border-radius:18px;padding:14px;cursor:pointer;position:relative;transition:transform .15s ease}
 .mock:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .mock.sel{outline:2px solid #ffb86c}
@@ -187,7 +188,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .mock.topbar .pp{position:absolute;right:31px;top:22px;width:56px;height:56px;border-radius:50%;background:#cfd6ff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .mock.topbar .txt{position:absolute;left:26px;right:120px;top:28px;display:grid;gap:10px}
 
-/* wizard skill rows */
+/* wizard skill rows (unchanged) */
 .ws-row{display:grid;grid-template-columns:1fr 180px;gap:10px;align-items:center;margin:6px 0}
 .ws-head{display:flex;align-items:center;gap:8px}
 .ws-label[contenteditable]{padding:2px 4px;border-radius:6px}
@@ -278,7 +279,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   <div id="canvas">
     <div class="page" id="page">
       <div id="sheet">
+        <!-- host for non-sidebar layouts -->
         <div class="stack" id="stack"></div>
+        <!-- add button lives where sections are added -->
         <div class="add-squircle" id="canvasAdd" style="display:none"><div class="add-dot" id="dotAdd">+</div></div>
       </div>
     </div>
@@ -304,7 +307,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
     </div>
   </div>
 
-  <!-- wizard -->
+  <!-- wizard (kept same API as your last good build) -->
   <div id="wizard" class="modal">
     <div class="wiz">
       <div class="wiz-left"><div class="step-list" id="stepList"></div></div>
@@ -327,7 +330,7 @@ const $$=(s,r)=> Array.from((r||document).querySelectorAll(s));
 /* ============================ STATE ===================================== */
 const S={ layout:null, theme:'magentaPurple', dark:false, mat:'paper',
   contact:{name:'',phone:'',email:'',address:'',linkedin:''},
-  avatarData:null,
+  avatarData:null,                      // dataURL to preserve across morphs
   skillsInSidebar:false, skills:[], edu:[], exp:[]
 };
 
@@ -359,18 +362,11 @@ $('#startWizard').addEventListener('click',e=>{ e.stopPropagation(); openWizard(
 $('#startBlank').addEventListener('click',e=>{ e.stopPropagation(); welcome.style.display='none'; ensurePlusAtEnd(); });
 
 /* ============================ UTILS ===================================== */
-function headerNode(){ return $('#stack [data-header]')?.closest('.node'); }
+function headerNode(){ return $('#stack [data-header]')?.closest('.node'); } // header is always in stack root
 function sidebarMain(){ return headerNode()?.querySelector('[data-zone="main"]'); }
 function railBox(){ return headerNode()?.querySelector('[data-rail-sections]'); }
 function hostForSections(){ return (S.layout==='side') ? (sidebarMain() || stack) : stack; }
-
-/* FIX #1: put + inside the active host (not after it) */
-function ensurePlusAtEnd(){
-  const host=hostForSections();
-  if(!host) return;
-  if(addWrap.parentElement !== host){ host.appendChild(addWrap); }
-  addWrap.style.display='flex';
-}
+function ensurePlusAtEnd(){ const host=hostForSections(); host.after(addWrap); addWrap.style.display='flex'; }
 function showAddIfNeeded(){ ensurePlusAtEnd(); }
 function clearSection(k){ $$(`[data-section="${k}"]`).forEach(n=>n.closest('.node').remove()); }
 
@@ -385,6 +381,7 @@ function initAvatars(root){
       img.onload=()=>{ drawAvatarToCanvas(img, canvas, ctx); S.avatarData = canvas.toDataURL('image/png'); w.setAttribute('data-empty','0'); };
       img.src=URL.createObjectURL(f);
     };
+    // restore saved avatar if any
     if(S.avatarData){ const img=new Image(); img.onload=()=>{ drawAvatarToCanvas(img, canvas, ctx); w.setAttribute('data-empty','0'); }; img.src=S.avatarData; }
   });
 }
@@ -436,16 +433,13 @@ function saveContact(){
 /* ============================ HEADER (FLIP) ============================== */
 function morphTo(kind){
   const old = headerNode();
-  const prevRect = old?.getBoundingClientRect();
+  const prevRect = old?.getBoundingClientRect(); // FLIP snapshot BEFORE removal
   createHeader(kind, prevRect);
-
-  /* FIX #2: after layout change, re-home sections into the new host */
-  reflowSectionsForLayout();
-
-  applyChipThemeAll(); saveContact();
+  applyChipThemeAll(); saveContact(); // rehydrate chips and name
 }
 
 function createHeader(kind, prevRect){
+  // remove existing after we have the rect
   headerNode()?.remove();
 
   const node=document.createElement('div'); node.className='node'; node.setAttribute('data-locked','1');
@@ -484,11 +478,12 @@ function createHeader(kind, prevRect){
     </div>`;
     S.layout='top';
   }
-
+  // Insert header at top of stack
   stack.prepend(node);
-  initAvatars(node);
+  initAvatars(node); // draws preserved avatar if present
   refreshTheme(); applyChipThemeAll(); saveContact();
 
+  // FLIP animate from prevRect if available
   if(prevRect){
     const nh=node.getBoundingClientRect();
     const dx=prevRect.left-nh.left, dy=prevRect.top-nh.top, sx=prevRect.width/nh.width, sy=prevRect.height/nh.height;
@@ -497,28 +492,13 @@ function createHeader(kind, prevRect){
     requestAnimationFrame(()=>{ node.style.transform='translate(0,0) scale(1,1)'; node.style.opacity='1'; });
     setTimeout(()=>{ node.style.transition=''; node.style.transform=''; },380);
   }
-  ensurePlusAtEnd();
-}
-
-/* ========== RE-RENDER/RE-HOME AFTER LAYOUT CHANGE ========== */
-function reflowSectionsForLayout(){
-  // Drop any existing rendered sections and re-render from state into correct host
-  const hadSkills = !!S.skills.length;
-  const hadEdu = !!S.edu.length;
-  const hadExp = !!S.exp.length;
-
-  ['skills','edu','exp'].forEach(clearSection);
-
-  if(hadSkills) renderSkills();
-  if(hadEdu)    renderEdu();
-  if(hadExp)    renderExp();
-
-  updatePlusMenu();
+  // make sure plus button sits under proper host (sidebar right column vs stack)
   ensurePlusAtEnd();
 }
 
 /* ============================ RENDER SECTIONS =========================== */
 function attachSectionControls(node, {draggable=true, deletable=true, onDelete}={}){
+  // wipe old ctrls
   node.querySelector('.ctrls')?.remove();
   const c=document.createElement('div'); c.className='ctrls';
   if(deletable){
@@ -531,7 +511,7 @@ function attachSectionControls(node, {draggable=true, deletable=true, onDelete}=
     h.innerHTML='<i class="fa-solid fa-grip-vertical"></i>';
     c.appendChild(h);
 
-    const host = node.parentElement;
+    const host = node.parentElement; // stack or sidebar main
     let ph=null;
     h.addEventListener('dragstart',ev=>{
       ev.dataTransfer.effectAllowed='move';
@@ -566,6 +546,7 @@ function renderSkills(){
   const inRail = (S.skillsInSidebar && S.layout==='side');
   const host = inRail ? (railBox() || hostForSections()) : hostForSections();
 
+  // Build the skills block
   const wrap=document.createElement('div'); wrap.className='node'; wrap.dataset.section='skills';
   const inner=document.createElement('div'); inner.className='sec';
   inner.innerHTML=`
@@ -604,6 +585,7 @@ function renderSkills(){
     const rail=railBox();
     const node=document.createElement('div'); node.className='node'; node.appendChild(inner);
     rail.appendChild(node);
+    // no section drag when in rail
   }else{
     host.insertBefore(wrap, addWrap);
     attachSectionControls(wrap,{
@@ -786,6 +768,7 @@ function renderStep(){
       }
       d.querySelector('[data-rm]').onclick=()=>{ S.skills.splice(idx,1); paint(); };
       d.querySelector('.ws-label').oninput=e=>it.label=e.target.textContent||'';
+      // drag reorder
       d.querySelector('.handle').addEventListener('dragstart',ev=>{ ev.dataTransfer.setData('text/plain',idx); ev.dataTransfer.effectAllowed='move'; d.classList.add('dragging'); });
       d.addEventListener('dragend',()=>d.classList.remove('dragging'));
       d.addEventListener('dragover',ev=>{ ev.preventDefault(); if(!wrap.querySelector('.ph')){ const ph=document.createElement('div'); ph.className='ph'; wrap.insertBefore(ph,d.nextSibling); }});
@@ -871,7 +854,7 @@ $('#layoutQuick').addEventListener('click',e=>{ const k=e.target.closest('.mock'
 
 /* ============================ INIT ====================================== */
 refreshTheme();
-ensurePlusAtEnd();
+ensurePlusAtEnd(); // canvas is clean on load, plus button visible below header once added
 })();
 </script>
 </body>
