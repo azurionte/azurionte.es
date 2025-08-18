@@ -327,7 +327,14 @@ function chip(icon, text){
   if (el.dataset.wrap === '1') {
     const MAX_CHARS = 43;
     span.addEventListener('beforeinput', (e) => {
-      if (span.textContent.length >= MAX_CHARS && e.inputType.startsWith('insert') && !['deleteContentBackward','deleteContentForward'].includes(e.inputType)) {
+      // Block any input that would exceed the limit
+      const currentLength = span.textContent.length;
+      // For insertText, check if selection is collapsed and at end
+      if (e.inputType === 'insertText') {
+        if (currentLength >= MAX_CHARS && window.getSelection().isCollapsed) {
+          e.preventDefault();
+        }
+      } else if (e.inputType.startsWith('insert') && currentLength >= MAX_CHARS) {
         e.preventDefault();
       }
     });
