@@ -320,6 +320,11 @@ function chip(icon, text){
   rm.addEventListener('keydown', (e)=>{ e.preventDefault(); e.stopPropagation(); });
   const span = el.querySelector('span');
   let editable;
+  // Set wrap and key for address/linkedin chips
+  if (icon === 'fa fa-map-marker' || icon === 'fa fa-linkedin') {
+    el.dataset.wrap = '1';
+    el.dataset.key = icon === 'fa fa-map-marker' ? 'address' : 'linkedin';
+  }
   if (el.dataset.wrap === '1') {
     editable = document.createElement('input');
     editable.type = 'text';
