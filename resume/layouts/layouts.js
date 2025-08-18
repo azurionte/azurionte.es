@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.17');
+console.log('[layouts.js] v2.5.18');
 
 import { S, save } from '../app/state.js';
 
@@ -416,6 +416,19 @@ export function restyleContactChips(scope=document){
 
 // chip add menu: opens a small pop with icons to add phone/email/address/linkedin
 // Chips rendering utility (fix for missing setChips)
+function styleOneChip(el){
+  el.style.background=''; el.style.color=''; el.style.border=''; el.style.backdropFilter='';
+  const isGlass=(S && S.mat==='glass'), isDark=!!(S && S.dark);
+  if (isGlass){
+    el.style.background='rgba(255,255,255,.10)'; el.style.border='1px solid #ffffff28'; el.style.backdropFilter='blur(6px)';
+    el.style.color=(['grayBlack','magentaPurple'].includes(S.theme)?'#fff':'#111');
+  } else if (isDark){
+    el.style.background='#0c1324'; el.style.border='1px solid #1f2a44'; el.style.color='#e6ecff';
+  } else {
+    el.style.background='#fff'; el.style.border='1px solid rgba(0,0,0,.08)'; el.style.color='#111';
+  }
+  const ic = el.querySelector('i'); if (ic) ic.style.color='var(--accent)';
+}
 function setChips(containers, items){
   containers.forEach(c=>c.innerHTML='');
   if (!items.length) return;
