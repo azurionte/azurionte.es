@@ -378,15 +378,6 @@ function chip(icon, text){
     });
   }
   return el;
-        const v = text.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'').trim();
-        S.contact[k] = v;
-      } else {
-        S.contact[k] = text;
-      }
-      save();
-    }catch(e){}
-  });
-  return el;
 }
 function setChips(containers, items){
   containers.forEach(c=>c.innerHTML='');
