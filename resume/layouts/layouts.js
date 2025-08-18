@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.9');
+console.log('[layouts.js] v2.5.10');
 
 import { S, save } from '../app/state.js';
 
@@ -327,15 +327,24 @@ function chip(icon, text){
   if (el.dataset.wrap === '1') {
     const MAX_CHARS = 43;
     span.addEventListener('beforeinput', (e) => {
-      // Block any input that would exceed the limit
+      const selection = window.getSelection();
       const currentLength = span.textContent.length;
-      // For insertText, check if selection is collapsed and at end
-      if (e.inputType === 'insertText') {
-        if (currentLength >= MAX_CHARS && window.getSelection().isCollapsed) {
+      let selectedLength = 0;
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        selectedLength = range.endOffset - range.startOffset;
+      }
+      // If not replacing, block if would exceed MAX_CHARS
+      if (e.data && (currentLength - selectedLength + e.data.length) > MAX_CHARS) {
+        e.preventDefault();
+      }
+      // For paste
+      if (e.inputType === 'insertFromPaste') {
+        const clipboard = e.clipboardData || window.clipboardData;
+        const paste = clipboard ? clipboard.getData('text') : '';
+        if (currentLength - selectedLength + paste.length > MAX_CHARS) {
           e.preventDefault();
         }
-      } else if (e.inputType.startsWith('insert') && currentLength >= MAX_CHARS) {
-        e.preventDefault();
       }
     });
     span.addEventListener('input', () => {
