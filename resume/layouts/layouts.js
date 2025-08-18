@@ -56,15 +56,18 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .chips{max-width:calc(var(--rail,300px) - 36px)}
     .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .chip[data-wrap="1"] {
-      width: 300px !important;
+      width: 290px !important;
       min-height: 40px !important;
       border-radius: 24px;
       background: transparent;
       display: flex;
       align-items: center;
       box-sizing: border-box;
-      margin-left: auto;
-      margin-right: auto;
+      margin-left: 0;
+      margin-right: 0;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
     }
     .chip[data-wrap="1"] span {
       white-space: normal;
