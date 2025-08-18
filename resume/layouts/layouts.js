@@ -56,7 +56,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .chips{max-width:calc(var(--rail,300px) - 36px)}
     .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .chip[data-wrap="1"] {
-      width: 250px !important;
+      width: 300px !important;
       min-height: 40px !important;
       border-radius: 24px;
       background: transparent;
@@ -68,8 +68,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     }
     .chip[data-wrap="1"] span {
       white-space: normal;
-      width: 210px;
-      max-width: 210px;
+      width: 260px;
+      max-width: 260px;
       overflow-wrap: break-word;
       word-break: break-word;
       line-height: 1.25;
@@ -78,6 +78,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
       background: transparent;
       padding: 0 8px;
       display: block;
+      text-align: left;
     }
   /* scope text color to the sheet (canvas) only */
   #sheet{ color: #111 }
@@ -322,16 +323,18 @@ function chip(icon, text){
   // For address/linkedin chips, block input when 2 lines are reached
   if (el.dataset.wrap === '1') {
     const MAX_CHARS = 43;
+    span.addEventListener('beforeinput', (e) => {
+      if (span.textContent.length >= MAX_CHARS && e.inputType.startsWith('insert') && !['deleteContentBackward','deleteContentForward'].includes(e.inputType)) {
+        e.preventDefault();
+      }
+    });
     span.addEventListener('input', () => {
-      // Limit characters
       if (span.textContent.length > MAX_CHARS) {
         span.textContent = span.textContent.slice(0, MAX_CHARS);
       }
-      // Count lines by measuring scrollHeight vs lineHeight
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
       if (lines > 2) {
-        // Truncate to 2 lines
         let txt = span.textContent;
         while (lines > 2 && txt.length > 0) {
           txt = txt.slice(0, -1);
