@@ -331,72 +331,75 @@ function chip(icon, text){
     editable.value = text;
     editable.maxLength = 43;
     editable.className = 'chip-text chip-input';
-    editable.spellcheck = false;
-    editable.setAttribute('autocomplete', 'off');
-    editable.setAttribute('aria-label', 'Contact info');
-    editable.style.width = '100%';
-    editable.style.border = 'none';
-    editable.style.background = 'transparent';
-    editable.style.font = 'inherit';
-    editable.style.outline = 'none';
-    editable.style.padding = '0 8px';
-    editable.style.textAlign = 'left';
-    editable.style.lineHeight = '1.25';
-    editable.style.height = '40px';
-    span.appendChild(editable);
-    // persist edits when the chip's input loses focus
-    editable.addEventListener('focusout', ()=>{
-      try{
-        const k = el.dataset.key;
-        if (!k) return;
-        const text = editable?.value?.trim() || '';
-        if (!S.contact) S.contact = {};
-        if (k === 'linkedin'){
-          S.contact[k] = text.replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'');
-        } else {
-          S.contact[k] = text;
-        }
-        save();
-      }catch(e){}
-    });
-  } else {
-    editable = document.createElement('span');
-    editable.textContent = text;
-    editable.contentEditable = true;
-    editable.spellcheck = false;
-    editable.className = 'chip-text';
-    span.appendChild(editable);
-    // persist edits when the chip's editable span loses focus
-    editable.addEventListener('focusout', ()=>{
-      try{
-        const k = el.dataset.key;
-        if (!k) return;
-        const text = editable?.textContent?.trim() || '';
-        if (!S.contact) S.contact = {};
-        if (k === 'linkedin'){
-          S.contact[k] = text.replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'');
-        } else {
-          S.contact[k] = text;
-        }
-        save();
-      }catch(e){}
-    });
-  }
-  return el;
-}
-function setChips(containers, items){
-  containers.forEach(c=>c.innerHTML='');
-  if (!items.length) return;
-  if (containers.length === 1){
-    items.forEach(it => containers[0].appendChild(it));
-  } else {
-    items.forEach((it,i)=> containers[i%2].appendChild(it));
-  }
-}
-function styleOneChip(el){
-  el.style.background=''; el.style.color=''; el.style.border=''; el.style.backdropFilter='';
-  const isGlass=(S.mat==='glass'), isDark=!!S.dark;
-  if (isGlass){
+    let editable;
+    // Always set wrap/key for address/linkedin chips
+    if (icon === 'fa fa-map-marker') {
+      el.dataset.wrap = '1';
+      el.dataset.key = 'address';
+    } else if (icon === 'fa fa-linkedin') {
+      el.dataset.wrap = '1';
+      el.dataset.key = 'linkedin';
+    }
+    if (el.dataset.wrap === '1') {
+      // Always use input for address/linkedin
+      editable = document.createElement('input');
+      editable.type = 'text';
+      editable.value = text;
+      editable.maxLength = 43;
+      editable.className = 'chip-text chip-input';
+      editable.spellcheck = false;
+      editable.setAttribute('autocomplete', 'off');
+      editable.setAttribute('aria-label', 'Contact info');
+      editable.style.width = '100%';
+      editable.style.border = 'none';
+      editable.style.background = 'transparent';
+      editable.style.font = 'inherit';
+      editable.style.outline = 'none';
+      editable.style.padding = '0 8px';
+      editable.style.textAlign = 'left';
+      editable.style.lineHeight = '1.25';
+      editable.style.height = '40px';
+      span.innerHTML = '';
+      span.appendChild(editable);
+      // persist edits when the chip's input loses focus
+      editable.addEventListener('focusout', ()=>{
+        try{
+          const k = el.dataset.key;
+          if (!k) return;
+          const text = editable?.value?.trim() || '';
+          if (!S.contact) S.contact = {};
+          if (k === 'linkedin'){
+            S.contact[k] = text.replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'');
+          } else {
+            S.contact[k] = text;
+          }
+          save();
+        }catch(e){}
+      });
+    } else {
+      editable = document.createElement('span');
+      editable.textContent = text;
+      editable.contentEditable = true;
+      editable.spellcheck = false;
+      editable.className = 'chip-text';
+      span.innerHTML = '';
+      span.appendChild(editable);
+      // persist edits when the chip's editable span loses focus
+      editable.addEventListener('focusout', ()=>{
+        try{
+          const k = el.dataset.key;
+          if (!k) return;
+          const text = editable?.textContent?.trim() || '';
+          if (!S.contact) S.contact = {};
+          if (k === 'linkedin'){
+            S.contact[k] = text.replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'');
+          } else {
+            S.contact[k] = text;
+          }
+          save();
+        }catch(e){}
+      });
+    }
     el.style.background='rgba(255,255,255,.10)'; el.style.border='1px solid #ffffff28'; el.style.backdropFilter='blur(6px)';
     el.style.color=(['grayBlack','magentaPurple'].includes(S.theme)?'#fff':'#111');
   } else if (isDark){
