@@ -55,8 +55,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     /* constrain chip widths inside sidebar rail and truncate if needed */
     .chips{max-width:calc(var(--rail,300px) - 36px)}
     .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .chip[data-wrap="1"] {
-      width: 290px !important;
+    .chip {
+      width: 280px !important;
       min-height: 40px !important;
       border-radius: 24px;
       background: transparent;
