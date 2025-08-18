@@ -447,29 +447,31 @@ export function applyContact(){
     const used = allKeys.filter(k=> !!(S.contact && S.contact[k] && S.contact[k].trim()));
     const btn = head.querySelector('#chipAddBtn');
     if (btn) {
-      btn.style.display = (used.length === allKeys.length) ? 'none' : 'block';
+      const allUsed = (used.length === allKeys.length);
+      btn.style.display = allUsed ? 'none' : 'block';
       try{
         // If there are no chips, center the add button under the name-block (matches UX when empty)
         const chipWrap = head.querySelector('.chip-wrap');
         const nameBlock = head.querySelector('.name-block');
         if ((items||[]).length === 0 && nameBlock){
-          // move button into name-block to ensure horizontal centering under the name
           if (btn.parentElement !== nameBlock) nameBlock.appendChild(btn);
-          // reset any positional styles so name-block centering applies
           btn.style.position = '';
           btn.style.left = '';
           btn.style.transform = '';
           btn.style.margin = '';
         } else if (chipWrap){
-          // ensure button sits after chips when chips exist
           if (btn.parentElement !== chipWrap) chipWrap.appendChild(btn);
-          // restore chip-wrap centering rules
           btn.style.position = '';
           btn.style.left = '';
           btn.style.transform = '';
           btn.style.margin = '';
         }
       }catch(e){}
+      // Prevent menu from opening if button is hidden
+      btn.onclick = function(e){
+        if (btn.style.display === 'none') return;
+        openChipMenu(btn);
+      };
     }
   }catch(e){}
 }
