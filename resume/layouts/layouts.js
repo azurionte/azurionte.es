@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.15');
+console.log('[layouts.js] v2.5.17');
 
 import { S, save } from '../app/state.js';
 
@@ -412,6 +412,18 @@ function chip(icon, text){
 export function restyleContactChips(scope=document){
   const head=getHeaderNode(); if(!head) return;
   $$('.chip', head).forEach(styleOneChip);
+}
+
+// chip add menu: opens a small pop with icons to add phone/email/address/linkedin
+// Chips rendering utility (fix for missing setChips)
+function setChips(containers, items){
+  containers.forEach(c=>c.innerHTML='');
+  if (!items.length) return;
+  if (containers.length === 1){
+    items.forEach(it => containers[0].appendChild(it));
+  } else {
+    items.forEach((it,i)=> containers[i%2].appendChild(it));
+  }
 }
 
 // chip add menu: opens a small pop with icons to add phone/email/address/linkedin
