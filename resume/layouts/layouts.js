@@ -55,9 +55,18 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     /* constrain chip widths inside sidebar rail and truncate if needed */
     .chips{max-width:calc(var(--rail,300px) - 36px)}
     .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chip[data-wrap="1"] {
+      width: 250px !important;
+      height: 40px !important;
+      border-radius: 24px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+    }
     .chip[data-wrap="1"] span {
       white-space:normal;
-      max-width:260px;
+      width: 210px;
+      max-width:210px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -65,7 +74,6 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
       text-overflow: ellipsis;
       line-height: 1.25;
       max-height: 2.5em;
-      border-radius: 24px;
       background: transparent;
       padding: 0 8px;
     }
@@ -311,7 +319,12 @@ function chip(icon, text){
   const span = el.querySelector('span[contenteditable]');
   // For address/linkedin chips, block input when 2 lines are reached
   if (el.dataset.wrap === '1') {
+    const MAX_CHARS = 43;
     span.addEventListener('input', () => {
+      // Limit characters
+      if (span.textContent.length > MAX_CHARS) {
+        span.textContent = span.textContent.slice(0, MAX_CHARS);
+      }
       // Count lines by measuring scrollHeight vs lineHeight
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
@@ -329,7 +342,7 @@ function chip(icon, text){
     span.addEventListener('keydown', (e) => {
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
-      if (lines >= 2 && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
+      if ((lines >= 2 || span.textContent.length >= MAX_CHARS) && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
         e.preventDefault();
       }
     });
