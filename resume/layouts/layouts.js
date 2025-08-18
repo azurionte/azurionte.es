@@ -448,28 +448,27 @@ export function applyContact(){
     const btn = head.querySelector('#chipAddBtn');
     if (btn) {
       const allUsed = (used.length === allKeys.length);
-      btn.style.display = allUsed ? 'none' : 'block';
       try{
-        // If there are no chips, center the add button under the name-block (matches UX when empty)
         const chipWrap = head.querySelector('.chip-wrap');
         const nameBlock = head.querySelector('.name-block');
-        if ((items||[]).length === 0 && nameBlock){
-          if (btn.parentElement !== nameBlock) nameBlock.appendChild(btn);
+        if (allUsed) {
+          // Remove button from DOM if all chips are present
+          if (btn.parentElement) btn.parentElement.removeChild(btn);
+        } else {
+          // Re-insert button in correct location
+          if ((items||[]).length === 0 && nameBlock){
+            if (btn.parentElement !== nameBlock) nameBlock.appendChild(btn);
+          } else if (chipWrap){
+            if (btn.parentElement !== chipWrap) chipWrap.appendChild(btn);
+          }
           btn.style.position = '';
           btn.style.left = '';
           btn.style.transform = '';
           btn.style.margin = '';
-        } else if (chipWrap){
-          if (btn.parentElement !== chipWrap) chipWrap.appendChild(btn);
-          btn.style.position = '';
-          btn.style.left = '';
-          btn.style.transform = '';
-          btn.style.margin = '';
+          btn.style.display = 'block';
         }
       }catch(e){}
-      // Prevent menu from opening if button is hidden
       btn.onclick = function(e){
-        if (btn.style.display === 'none') return;
         openChipMenu(btn);
       };
     }
