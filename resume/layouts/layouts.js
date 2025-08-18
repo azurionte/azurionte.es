@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.11');
+console.log('[layouts.js] v2.5.12');
 
 import { S, save } from '../app/state.js';
 
@@ -302,9 +302,7 @@ function initAvatars(root){
 function chip(icon, text){
   const el = document.createElement('div');
   el.className = 'chip';
-  // only the text span should be editable — protects the remove button from receiving edits
-  el.innerHTML = `<i class="${icon}"></i><span contenteditable="true">${text}</span><button class="chip-rm" title="Remove" aria-label="Remove contact" tabindex="-1" aria-hidden="true" role="button" contenteditable="false" style="margin-left:8px;border-radius:8px;padding:2px 6px">×</button>`;
-  // remove handler (best-effort: clears matching contact value)
+  el.innerHTML = `<i class="${icon}"></i><span></span><button class="chip-rm" title="Remove" aria-label="Remove contact" tabindex="-1" aria-hidden="true" role="button" contenteditable="false" style="margin-left:8px;border-radius:8px;padding:2px 6px">×</button>`;
   const rm = el.querySelector('.chip-rm');
   rm.addEventListener('click', ()=>{
     try{
@@ -313,111 +311,73 @@ function chip(icon, text){
         ['phone','email','address','linkedin'].forEach(k=>{ if (S.contact[k] && txt.includes(S.contact[k])) S.contact[k]=''; });
         save();
       }
-  el.remove();
-  restyleContactChips();
-  try{ applyContact(); }catch(e){}
+      el.remove();
+      restyleContactChips();
+      try{ applyContact(); }catch(e){}
     }catch(e){}
   });
-  // enforce non-editable and block keyboard interactions on the remove button
   try{ rm.setAttribute('contenteditable','false'); rm.setAttribute('aria-hidden','true'); rm.setAttribute('tabindex','-1'); }catch(e){}
   rm.addEventListener('keydown', (e)=>{ e.preventDefault(); e.stopPropagation(); });
-  // the editable text node inside the chip — declared once
-  const span = el.querySelector('span[contenteditable]');
-  // For address/linkedin chips, block input when 2 lines are reached
+  const span = el.querySelector('span');
+  let editable;
   if (el.dataset.wrap === '1') {
-    const MAX_CHARS = 43;
-    span.addEventListener('beforeinput', (e) => {
-      const selection = window.getSelection();
-      let selectedLength = 0;
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        selectedLength = range.endOffset - range.startOffset;
-      }
-      const currentLength = span.textContent.length;
-      let incomingLength = 0;
-      if (e.inputType === 'insertText' && e.data) {
-        incomingLength = e.data.length;
-      } else if (e.inputType === 'insertFromPaste') {
-        const paste = (e.clipboardData && e.clipboardData.getData('text')) || '';
-        incomingLength = paste.length;
-      }
-      // If replacing selection, subtract selectedLength
-      if (incomingLength > 0 && (currentLength - selectedLength + incomingLength) > MAX_CHARS) {
-        e.preventDefault();
-      }
-    });
-    span.addEventListener('input', () => {
-      if (span.textContent.length > MAX_CHARS) {
-        span.textContent = span.textContent.slice(0, MAX_CHARS);
-      }
-      const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
-      const lines = Math.round(span.scrollHeight / lh);
-      if (lines > 2) {
-        let txt = span.textContent;
-        while (lines > 2 && txt.length > 0) {
-          txt = txt.slice(0, -1);
-          span.textContent = txt;
-          const newLines = Math.round(span.scrollHeight / lh);
-          if (newLines <= 2) break;
+    editable = document.createElement('input');
+    editable.type = 'text';
+    editable.value = text;
+    editable.maxLength = 43;
+    editable.className = 'chip-text chip-input';
+    editable.spellcheck = false;
+    editable.setAttribute('autocomplete', 'off');
+    editable.setAttribute('aria-label', 'Contact info');
+    editable.style.width = '100%';
+    editable.style.border = 'none';
+    editable.style.background = 'transparent';
+    editable.style.font = 'inherit';
+    editable.style.outline = 'none';
+    editable.style.padding = '0 8px';
+    editable.style.textAlign = 'left';
+    editable.style.lineHeight = '1.25';
+    editable.style.height = '40px';
+    span.appendChild(editable);
+    // persist edits when the chip's input loses focus
+    editable.addEventListener('focusout', ()=>{
+      try{
+        const k = el.dataset.key;
+        if (!k) return;
+        const text = editable?.value?.trim() || '';
+        if (!S.contact) S.contact = {};
+        if (k === 'linkedin'){
+          S.contact[k] = text.replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'');
+        } else {
+          S.contact[k] = text;
         }
-      }
+        save();
+      }catch(e){}
     });
-    span.addEventListener('keydown', (e) => {
-      const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
-      const lines = Math.round(span.scrollHeight / lh);
-      if ((lines >= 2 || span.textContent.length >= MAX_CHARS) && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
-        e.preventDefault();
-      }
+  } else {
+    editable = document.createElement('span');
+    editable.textContent = text;
+    editable.contentEditable = true;
+    editable.spellcheck = false;
+    editable.className = 'chip-text';
+    span.appendChild(editable);
+    // persist edits when the chip's editable span loses focus
+    editable.addEventListener('focusout', ()=>{
+      try{
+        const k = el.dataset.key;
+        if (!k) return;
+        const text = editable?.textContent?.trim() || '';
+        if (!S.contact) S.contact = {};
+        if (k === 'linkedin'){
+          S.contact[k] = text.replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'');
+        } else {
+          S.contact[k] = text;
+        }
+        save();
+      }catch(e){}
     });
   }
-  // prevent backspace/delete from affecting the remove button or surrounding DOM
-  span.addEventListener('keydown', (e)=>{
-    // get current selection/range in a robust way
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    const { startContainer, startOffset, collapsed } = range;
-    // If caret is collapsed inside the text node at start, block Backspace
-    if (e.key === 'Backspace'){
-      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === 0){
-        e.preventDefault();
-        return;
-      }
-    }
-    // If caret is collapsed inside the text node at end, block Delete
-    if (e.key === 'Delete'){
-      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === span.textContent.length){
-        e.preventDefault();
-        return;
-      }
-    }
-    // If caret is at end and user presses ArrowRight, move focus to the remove button
-    if (e.key === 'ArrowRight'){
-      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === span.textContent.length){
-        e.preventDefault();
-        try{ rm.focus(); }catch(err){}
-        return;
-      }
-    }
-    // If caret is at start and user presses ArrowLeft, move focus to the chip container (avoid entering left sibling)
-    if (e.key === 'ArrowLeft'){
-      if (collapsed && startContainer && startContainer.nodeType === 3 && startContainer.parentElement === span && startOffset === 0){
-        e.preventDefault();
-        try{ span.parentElement && span.parentElement.focus && span.parentElement.focus(); }catch(err){}
-        return;
-      }
-    }
-    // For other keys, allow default behavior
-  });
-  // persist edits when the chip's editable span loses focus
-  span.addEventListener('focusout', ()=>{
-    try{
-      const k = el.dataset.key;
-      if (!k) return;
-      const text = span?.textContent?.trim() || '';
-      if (!S.contact) S.contact = {};
-      // for linkedin, strip any leading /in/ or domain
-      if (k === 'linkedin'){
+  return el;
         const v = text.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//,'').replace(/^\/in\//,'').trim();
         S.contact[k] = v;
       } else {
