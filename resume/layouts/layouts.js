@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.10');
+console.log('[layouts.js] v2.5.11');
 
 import { S, save } from '../app/state.js';
 
@@ -328,23 +328,22 @@ function chip(icon, text){
     const MAX_CHARS = 43;
     span.addEventListener('beforeinput', (e) => {
       const selection = window.getSelection();
-      const currentLength = span.textContent.length;
       let selectedLength = 0;
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         selectedLength = range.endOffset - range.startOffset;
       }
-      // If not replacing, block if would exceed MAX_CHARS
-      if (e.data && (currentLength - selectedLength + e.data.length) > MAX_CHARS) {
-        e.preventDefault();
+      const currentLength = span.textContent.length;
+      let incomingLength = 0;
+      if (e.inputType === 'insertText' && e.data) {
+        incomingLength = e.data.length;
+      } else if (e.inputType === 'insertFromPaste') {
+        const paste = (e.clipboardData && e.clipboardData.getData('text')) || '';
+        incomingLength = paste.length;
       }
-      // For paste
-      if (e.inputType === 'insertFromPaste') {
-        const clipboard = e.clipboardData || window.clipboardData;
-        const paste = clipboard ? clipboard.getData('text') : '';
-        if (currentLength - selectedLength + paste.length > MAX_CHARS) {
-          e.preventDefault();
-        }
+      // If replacing selection, subtract selectedLength
+      if (incomingLength > 0 && (currentLength - selectedLength + incomingLength) > MAX_CHARS) {
+        e.preventDefault();
       }
     });
     span.addEventListener('input', () => {
