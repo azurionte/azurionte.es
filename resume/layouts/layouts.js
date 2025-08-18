@@ -490,10 +490,10 @@ export function applyContact(){
   const nm=head.querySelector('.name'); if(nm) nm.textContent=S?.contact?.name||'YOUR NAME';
 
   const c=S.contact||{}; const items=[];
-  if(c.phone){ const el=chip('fa-solid fa-phone', c.phone); el.dataset.key='phone'; el.title=c.phone; items.push(el); }
-  if(c.email){ const el=chip('fa-solid fa-envelope', c.email); el.dataset.key='email'; el.title=c.email; items.push(el); }
-  if(c.address){ const el=chip('fa-solid fa-location-dot', c.address); el.dataset.key='address'; el.dataset.wrap='1'; el.title=c.address; items.push(el); }
-  if(c.linkedin){ const el=chip('fa-brands fa-linkedin','/in/'+c.linkedin); el.dataset.key='linkedin'; el.dataset.wrap='1'; el.title='/in/'+c.linkedin; items.push(el); }
+  if(c.phone){ const el=chip('fa-solid fa-phone', c.phone); if (el) { el.dataset.key='phone'; el.title=c.phone; items.push(el); } }
+  if(c.email){ const el=chip('fa-solid fa-envelope', c.email); if (el) { el.dataset.key='email'; el.title=c.email; items.push(el); } }
+  if(c.address){ const el=chip('fa-solid fa-location-dot', c.address); if (el) { el.dataset.key='address'; el.dataset.wrap='1'; el.title=c.address; items.push(el); } }
+  if(c.linkedin){ const el=chip('fa-brands fa-linkedin','/in/'+c.linkedin); if (el) { el.dataset.key='linkedin'; el.dataset.wrap='1'; el.title='/in/'+c.linkedin; items.push(el); } }
 
   const holders=[ head.querySelector('[data-info]'),
                   head.querySelector('[data-info-left]'),
