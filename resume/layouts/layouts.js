@@ -55,7 +55,20 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     /* constrain chip widths inside sidebar rail and truncate if needed */
     .chips{max-width:calc(var(--rail,300px) - 36px)}
     .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .chip[data-wrap="1"] span{white-space:normal;max-width:260px}
+    .chip[data-wrap="1"] span {
+      white-space:normal;
+      max-width:260px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.25;
+      max-height: 2.5em;
+      border-radius: 24px;
+      background: transparent;
+      padding: 0 8px;
+    }
   /* scope text color to the sheet (canvas) only */
   #sheet{ color: #111 }
   body[data-dark="1"] #sheet{ color: #fff }
@@ -296,6 +309,31 @@ function chip(icon, text){
   rm.addEventListener('keydown', (e)=>{ e.preventDefault(); e.stopPropagation(); });
   // the editable text node inside the chip — declared once
   const span = el.querySelector('span[contenteditable]');
+  // For address/linkedin chips, block input when 2 lines are reached
+  if (el.dataset.wrap === '1') {
+    span.addEventListener('input', () => {
+      // Count lines by measuring scrollHeight vs lineHeight
+      const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
+      const lines = Math.round(span.scrollHeight / lh);
+      if (lines > 2) {
+        // Truncate to 2 lines
+        let txt = span.textContent;
+        while (lines > 2 && txt.length > 0) {
+          txt = txt.slice(0, -1);
+          span.textContent = txt;
+          const newLines = Math.round(span.scrollHeight / lh);
+          if (newLines <= 2) break;
+        }
+      }
+    });
+    span.addEventListener('keydown', (e) => {
+      const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
+      const lines = Math.round(span.scrollHeight / lh);
+      if (lines >= 2 && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+  }
   // prevent backspace/delete from affecting the remove button or surrounding DOM
   span.addEventListener('keydown', (e)=>{
     // get current selection/range in a robust way
