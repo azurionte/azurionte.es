@@ -75,7 +75,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   /* name block anchors the add button so it's always centered under the name */
   .sidebar-layout .rail .name-block{ position:relative; width:100%; display:block; text-align:center }
   /* explicit wrapper for chips + add button to ensure the add button is centered */
-  .sidebar-layout .rail .chip-wrap{ display:flex;flex-direction:column;gap:8px;align-items:stretch; width:100%; box-sizing:border-box; position:relative; padding:0 0 6px; text-align:center }
+  .sidebar-layout .rail .chip-wrap{ display:flex;flex-direction:column;gap:8px;align-items:center; width:100%; box-sizing:border-box; position:relative; padding:0 0 6px; text-align:center }
   .sidebar-layout .rail .chip-wrap .chips{ width:100%; display:flex; flex-direction:column; gap:8px }
   /* Primary centering via text-align + inline-block button ensures the button remains centered even when child widths vary */
   .sidebar-layout .rail .chip-wrap #chipAddBtn{ display:inline-flex; margin:8px auto 6px; left:auto; transform:none }
@@ -97,6 +97,10 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   .chip{position:relative}
   .chip .chip-rm{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:999px;padding:0;border:0;font-size:12px;background:#fff;color:#111;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer}
   .chip .chip-rm{user-select:none;-webkit-user-select:none}
+
+  /* Make editable chip text visually clean (no focus outline or border) */
+  .chip span[contenteditable]{ outline:none !important; box-shadow:none !important; border:none !important }
+  .chip span[contenteditable]:focus{ outline:none !important; box-shadow:none !important; border:none !important }
 
   /* section delete (prominent red) and header controls */
   .sec-head{position:relative}
