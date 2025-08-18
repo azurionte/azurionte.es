@@ -63,6 +63,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
       display: flex;
       align-items: center;
       box-sizing: border-box;
+      margin-left: auto;
+      margin-right: auto;
     }
     .chip[data-wrap="1"] span {
       white-space: normal;
@@ -319,7 +321,12 @@ function chip(icon, text){
   const span = el.querySelector('span[contenteditable]');
   // For address/linkedin chips, block input when 2 lines are reached
   if (el.dataset.wrap === '1') {
+    const MAX_CHARS = 43;
     span.addEventListener('input', () => {
+      // Limit characters
+      if (span.textContent.length > MAX_CHARS) {
+        span.textContent = span.textContent.slice(0, MAX_CHARS);
+      }
       // Count lines by measuring scrollHeight vs lineHeight
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
@@ -337,7 +344,7 @@ function chip(icon, text){
     span.addEventListener('keydown', (e) => {
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
-      if (lines >= 2 && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
+      if ((lines >= 2 || span.textContent.length >= MAX_CHARS) && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
         e.preventDefault();
       }
     });
