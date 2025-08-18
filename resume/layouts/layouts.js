@@ -445,32 +445,38 @@ export function applyContact(){
   try{
     const allKeys = ['phone','email','address','linkedin'];
     const used = allKeys.filter(k=> !!(S.contact && S.contact[k] && S.contact[k].trim()));
-    const btn = head.querySelector('#chipAddBtn');
-    if (btn) {
-      const allUsed = (used.length === allKeys.length);
-      try{
+  let btn = head.querySelector('#chipAddBtn');
+    const allUsed = (used.length === allKeys.length);
+    let addBtn = head.querySelector('#chipAddBtn');
+    // If not all chips are present, ensure button exists
+    if (!allUsed) {
+      if (!addBtn) {
+        addBtn = document.createElement('button');
+        addBtn.id = 'chipAddBtn';
+        addBtn.title = 'Add contact';
+        addBtn.className = 'add-dot';
+        addBtn.textContent = '+';
+      }
+      try {
         const chipWrap = head.querySelector('.chip-wrap');
         const nameBlock = head.querySelector('.name-block');
-        if (allUsed) {
-          // Remove button from DOM if all chips are present
-          if (btn.parentElement) btn.parentElement.removeChild(btn);
-        } else {
-          // Re-insert button in correct location
-          if ((items||[]).length === 0 && nameBlock){
-            if (btn.parentElement !== nameBlock) nameBlock.appendChild(btn);
-          } else if (chipWrap){
-            if (btn.parentElement !== chipWrap) chipWrap.appendChild(btn);
-          }
-          btn.style.position = '';
-          btn.style.left = '';
-          btn.style.transform = '';
-          btn.style.margin = '';
-          btn.style.display = 'block';
+        if ((items||[]).length === 0 && nameBlock){
+          if (addBtn.parentElement !== nameBlock) nameBlock.appendChild(addBtn);
+        } else if (chipWrap){
+          if (addBtn.parentElement !== chipWrap) chipWrap.appendChild(addBtn);
         }
+        addBtn.style.position = '';
+        addBtn.style.left = '';
+        addBtn.style.transform = '';
+        addBtn.style.margin = '';
+        addBtn.style.display = 'block';
       }catch(e){}
-      btn.onclick = function(e){
-        openChipMenu(btn);
+      addBtn.onclick = function(e){
+        openChipMenu(addBtn);
       };
+    } else if (addBtn && addBtn.parentElement) {
+      // Remove button from DOM if all chips are present
+      addBtn.parentElement.removeChild(addBtn);
     }
   }catch(e){}
 }
