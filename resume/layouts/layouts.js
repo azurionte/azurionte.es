@@ -57,25 +57,25 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     .chip span{display:inline-block;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .chip[data-wrap="1"] {
       width: 250px !important;
-      height: 40px !important;
+      min-height: 40px !important;
       border-radius: 24px;
       background: transparent;
       display: flex;
       align-items: center;
+      box-sizing: border-box;
     }
     .chip[data-wrap="1"] span {
-      white-space:normal;
+      white-space: normal;
       width: 210px;
-      max-width:210px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      max-width: 210px;
+      overflow-wrap: break-word;
+      word-break: break-word;
       line-height: 1.25;
+      min-height: 1.25em;
       max-height: 2.5em;
       background: transparent;
       padding: 0 8px;
+      display: block;
     }
   /* scope text color to the sheet (canvas) only */
   #sheet{ color: #111 }
@@ -319,12 +319,7 @@ function chip(icon, text){
   const span = el.querySelector('span[contenteditable]');
   // For address/linkedin chips, block input when 2 lines are reached
   if (el.dataset.wrap === '1') {
-    const MAX_CHARS = 43;
     span.addEventListener('input', () => {
-      // Limit characters
-      if (span.textContent.length > MAX_CHARS) {
-        span.textContent = span.textContent.slice(0, MAX_CHARS);
-      }
       // Count lines by measuring scrollHeight vs lineHeight
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
@@ -342,7 +337,7 @@ function chip(icon, text){
     span.addEventListener('keydown', (e) => {
       const lh = parseFloat(window.getComputedStyle(span).lineHeight) || 18;
       const lines = Math.round(span.scrollHeight / lh);
-      if ((lines >= 2 || span.textContent.length >= MAX_CHARS) && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
+      if (lines >= 2 && !['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.key)) {
         e.preventDefault();
       }
     });
