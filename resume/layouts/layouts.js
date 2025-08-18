@@ -1,6 +1,6 @@
 // /resume/layouts/layouts.js
 // [layouts.js] v2.5.0 — canvas hosts + contact chips + rehome on morph
-console.log('[layouts.js] v2.5.12');
+console.log('[layouts.js] v2.5.13');
 
 import { S, save } from '../app/state.js';
 
