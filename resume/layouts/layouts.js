@@ -300,6 +300,7 @@ function initAvatars(root){
 
 /* Chips + contact */
 function chip(icon, text){
+  const isDark = !!(S && S.dark);
   const el = document.createElement('div');
   el.className = 'chip';
   el.innerHTML = `<i class="${icon}"></i><span></span><button class="chip-rm" title="Remove" aria-label="Remove contact" tabindex="-1" aria-hidden="true" role="button" contenteditable="false" style="margin-left:8px;border-radius:8px;padding:2px 6px">×</button>`;
