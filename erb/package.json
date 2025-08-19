@@ -1,0 +1,12 @@
+{
+  "name": "erb-server",
+  "version": "1.2.0",
+  "description": "Local static server for ERB web app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

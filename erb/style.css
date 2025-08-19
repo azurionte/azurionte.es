@@ -1,0 +1,406 @@
+/* style.css v1.0.17 */
+/* Grape theme for sidebar */
+
+:root {
+  --hero-gradient: linear-gradient(180deg, #a259e6 0%, #b16cea 100%);
+  --profile-inner-bg: #232a3a;
+}
+.sidebar-grape {
+  background: var(--hero-gradient);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(162,89,230,0.18);
+}
+/* Sidebar Layout Styles */
+.sidebar-layout {
+  position: absolute;
+  /* align with .a4-canvas padding (40px left), top padding 32px */
+  left: 20px; /* reduced gap between canvas and sidebar */
+  top: 16px;
+  bottom: 32px;
+  /* take one third of the canvas width */
+  width: 33%;
+  background: #181e2a;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+  z-index: 2;
+}
+
+/* When the grape variant is applied, force the gradient to win over the default background */
+.sidebar-layout.sidebar-grape {
+  background: var(--hero-gradient);
+}
+
+.profile-circle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: var(--profile-inner-bg);
+  border: 5px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 32px;
+  overflow: hidden; /* mask image inside circle */
+}
+
+.profile-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  cursor: grab;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.profile-plus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #0078d7;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s;
+}
+.profile-plus:hover {
+  background: #005fa3;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: grab;
+  user-select: none;
+  z-index: 1;
+}
+
+.profile-pencil {
+  position: absolute;
+  /* JS will set left/top to position the pencil outside the circle */
+  background: #232a3a;
+  color: #fff;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+  z-index: 12;
+}
+/* style.css v1.0.20 */
+/* Profile name (editable) */
+/* style.css v1.0.21 */
+
+
+.profile-name-display {
+  margin-top: 12px;
+  color: #ffffff;
+  font-weight: 700;
+  text-align: center;
+  max-width: 80%;
+  line-height: 1.1em;
+  max-height: calc(1.1em * 3);
+  overflow: hidden;
+  font-size: 1.15rem;
+  cursor: text;
+  z-index: 5;
+  min-height: 1.1em;
+}
+
+.profile-name-display.placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+.profile-name-input {
+  margin-top: 12px;
+  width: 80%;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-weight: 700;
+  text-align: center;
+  resize: none;
+  overflow: auto;
+  line-height: 1.1em;
+  font-size: 1.15rem;
+  caret-color: #ffffff;
+  outline: none;
+  z-index: 6;
+}
+/* Improved input behavior for native caret visibility and multiline wrapping */
+.profile-name-input {
+  /* ensure textarea is rendered as a multiline block and caret is visible */
+  display: block;
+  padding: 0;
+  margin: 12px auto 0 auto;
+  background: transparent;
+  border: none;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  caret-color: #ffffff;
+  color: #ffffff;
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-align: center;
+}
+
+/* placeholder display styling (separate class applied to display div) */
+.profile-name-display.placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
+/* hide webkit native scrollbars for textarea for visual cleanliness */
+.profile-name-input::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+/* style.css v1.0.1 */
+/* Dark theme background */
+body {
+  background: #11151c;
+  color: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Top Bar Menu */
+#top-bar-menu {
+  width: 100%;
+  background: #11151c;
+  padding: 24px 0 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.pill-menu {
+  display: flex;
+  gap: 12px;
+  background: none;
+}
+
+.pill {
+  background: #181e2a;
+  color: #fff;
+  border: 1px solid #232a3a;
+  border-radius: 16px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s, color 0.2s;
+}
+.pill:hover {
+  background: #232a3a;
+  color: #e0eaff;
+}
+
+/* Editor Container */
+#editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding-top: 64px;
+}
+
+/* Canvas Area */
+#canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 32px;
+}
+
+.a4-canvas {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  width: 794px;
+  min-height: 1123px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Layout menu squircle mock for Sidebar option */
+.layout-squircle-btn {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.layout-squircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px; /* squircle-ish */
+  background: linear-gradient(180deg,#ffffff 0%, #f2f2f7 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ls-canvas {
+  width: 36px;
+  height: 36px;
+  background: #e8edf8;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.ls-sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 28%;
+  background: #bfd2ff;
+}
+.ls-main { position: absolute; right: 0; top: 0; bottom: 0; left: 28%; display:flex; align-items:center; justify-content:center }
+.ls-profile { width: 12px; height: 12px; border-radius: 50%; background: #9aaedc; border: 2px solid #fff }
+.ls-label { font-size: 0.85rem; margin-left: 6px; color: #e8eefc }
+
+/* Theme swatches */
+.theme-palette {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.theme-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px; /* squircle-like */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  border: 2px solid transparent;
+}
+.theme-swatch:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.16);
+}
+.theme-swatch.selected {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 0 0 4px rgba(255,255,255,0.09) inset;
+  border-color: rgba(255,255,255,0.25);
+}
+
+/* small swatch shown inside the top bar Theme pill */
+.pill .pill-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 8px;
+  margin-left: 8px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Top Fancy layout styles */
+.top-fancy-layout { position: relative; width: 100%; height: 100%; }
+.tf-hero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 170px;
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+  background: var(--hero-gradient);
+  overflow: visible; /* allow profile circle to overlap */
+  padding-top: 20px; /* give space for the name */
+}
+
+.tf-profile-wrap {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, -50%); /* center the circle so it's half in/half out of hero */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto; /* allow clicking the plus/pencil inside the wrap */
+}
+
+.tf-profile-circle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: var(--profile-inner-bg);
+  border: 5px solid #fff;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+  overflow: hidden;
+  position: relative;
+  z-index: 6;
+  pointer-events: auto; /* enable interactions inside the circle */
+}
+
+.tf-name-display {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 28px; /* sit the name comfortably inside the hero */
+  text-align: center;
+  font-weight: 800;
+  color: rgba(255,255,255,0.98);
+  font-size: 1.45rem; /* larger name font */
+  letter-spacing: 0.01em;
+  z-index: 7;
+}
+
+/* ensure the plus button looks centered and slightly raised inside the profile circle */
+.tf-profile-circle .profile-plus {
+  width: 56px;
+  height: 56px;
+  font-size: 1.6rem;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.32);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.tf-profile-pulse { animation: tf-pulse 0.6s ease; }
+@keyframes tf-pulse { 0% { transform: translateX(-50%) scale(1) } 50% { transform: translateX(-50%) scale(1.06) } 100% { transform: translateX(-50%) scale(1) } }
+
+/* App Title */
+#top-bar-menu::before {
+  content: 'Easy Resume';
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #fff;
+  margin-right: 32px;
+  letter-spacing: 0.02em;
+  display: inline-block;
+}
