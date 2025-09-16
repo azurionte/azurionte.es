@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zaurioking Roulette</title>
+<style>
+  :root{
+    --purple:#7c3aed; --purple-d:#4c1d95;
+    --ink:#ffffff; --glow:#facc15; --accent:#d946ef; --ok:#22c55e;
+    --panel: rgba(14,17,23,.55);
+    --line: rgba(255,255,255,.12);
+  }
+  html,body{ background:transparent; margin:0; color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{ display:flex; gap:24px; padding:16px; align-items:flex-start; }
+  .left{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+
+  h1{
+    margin:0 0 6px; font-size:40px; letter-spacing:1px; text-align:center;
+    color:var(--purple);
+    text-shadow: 0 0 6px var(--glow), 0 0 18px var(--accent);
+    animation: titleGlow 2.5s ease-in-out infinite alternate;
+  }
+  @keyframes titleGlow{
+    from { text-shadow: 0 0 6px var(--glow); }
+    to   { text-shadow: 0 0 22px var(--accent), 0 0 10px var(--glow); }
+  }
+
+  .roulette{ position:relative; width:520px; height:520px; filter: drop-shadow(0 10px 25px rgba(0,0,0,.45)); }
+  canvas{ border-radius:50%; }
+  .pointer{
+    position:absolute; left:50%; top:-22px; transform:translateX(-50%);
+    width:0;height:0; border-left:20px solid transparent; border-right:20px solid transparent;
+    border-bottom:44px solid var(--glow);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+    animation: pointerWiggle 2s ease-in-out infinite;
+  }
+  @keyframes pointerWiggle{ 0%,100%{ transform:translateX(-50%) rotate(-3deg);} 50%{ transform:translateX(-50%) rotate(3deg);} }
+
+  .spin{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:120px;height:120px;border-radius:50%;
+    border:none; cursor:pointer; font-weight:700; font-size:20px; color:#fff;
+    background: radial-gradient(circle at 30% 30%, var(--purple), var(--purple-d));
+    box-shadow: inset 0 0 10px rgba(255,255,255,.15), 0 10px 25px rgba(0,0,0,.4);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .spin:disabled{ opacity:.6; cursor:not-allowed; animation:none; }
+  @keyframes pulse{ 0%,100%{ transform:translate(-50%,-50%) scale(1);} 50%{ transform:translate(-50%,-50%) scale(1.08);} }
+
+  .counter{
+    display:flex; gap:16px; align-items:center;
+    padding:8px 12px; border-radius:12px; background:var(--panel);
+    border:1px solid var(--line);
+    box-shadow: 0 10px 22px rgba(0,0,0,.25);
+    font-weight:600;
+  }
+... (file truncated for brevity)
