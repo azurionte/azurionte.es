@@ -126,7 +126,7 @@
   </style>
 </head>
 <body>
-  <div class="modal" id="adminModal" style="max-width:600px;margin:0 auto;">
+  <div class="modal" id="adminModal" style="max-width:600px;margin:0 auto;position:relative;left:20px;">
     <div class="modal-title">Zaurioking tools</div>
     <button id="startServerBtn">Start server</button>
     <div style="margin: 1.2rem 0 0.7rem 0;">
@@ -143,7 +143,7 @@
     document.getElementById('startServerBtn').onclick = function() {
       document.getElementById('serverStatus').textContent = 'Conectando...';
   console.log('Admin modal style:', document.getElementById('adminModal').style.cssText);
-  console.log('Modal should now be centered with max-width and auto margins.');
+  console.log('Modal should now be shifted right by 20px.');
       setTimeout(() => {
         document.getElementById('serverStatus').textContent = 'Conectado';
       }, 1200);
