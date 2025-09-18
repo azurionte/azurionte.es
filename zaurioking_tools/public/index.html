@@ -126,7 +126,7 @@
   </style>
 </head>
 <body>
-  <div class="modal" id="adminModal" style="margin:0 15vw;">
+  <div class="modal" id="adminModal" style="max-width:600px;margin:0 auto;">
     <div class="modal-title">Zaurioking tools</div>
     <button id="startServerBtn">Start server</button>
     <div style="margin: 1.2rem 0 0.7rem 0;">
@@ -142,8 +142,8 @@
     // Server status polling
     document.getElementById('startServerBtn').onclick = function() {
       document.getElementById('serverStatus').textContent = 'Conectando...';
-  console.log('Admin modal margin style:', document.getElementById('adminModal').style.margin);
-  console.log('Modal should now be centered with wide left/right margins.');
+  console.log('Admin modal style:', document.getElementById('adminModal').style.cssText);
+  console.log('Modal should now be centered with max-width and auto margins.');
       setTimeout(() => {
         document.getElementById('serverStatus').textContent = 'Conectado';
       }, 1200);
