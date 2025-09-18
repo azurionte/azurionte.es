@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Zaurioking Tools Admin</title>
+  <style>body{font-family:Arial;padding:20px}</style>
+</head>
+<body>
+  <h1>Admin (zaurioking_tools)</h1>
+  <div>
+    <button id="incPlay">+Jugadas</button>
+    <button id="incWin">+Ganadas</button>
+    <button id="spin">GIRAR</button>
+    <button id="reset">Reiniciar datos</button>
+  </div>
+  <pre id="state">state...</pre>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const stateEl = document.getElementById('state');
+    socket.on('state', s=> stateEl.textContent = JSON.stringify(s,null,2));
+    document.getElementById('incPlay').onclick = ()=> socket.emit('incPlay');
+    document.getElementById('incWin').onclick = ()=> socket.emit('incWin');
+    document.getElementById('reset').onclick = ()=> socket.emit('reset');
+    document.getElementById('spin').onclick = ()=> socket.emit('spin');
+  </script>
+</body>
+</html>
