@@ -370,12 +370,13 @@
     };
 
     document.getElementById('enterCodeBtn').onclick = function() {
-      document.getElementById('sessionStatus').textContent = 'Sesión iniciada: ' + document.getElementById('codeInput').value;
+      const codeValue = document.getElementById('codeInput').value;
+      document.getElementById('sessionStatus').textContent = 'Sesión iniciada: ' + codeValue;
       const adminModal = document.getElementById('adminModal');
       if (adminModal) {
         adminModal.parentNode.removeChild(adminModal);
       }
-      showControllersModal();
+      showControllersModal(codeValue);
     };
 
     function showControllersModal() {
@@ -426,8 +427,8 @@
   socketScript.src = 'https://azurionte-es-1.onrender.com/socket.io/socket.io.js';
   document.body.appendChild(socketScript);
       socketScript.onload = () => {
-        const sessionId = document.getElementById('codeInput').value || '1234';
-  const socket = io('https://azurionte-es-1.onrender.com');
+        const sessionId = arguments[0] || '1234';
+        const socket = io('https://azurionte-es-1.onrender.com');
         let jugadas = 0;
         let ganadas = 0;
         let challenges = [
