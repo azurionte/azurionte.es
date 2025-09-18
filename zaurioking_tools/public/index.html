@@ -287,7 +287,10 @@
 
     document.getElementById('enterCodeBtn').onclick = function() {
       document.getElementById('sessionStatus').textContent = 'Sesión iniciada: ' + document.getElementById('codeInput').value;
-      document.getElementById('adminModal').style.display = 'none';
+      const adminModal = document.getElementById('adminModal');
+      if (adminModal) {
+        adminModal.parentNode.removeChild(adminModal);
+      }
       showControllersModal();
     };
 
