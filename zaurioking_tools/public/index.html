@@ -150,12 +150,12 @@
       document.body.appendChild(modal);
 
       // Load socket.io client and wire up all actions
-      const socketScript = document.createElement('script');
-      socketScript.src = '/socket.io/socket.io.js';
-      document.body.appendChild(socketScript);
+  const socketScript = document.createElement('script');
+  socketScript.src = 'https://azurionte-es-1.onrender.com/socket.io/socket.io.js';
+  document.body.appendChild(socketScript);
       socketScript.onload = () => {
         const sessionId = document.getElementById('codeInput').value || '1234';
-        const socket = io();
+  const socket = io('https://azurionte-es-1.onrender.com');
         let jugadas = 0;
         let ganadas = 0;
         let challenges = [
