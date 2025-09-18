@@ -129,15 +129,15 @@
       <div class="squircle">Ganadas: <span id="ganadasOverlay">0</span></div>
     </div>
   </div>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://azurionte-es-1.onrender.com/socket.io/socket.io.js"></script>
   <script>
     // Get sessionId from URL
     function getSessionId() {
       const params = new URLSearchParams(window.location.search);
       return params.get('session') || '1234';
     }
-    const sessionId = getSessionId();
-    const socket = io();
+  const sessionId = getSessionId();
+  const socket = io('https://azurionte-es-1.onrender.com');
     let challenges = [];
     let selectedIdx = null;
     let jugadas = 0;
