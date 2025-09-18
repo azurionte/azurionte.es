@@ -160,6 +160,10 @@
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.id = 'controllersModal';
+      modal.style.maxWidth = '600px';
+      modal.style.margin = '0 auto';
+      modal.style.position = 'relative';
+      modal.style.left = '20px';
       modal.innerHTML = `
         <div class="modal-title" style="margin-bottom: 0.7rem;">Zaurioking tools</div>
         <div style="font-size:1.1rem;font-weight:bold;margin-bottom:1.1rem;">Panel de control</div>
@@ -190,7 +194,9 @@
           </div>
         </div>
       `;
-      document.body.appendChild(modal);
+  document.body.appendChild(modal);
+  console.log('Controllers modal style:', modal.style.cssText);
+  console.log('Controllers modal should now be shifted right by 20px.');
 
       // Load socket.io client and wire up all actions
   const socketScript = document.createElement('script');
