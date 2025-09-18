@@ -1,5 +1,6 @@
 
 import express from 'express';
+import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
 import { dirname } from 'path';
@@ -7,8 +8,19 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+// Allow CORS for GitHub Pages and custom domain
+app.use(cors({
+  origin: ['https://azurionte.github.io', 'https://azurionte.es'],
+  credentials: true
+}));
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: ['https://azurionte.github.io', 'https://azurionte.es'],
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
 
 
 app.use(express.static('public'));
