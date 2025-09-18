@@ -142,6 +142,7 @@
     // Server status polling
     document.getElementById('startServerBtn').onclick = function() {
       document.getElementById('serverStatus').textContent = 'Conectando...';
+      console.log('Admin modal margin style:', document.getElementById('adminModal').style.margin);
       setTimeout(() => {
         document.getElementById('serverStatus').textContent = 'Conectado';
       }, 1200);
