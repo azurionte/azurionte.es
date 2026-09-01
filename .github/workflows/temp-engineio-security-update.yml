@@ -1,0 +1,34 @@
+name: Temporary Engine.IO security update
+
+on:
+  push:
+    branches:
+      - security/cve-2026-59724-engineio
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: zaurioking_tools/package-lock.json
+      - name: Update Engine.IO within Socket.IO's allowed range
+        working-directory: zaurioking_tools
+        run: npm update engine.io --package-lock-only --ignore-scripts
+      - name: Commit regenerated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add zaurioking_tools/package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: update engine.io lockfile for CVE-2026-59724"
+          git push
